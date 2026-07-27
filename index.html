@@ -145,7 +145,7 @@
             <!-- Navigation Sub-tabs inside Teacher View -->
             <div class="flex items-center gap-2 border-b border-slate-200 pb-3">
                 <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Cấu Hình Deadline
+                    <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang Đa Dạng
                 </button>
                 <button id="subtab-classes-btn" onclick="switchTeacherSubTab('classes')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
                     <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học & Học Sinh (<span id="total-classes-badge">0</span>)
@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Tự Động Đồng Bộ Đám Mây Real-Time Qua Vercel
+                            <i class="fa-solid fa-layer-group"></i> Chế Độ Phân Trang Từng Phần Bài Tập (Multi-Page Sections)
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tự Động Bóc Tách Ngân Hàng Từ & Đánh Số Câu Hỏi Chuẩn 100%!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tách Biệt Mỗi Bài Tập 1 Trang & Khung Kéo Thả Độc Lập!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Dòng danh sách từ vựng Word Bank sẽ <b>KHÔNG BAO GIỜ BỊ TÍNH LÀ CÂU 1</b>. Hệ thống tự động trích xuất các từ vào khung trôi và bắt đầu tính <b>Câu 1</b> từ câu hỏi kéo thả đầu tiên!
+                            Mỗi phần bài tập sẽ ở <b>1 TRANG RIÊNG BIỆT</b>. Khung từ kéo thả chỉ hiển thị ở bài kéo thả và <b>TỰ ĐỘNG ẨN HOÀN TOÀN</b> ở các bài trắc nghiệm / đúng sai khác!
                         </p>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Mẫu có sẵn:</span>
                         <button onclick="loadPresetSample('multi_type')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold rounded-lg transition border border-indigo-200">
-                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Đề Đa Dạng (5 Dạng Bài Tập)
+                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Đề Phân Trang (3 Phần Bài Tập)
                         </button>
                         <button onclick="loadPresetSample('ocr_json')" class="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold rounded-lg transition border border-purple-200">
                             <i class="fa-solid fa-robot text-purple-500"></i> Đề OCR AI (PaddleOCR)
@@ -186,7 +186,7 @@
                             <i class="fa-solid fa-trash-can"></i> Xóa tất cả
                         </button>
                         <button onclick="loadSampleData()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition shadow-sm">
-                            <i class="fa-solid fa-download"></i> Tải đề mẫu OCR
+                            <i class="fa-solid fa-download"></i> Tải đề mẫu
                         </button>
                     </div>
                 </div>
@@ -239,25 +239,22 @@
                     <!-- Cheat Sheet Sidebar -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
-                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Cú Pháp 5 Dạng Bài Tập</h3>
+                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Tạo Nhiều Trang Bài Tập</h3>
                             
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Dùng tiêu đề <b>`## Bài 1`</b>, <b>`## Bài 2`</b> hoặc câu chỉ dẫn để tách thành từng trang riêng biệt!
+                            </p>
+
                             <div>
-                                <span class="text-xs font-bold text-brand-700 uppercase">1. Kéo thả từ:</span>
-                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 He can [___/think outside the box].</pre>
+                                <span class="text-xs font-bold text-brand-700 uppercase">Trang 1 (Bài Kéo Thả):</span>
+                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 1 Fill in the blanks
+1 He can [___/think outside the box].</pre>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-emerald-700 uppercase">2. Đúng / Sai (True / False):</span>
-                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 Paris is the capital. [True/False]
+                                <span class="text-xs font-bold text-emerald-700 uppercase">Trang 2 (Bài Đúng / Sai):</span>
+                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 2 General Knowledge
+1 Paris is the capital. [True/False]
 Answer: True</pre>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-amber-700 uppercase">3. Nối cột (Matching A <-> B):</span>
-                                <pre class="bg-slate-900 text-amber-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 team player <-> A works well with others</pre>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-indigo-700 uppercase">4. Trả lời ngắn (Short answer):</span>
-                                <pre class="bg-slate-900 text-indigo-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 What skill helps express ideas?
-Answer: communication skills</pre>
                             </div>
                         </div>
                     </div>
@@ -273,7 +270,7 @@ Answer: communication skills</pre>
                                     <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">7 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
-                                <p class="text-xs text-emerald-100 mt-1">Bất kỳ học sinh nào mở trang web Vercel trên điện thoại hoặc máy tính đều sẽ tự động thấy đề bài này.</p>
+                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa các trang bài tập để làm bài rất mượt mà.</p>
                             </div>
                             
                             <div class="flex items-center gap-2">
@@ -370,7 +367,7 @@ Answer: communication skills</pre>
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
                     </div>
                     <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">7 câu hỏi</span></h3>
-                    <p class="text-xs text-emerald-100">Tự động nhận diện 5 dạng bài tập & nhắc nhở đếm ngược hạn nộp bài!</p>
+                    <p class="text-xs text-emerald-100">Phân trang từng phần bài tập độc lập & khung kéo thả tự động ẩn khi sang bài khác!</p>
                 </div>
 
                 <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
@@ -450,7 +447,21 @@ Answer: communication skills</pre>
                     </div>
                 </div>
 
-                <!-- STICKY FLOATING WORD BANK CONTAINER -->
+                <!-- SECTION PAGINATION TOP TOOLBAR -->
+                <div id="section-pagination-toolbar" class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <button id="prev-section-btn" onclick="changeSectionPage(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-chevron-left"></i> Phần Trước
+                    </button>
+
+                    <!-- Section Page Chips Container -->
+                    <div id="section-page-chips" class="flex items-center gap-2 overflow-x-auto"></div>
+
+                    <button id="next-section-btn" onclick="changeSectionPage(1)" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                        Phần Tiếp <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <!-- STICKY FLOATING WORD BANK CONTAINER (ONLY SHOWN ON DRAG-DROP SECTIONS) -->
                 <div id="word-bank-card" class="hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border-2 border-brand-300 rounded-3xl p-5 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
@@ -514,7 +525,7 @@ Answer: communication skills</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH AUTOMATIC WORD BANK LINE DETECTION -->
+    <!-- JAVASCRIPT LOGIC WITH MULTI-SECTION PAGINATION ENGINE -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -541,12 +552,7 @@ Answer: False
 ## 3 Vocabulary Matching (Nối Cột A <-> B)
 
 1 team player <-> A works well with other candidates
-2 critical thinking <-> B evaluates options carefully
-
-## 4 Short Answer (Trả lời ngắn)
-
-1 What skill helps express presentation ideas clearly?
-Answer: communication skills`,
+2 critical thinking <-> B evaluates options carefully`,
 
             ocr_json: `{
   "layoutParsingResults": [
@@ -576,11 +582,13 @@ Answer: communication skills`,
             ],
             grades: [],
             currentQuestions: [],
+            sections: [],
             wordBank: [],
             quizDeadline: null
         };
 
         let activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
+        let activeSectionIndex = 0;
         let studentAnswers = {};
         let selectedWordForClick = null;
         let isSubmitted = false;
@@ -643,21 +651,12 @@ Answer: communication skills`,
             return Array.from(new Set(cleaned));
         }
 
-        // DETECT WORD BANK VOCABULARY LIST LINES TO PREVENT THEM FROM BECOMING QUESTION #1
         function isWordBankLine(line) {
             if (!line) return false;
             const lower = line.toLowerCase();
-            
             if (lower.includes('word bank') || lower.includes('words in the box') || lower.includes('phrases in the box')) return true;
-            
-            if ((lower.includes('can-do attitude') || lower.includes('communication skills') || lower.includes('critical thinking') || lower.includes('team player') || lower.includes('think outside the box')) && !line.includes('[') && !line.includes('___')) {
-                return true;
-            }
-            
-            if ((line.split('|').length >= 3 || line.split(/\s{2,}/).length >= 3) && !line.match(/^\d+[\.\:\)]/) && !line.includes('[') && !line.includes('___')) {
-                return true;
-            }
-
+            if ((lower.includes('can-do attitude') || lower.includes('communication skills') || lower.includes('critical thinking') || lower.includes('team player') || lower.includes('think outside the box')) && !line.includes('[') && !line.includes('___')) return true;
+            if ((line.split('|').length >= 3 || line.split(/\s{2,}/).length >= 3) && !line.match(/^\d+[\.\:\)]/) && !line.includes('[') && !line.includes('___')) return true;
             return false;
         }
 
@@ -666,6 +665,7 @@ Answer: communication skills`,
             try {
                 const payload = {
                     questions: questions,
+                    sections: appData.sections,
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
                     updatedAt: new Date().toLocaleString('vi-VN')
@@ -676,7 +676,7 @@ Answer: communication skills`,
                     body: JSON.stringify(payload)
                 });
                 updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
-                showNotification('🚀 Bài tập & Deadline đã phát hành thành công lên Đám mây!', 'success');
+                showNotification('🚀 Bài tập đã phát hành thành công lên Đám mây!', 'success');
             } catch(e) {
                 console.warn('Cloud publish fallback to local:', e);
                 updateCloudStatus('Đã lưu nội bộ', 'success');
@@ -690,6 +690,7 @@ Answer: communication skills`,
                     const data = await res.json();
                     if (data && data.questions && data.questions.length > 0) {
                         appData.currentQuestions = data.questions;
+                        appData.sections = data.sections || [];
                         appData.wordBank = sanitizeWordBank(data.wordBank || []);
                         appData.quizDeadline = data.quizDeadline || null;
                         saveStorage();
@@ -793,7 +794,6 @@ Answer: communication skills`,
             await fetchQuizFromCloud();
         });
 
-        // Tab Switching
         async function switchMainTab(tab) {
             document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
             document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
@@ -803,6 +803,7 @@ Answer: communication skills`,
 
             if (tab === 'student') {
                 await fetchQuizFromCloud();
+                activeSectionIndex = 0;
                 renderQuizQuestions();
                 if (activeStudentInfo && activeStudentInfo.studentId) {
                     restoreStudentSessionUI();
@@ -822,7 +823,6 @@ Answer: communication skills`,
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
         }
 
-        // CLASS MANAGEMENT
         function createNewClass() {
             const nameInput = document.getElementById('new-class-name');
             const descInput = document.getElementById('new-class-desc');
@@ -943,7 +943,6 @@ Answer: communication skills`,
             }
         }
 
-        // STUDENT SESSION LOGIC & LOOKUP
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
@@ -1010,6 +1009,7 @@ Answer: communication skills`,
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
             resetQuiz(false);
+            activeSectionIndex = 0;
             renderQuizQuestions();
             startTimer();
         }
@@ -1045,7 +1045,7 @@ Answer: communication skills`,
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // SMART PARSER PREVENTING WORD BANK LINES FROM BECOMING QUESTION #1
+        // SMART MULTI-SECTION PARSER WITH INDEPENDENT SECTION WORD BANKS
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1075,10 +1075,8 @@ Answer: communication skills`,
             }
 
             const lines = textToParse.split('\n');
-            const questions = [];
-            const extractedWordBank = new Set();
-
-            let currentSectionTitle = "Phần Bài Tập Tương Tác";
+            const sections = [];
+            let currentSec = { id: 0, title: "Phần 1: Bài Tập Tương Tác", questions: [], wordBank: [] };
             let currentQ = null;
 
             const sectionHeaderRegex = /^(?:##|\d+\s*(?:complete|choose|read|fill|match|put|use|write|circle|find|listen|look|answer|rewrite|translate|mark|exercise|part|phần|bài))/i;
@@ -1088,7 +1086,7 @@ Answer: communication skills`,
             const expRegex = /^\s*(?:explanation|giải thích|expl)[:\s]+(.*)$/i;
             const matchingRegex = /^(\d+[\.\s]*)?(.*?)\s*<->\s*(.*)$/;
 
-            function saveCurrent() {
+            function saveCurrentQuestion() {
                 if (!currentQ) return;
                 
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
@@ -1116,11 +1114,11 @@ Answer: communication skills`,
                         const content = m[1].trim();
                         if (content.includes('/')) {
                             const choices = content.split('/').map(c => c.trim());
-                            choices.forEach(c => { if(c.length <= 30) extractedWordBank.add(c); });
+                            choices.forEach(c => { if(c.length <= 30) currentSec.wordBank.push(c); });
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: currentQ.answer || choices[0] });
                         } else {
                             if (content && content !== '___' && content.length <= 30) {
-                                extractedWordBank.add(content);
+                                currentSec.wordBank.push(content);
                                 currentQ.answer = content;
                             }
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || currentQ.answer });
@@ -1128,7 +1126,7 @@ Answer: communication skills`,
                     });
                 } else if (cleanTitle.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()) && currentQ.answer.length <= 35 && currentQ.options.length === 0)) {
                     currentQ.type = 'fill_blank';
-                    if (currentQ.answer && currentQ.answer.length <= 30) extractedWordBank.add(currentQ.answer);
+                    if (currentQ.answer && currentQ.answer.length <= 30) currentSec.wordBank.push(currentQ.answer);
                 } else if (currentQ.options.length > 0) {
                     currentQ.type = 'multiple_choice';
                 } else {
@@ -1136,8 +1134,8 @@ Answer: communication skills`,
                 }
 
                 if (!currentQ.title) currentQ.title = cleanTitle;
-                currentQ.sectionTitle = currentSectionTitle;
-                questions.push(currentQ);
+                currentQ.sectionId = currentSec.id;
+                currentSec.questions.push(currentQ);
                 currentQ = null;
             }
 
@@ -1145,31 +1143,36 @@ Answer: communication skills`,
                 line = line.trim();
                 if (!line) continue;
 
-                // 1. Detect Section Header / Instruction Line & Strip leading numbers
+                // Section Header -> START NEW SECTION
                 if (line.startsWith('##') || (sectionHeaderRegex.test(line) && (line.includes('using the words') || line.includes('in italics') || line.includes('in the box') || line.length > 35 || line.startsWith('##')))) {
-                    saveCurrent();
+                    saveCurrentQuestion();
+                    if (currentSec.questions.length > 0) {
+                        currentSec.wordBank = sanitizeWordBank(currentSec.wordBank);
+                        sections.push(currentSec);
+                        currentSec = { id: sections.length, title: "", questions: [], wordBank: [] };
+                    }
                     let cleanSec = line.replace(/^(?:##|\d+[\.\:\)\s]*)/, '').trim();
-                    currentSectionTitle = cleanSec || "Phần Bài Tập";
+                    currentSec.title = cleanSec || `Phần ${sections.length + 1}`;
                     continue;
                 }
 
-                // 2. Detect Word Bank lines and extract words WITHOUT turning into Question #1
+                // Word Bank Line -> Add ONLY to current section's word bank
                 if (isWordBankLine(line)) {
-                    saveCurrent();
+                    saveCurrentQuestion();
                     const rawWords = line.split(/\s{2,}|\||\,/);
                     rawWords.forEach(w => {
                         const cleanW = w.replace(/^(?:1\s*Complete|using the words).*$/i, '').trim();
                         if (cleanW.length > 2 && cleanW.length <= 30 && cleanW.split(' ').length <= 4) {
-                            extractedWordBank.add(cleanW);
+                            currentSec.wordBank.push(cleanW);
                         }
                     });
-                    continue; // Skip creating a question for Word Bank lines!
+                    continue;
                 }
 
                 const ansM = line.match(answerRegex);
                 if (ansM && currentQ) { 
                     currentQ.answer = ansM[1].trim(); 
-                    if (currentQ.answer && currentQ.answer.length <= 30) extractedWordBank.add(currentQ.answer); 
+                    if (currentQ.answer && currentQ.answer.length <= 30) currentSec.wordBank.push(currentQ.answer); 
                     continue; 
                 }
 
@@ -1180,8 +1183,8 @@ Answer: communication skills`,
                 const optM = line.match(optionRegex);
 
                 if (isHeader) {
-                    saveCurrent();
-                    currentQ = { id: questions.length + 1, text: line, options: [], answer: '', explanation: '' };
+                    saveCurrentQuestion();
+                    currentQ = { id: 0, text: line, options: [], answer: '', explanation: '' };
                     continue;
                 }
 
@@ -1191,15 +1194,36 @@ Answer: communication skills`,
                 }
 
                 if (!currentQ) {
-                    currentQ = { id: questions.length + 1, text: line, options: [], answer: '', explanation: '' };
+                    currentQ = { id: 0, text: line, options: [], answer: '', explanation: '' };
                 } else {
                     if (currentQ.options.length === 0) currentQ.text += ' ' + line;
                 }
             }
-            saveCurrent();
 
-            appData.wordBank = sanitizeWordBank(Array.from(extractedWordBank));
-            return questions;
+            saveCurrentQuestion();
+            if (currentSec.questions.length > 0) {
+                currentSec.wordBank = sanitizeWordBank(currentSec.wordBank);
+                sections.push(currentSec);
+            }
+
+            // Assign global IDs & maintain section metadata
+            let globalQId = 1;
+            let allQuestions = [];
+            let aggregatedWordBank = [];
+
+            sections.forEach((sec, sIdx) => {
+                sec.questions.forEach((q) => {
+                    q.id = globalQId++;
+                    q.sectionIndex = sIdx;
+                    q.sectionTitle = sec.title;
+                    allQuestions.push(q);
+                });
+                aggregatedWordBank = aggregatedWordBank.concat(sec.wordBank);
+            });
+
+            appData.sections = sections;
+            appData.wordBank = sanitizeWordBank(aggregatedWordBank);
+            return allQuestions;
         }
 
         async function generateQuiz() {
@@ -1247,7 +1271,7 @@ Answer: communication skills`,
                                 <i class="fa-solid fa-file-signature"></i>
                             </div>
                             <div>
-                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">HƯỚNG DẪN BÀI TẬP (ĐỀ BÀI LỚN)</span>
+                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG BÀI TẬP: PHẦN ${q.sectionIndex + 1}</span>
                                 <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
                             </div>
                         </div>
@@ -1305,10 +1329,31 @@ Answer: communication skills`,
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        // SECTION PAGE NAVIGATION & ISOLATED RENDERING
+        function changeSectionPage(delta) {
+            if (!appData.sections || appData.sections.length === 0) return;
+            const newIndex = activeSectionIndex + delta;
+            if (newIndex >= 0 && newIndex < appData.sections.length) {
+                activeSectionIndex = newIndex;
+                renderQuizQuestions();
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+            }
+        }
+
+        function goToSectionPage(index) {
+            if (!appData.sections || index < 0 || index >= appData.sections.length) return;
+            activeSectionIndex = index;
+            renderQuizQuestions();
+            window.scrollTo({ top: 120, behavior: 'smooth' });
+        }
+
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
             const wordChipsContainer = document.getElementById('word-chips-container');
+            const pageChipsContainer = document.getElementById('section-page-chips');
+            const prevBtn = document.getElementById('prev-section-btn');
+            const nextBtn = document.getElementById('next-section-btn');
             
             container.innerHTML = '';
 
@@ -1316,15 +1361,43 @@ Answer: communication skills`,
                 appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
             }
 
-            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
+            if (!appData.sections || appData.sections.length === 0) {
+                appData.sections = [{ id: 0, title: "Phần 1: Bài Tập", questions: appData.currentQuestions, wordBank: appData.wordBank }];
+            }
 
-            appData.wordBank = sanitizeWordBank(appData.wordBank);
+            if (activeSectionIndex >= appData.sections.length) activeSectionIndex = 0;
 
-            if (appData.wordBank && appData.wordBank.length > 0) {
+            const currentSec = appData.sections[activeSectionIndex];
+
+            // Render Section Page Chips
+            pageChipsContainer.innerHTML = '';
+            appData.sections.forEach((sec, sIdx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => goToSectionPage(sIdx);
+                btn.className = `px-3.5 py-1.5 rounded-xl font-bold text-xs border transition flex items-center gap-1.5 ${sIdx === activeSectionIndex ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`;
+                btn.innerHTML = `<i class="fa-solid fa-file-lines text-[10px]"></i> Trang ${sIdx + 1}`;
+                pageChipsContainer.appendChild(btn);
+            });
+
+            prevBtn.disabled = activeSectionIndex === 0;
+            prevBtn.classList.toggle('opacity-40', activeSectionIndex === 0);
+            prevBtn.classList.toggle('cursor-not-allowed', activeSectionIndex === 0);
+
+            nextBtn.disabled = activeSectionIndex === appData.sections.length - 1;
+            nextBtn.classList.toggle('opacity-40', activeSectionIndex === appData.sections.length - 1);
+            nextBtn.classList.toggle('cursor-not-allowed', activeSectionIndex === appData.sections.length - 1);
+
+            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi (Trang ${activeSectionIndex + 1}/${appData.sections.length})`;
+
+            // RENDER WORD BANK ONLY IF CURRENT SECTION HAS DRAG & DROP WORDS
+            const currentSecWords = sanitizeWordBank(currentSec.wordBank || []);
+            const hasFillBlankInSec = currentSec.questions.some(q => q.type === 'fill_blank');
+
+            if (currentSecWords.length > 0 && hasFillBlankInSec) {
                 wordBankCard.classList.remove('hidden');
                 wordChipsContainer.innerHTML = '';
                 
-                appData.wordBank.forEach((w) => {
+                currentSecWords.forEach((w) => {
                     const isUsed = Object.values(studentAnswers).includes(w);
                     const chip = document.createElement('div');
                     chip.className = `drag-word px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm transition border ${isUsed ? 'bg-slate-200 text-slate-400 border-slate-300 used' : 'bg-white text-brand-800 border-brand-300 hover:border-brand-600 hover:bg-brand-50'}`;
@@ -1345,30 +1418,27 @@ Answer: communication skills`,
                     wordChipsContainer.appendChild(chip);
                 });
             } else {
-                wordBankCard.classList.add('hidden');
+                wordBankCard.classList.add('hidden'); // HIDE COMPLETELY ON OTHER EXERCISE TYPES
             }
 
-            let lastSectionTitle = '';
+            // Render Section Instruction Banner
+            const secHeaderCard = document.createElement('div');
+            secHeaderCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-2 flex items-center justify-between";
+            secHeaderCard.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
+                        <i class="fa-solid fa-file-signature"></i>
+                    </div>
+                    <div>
+                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG ${activeSectionIndex + 1} / ${appData.sections.length}: HƯỚNG DẪN BÀI TẬP</span>
+                        <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(currentSec.title)}</h4>
+                    </div>
+                </div>
+            `;
+            container.appendChild(secHeaderCard);
 
-            appData.currentQuestions.forEach((q, idx) => {
-                if (q.sectionTitle && q.sectionTitle !== lastSectionTitle) {
-                    lastSectionTitle = q.sectionTitle;
-                    const secCard = document.createElement('div');
-                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-4 flex items-center justify-between";
-                    secCard.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
-                                <i class="fa-solid fa-file-signature"></i>
-                            </div>
-                            <div>
-                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">HƯỚNG DẪN BÀI TẬP (ĐỀ BÀI LỚN)</span>
-                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(secCard);
-                }
-
+            // Render Questions of CURRENT SECTION ONLY
+            currentSec.questions.forEach((q) => {
                 const card = document.createElement('div');
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 card.id = `question-card-${q.id}`;
@@ -1419,8 +1489,8 @@ Answer: communication skills`,
                 let html = `
                     <div class="flex items-center justify-between border-b pb-3">
                         <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${idx + 1}</span>
-                            <span class="font-heading font-bold text-sm text-slate-700">Câu ${idx + 1} / ${appData.currentQuestions.length}</span>
+                            <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${q.id}</span>
+                            <span class="font-heading font-bold text-sm text-slate-700">Câu ${q.id} / ${appData.currentQuestions.length}</span>
                         </div>
                         <div id="q-status-badge-${q.id}"><span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">${badgeText}</span></div>
                     </div>
@@ -1533,7 +1603,7 @@ Answer: communication skills`,
             document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
         }
 
-        // SUBMIT & SCORE FOR ALL 5 EXERCISE TYPES
+        // SUBMIT & SCORE FOR ALL SECTIONS
         function submitQuiz() {
             if (isSubmitted) return;
 
@@ -1565,22 +1635,25 @@ Answer: communication skills`,
                     if (userVal.toLowerCase() === expected.toLowerCase()) isCorrect = true;
                 }
 
-                if (isCorrect) {
-                    correctCount++;
-                    card.classList.add('border-emerald-300', 'bg-emerald-50/20');
-                    statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">ĐÚNG</span>`;
-                } else {
-                    card.classList.add('border-rose-300', 'bg-rose-50/20');
-                    statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">SAI</span>`;
-                }
+                if (isCorrect) correctCount++;
 
-                feedbackBox.classList.remove('hidden');
-                feedbackBox.innerHTML = `
-                    <div class="p-3.5 rounded-2xl ${isCorrect ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-rose-50 text-rose-900 border border-rose-200'} text-xs space-y-1">
-                        <div><b>Đáp án đúng:</b> ${q.answer || 'Đáp án chuẩn'}</div>
-                        ${q.explanation ? `<div><b>Giải thích:</b> ${q.explanation}</div>` : ''}
-                    </div>
-                `;
+                if (card && feedbackBox && statusBadge) {
+                    if (isCorrect) {
+                        card.classList.add('border-emerald-300', 'bg-emerald-50/20');
+                        statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">ĐÚNG</span>`;
+                    } else {
+                        card.classList.add('border-rose-300', 'bg-rose-50/20');
+                        statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">SAI</span>`;
+                    }
+
+                    feedbackBox.classList.remove('hidden');
+                    feedbackBox.innerHTML = `
+                        <div class="p-3.5 rounded-2xl ${isCorrect ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-rose-50 text-rose-900 border border-rose-200'} text-xs space-y-1">
+                            <div><b>Đáp án đúng:</b> ${q.answer || 'Đáp án chuẩn'}</div>
+                            ${q.explanation ? `<div><b>Giải thích:</b> ${q.explanation}</div>` : ''}
+                        </div>
+                    `;
+                }
             });
 
             const percent = Math.round((correctCount / appData.currentQuestions.length) * 100);
@@ -1662,6 +1735,7 @@ Answer: communication skills`,
         function resetQuiz(shouldRender = true) {
             studentAnswers = {};
             isSubmitted = false;
+            activeSectionIndex = 0;
             document.getElementById('quiz-result-banner').classList.add('hidden');
             resetTimer();
             if (shouldRender) { renderQuizQuestions(); startTimer(); }
@@ -1672,7 +1746,7 @@ Answer: communication skills`,
             timerRunning = true;
             timerInterval = setInterval(() => {
                 timerSeconds++;
-                document.getElementById('quiz-timer-display').innerText = formatTime(formatTime(timerSeconds));
+                document.getElementById('quiz-timer-display').innerText = formatTime(timerSeconds);
             }, 1000);
         }
         function stopTimer() { timerRunning = false; clearInterval(timerInterval); }
