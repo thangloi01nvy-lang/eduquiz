@@ -572,7 +572,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH PILL TOGGLE & SUFFIX INLINE INPUT ENHANCEMENTS -->
+    <!-- JAVASCRIPT LOGIC WITH DYNAMIC RECONSTRUCTION SAFETY NET -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1245,7 +1245,6 @@ can-do attitude communication skills critical thinking determination integrity s
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
                 cleanTitle = cleanTitle.replace(/^##\s*/, '');
 
-                // Auto convert inline slash choices like "confident/independent" into "[confident/independent]"
                 if (!cleanTitle.includes('[') && !cleanTitle.includes('___') && cleanTitle.includes('/')) {
                     cleanTitle = cleanTitle.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
                 }
@@ -1301,7 +1300,6 @@ can-do attitude communication skills critical thinking determination integrity s
                 line = line.trim();
                 if (!line) continue;
 
-                // 1. Detect Section Header Line WITH TOPIC MERGING
                 if (isSectionHeaderLine(line)) {
                     saveCurrentQuestion();
                     let cleanSecTitle = line.replace(/^(?:##|#|\d+[\.\:\)\s]*)/, '').trim();
@@ -1322,7 +1320,6 @@ can-do attitude communication skills critical thinking determination integrity s
                     currentSec = { id: 0, title: "Phần 1: Bài Tập Tương Tác", questions: [], wordBank: [] };
                 }
 
-                // 2. Detect Word Bank Line
                 if (isWordBankLine(line)) {
                     saveCurrentQuestion();
                     const rawWords = line.split(/\s{2,}|\||\,/);
@@ -1556,9 +1553,9 @@ can-do attitude communication skills critical thinking determination integrity s
 
             // RENDER WORD BANK ONLY IF CURRENT SECTION HAS DRAG & DROP WORDS
             const currentSecWords = sanitizeWordBank(currentSec.wordBank || []);
-            const hasFillBlankInSec = currentSec.questions.some(q => q.type === 'fill_blank' && (!q.inlineBlanks || q.inlineBlanks.every(b => !b.choices || b.choices.length === 0)));
+            const isExercise1 = activeSectionIndex === 0;
 
-            if (currentSecWords.length > 0 && hasFillBlankInSec) {
+            if (currentSecWords.length > 0 && isExercise1) {
                 wordBankCard.classList.remove('hidden');
                 wordChipsContainer.innerHTML = '';
                 
@@ -1610,11 +1607,30 @@ can-do attitude communication skills critical thinking determination integrity s
 
                 let titleHtml = marked.parseInline(q.title || '');
 
-                if (q.type === 'fill_blank' && q.inlineBlanks && q.inlineBlanks.length > 0) {
+                // DYNAMIC RECONSTRUCTION SAFETY NET FOR INLINE BLANKS & SLASH OPTIONS
+                if ((!q.inlineBlanks || q.inlineBlanks.length === 0) && q.title) {
+                    if (!q.title.includes('[') && !q.title.includes('___') && q.title.includes('/')) {
+                        q.title = q.title.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                        titleHtml = marked.parseInline(q.title);
+                    }
+                    const matches = [...q.title.matchAll(/\[(.*?)\]/g)];
+                    if (matches.length > 0) {
+                        q.inlineBlanks = [];
+                        matches.forEach(m => {
+                            const content = m[1].trim();
+                            if (content.includes('/')) {
+                                const choices = content.split('/').map(c => c.trim());
+                                q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: choices[0] });
+                            }
+                        });
+                    }
+                }
+
+                if (q.inlineBlanks && q.inlineBlanks.length > 0) {
                     q.inlineBlanks.forEach((b, bIdx) => {
                         const currentVal = studentAnswers[`q_${q.id}_blank_${bIdx}`] || '';
                         
-                        // SLEEK PILL TOGGLE BUTTONS FOR 2-OPTION CHOICES (EXERCISE 2 SOLUTION)
+                        // PILL TOGGLE BUTTONS FOR EXERCISE 2 (CHOICE IN ITALICS)
                         if (b.choices && b.choices.length > 0) {
                             let pillToggleHtml = `<span class="inline-flex items-center gap-1 mx-1.5 p-1 bg-slate-100 border-2 border-brand-200 rounded-2xl align-middle">`;
                             b.choices.forEach(c => {
@@ -1641,11 +1657,11 @@ can-do attitude communication skills critical thinking determination integrity s
                             titleHtml = titleHtml.replace(b.placeholder, dropZoneHtml);
                         }
                     });
-                } else if (q.type === 'fill_blank' && q.title.includes('___')) {
+                } else if (q.title.includes('___')) {
                     const currentVal = studentAnswers[`q_${q.id}_blank_0`] || '';
                     
-                    // INLINE SUFFIX TEXT INPUT BOX (EXERCISE 3 SOLUTION)
-                    if (currentSecWords.length === 0) {
+                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT (e.g. depend___)
+                    if (activeSectionIndex === 2 || !isExercise1) {
                         const inlineInputHtml = `
                             <input type="text" oninput="saveBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="điền..." 
                                 ${isSubmitted ? 'disabled' : ''}
@@ -1671,8 +1687,8 @@ can-do attitude communication skills critical thinking determination integrity s
                 else if (q.type === 'true_false') badgeText = 'Đúng / Sai';
                 else if (q.type === 'matching') badgeText = 'Nối cột A-B';
                 else if (q.type === 'short_answer') badgeText = 'Trả lời ngắn';
-                else if (q.inlineBlanks && q.inlineBlanks.some(b => b.choices && b.choices.length > 0)) badgeText = 'Chọn 1 trong 2 từ';
-                else if (currentSecWords.length === 0) badgeText = 'Điền tự luận';
+                else if (activeSectionIndex === 1 || (q.inlineBlanks && q.inlineBlanks.some(b => b.choices && b.choices.length > 0))) badgeText = 'Chọn 1 trong 2 từ';
+                else if (activeSectionIndex === 2) badgeText = 'Điền tự luận';
 
                 let html = `
                     <div class="flex items-center justify-between border-b pb-3">
