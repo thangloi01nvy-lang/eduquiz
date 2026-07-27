@@ -478,7 +478,7 @@ Answer: independent</pre>
                     ]
                 }
             ],
-            assignedQuizzes: {}, // Map classId -> { questions, wordBank, assignedAt }
+            assignedQuizzes: {},
             grades: [],
             currentQuestions: [],
             wordBank: []
@@ -562,6 +562,7 @@ Answer: independent</pre>
             document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
 
             if (tab === 'student') {
+                loadAssignedQuizForStudent();
                 if (activeStudentInfo && activeStudentInfo.studentId) {
                     restoreStudentSessionUI();
                 } else {
@@ -630,16 +631,18 @@ Answer: independent</pre>
 
             if (!appData.assignedQuizzes) appData.assignedQuizzes = {};
 
+            // Assign quiz specifically to classId & ALL fallback
             appData.assignedQuizzes[targetClassId] = {
                 questions: appData.currentQuestions,
                 wordBank: appData.wordBank,
                 assignedAt: new Date().toLocaleString('vi-VN')
             };
 
+            // Always mirror to active global questions
             saveStorage();
             showNotification(`🚀 Đã giao bài tập thành công cho ${targetClassName}!`, 'success');
 
-            // Switch to student view automatically to test
+            // Switch to student view automatically
             switchMainTab('student');
         }
 
@@ -737,7 +740,7 @@ Answer: independent</pre>
             }
         }
 
-        // STUDENT SESSION LOGIC & QUIZ ASSIGNMENT LOOKUP
+        // STUDENT SESSION LOGIC & GUARANTEED QUIZ LOOKUP
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
@@ -799,7 +802,6 @@ Answer: independent</pre>
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
-            // Load Quiz assigned to student's specific class or ALL classes
             loadAssignedQuizForStudent();
 
             resetQuiz(false);
@@ -808,16 +810,25 @@ Answer: independent</pre>
         }
 
         function loadAssignedQuizForStudent() {
+            // Priority 1: Check assignedQuizzes by student classId or ALL
             if (appData.assignedQuizzes) {
-                const classSpecificQuiz = appData.assignedQuizzes[activeStudentInfo.classId];
+                const classQuiz = appData.assignedQuizzes[activeStudentInfo.classId];
                 const allQuiz = appData.assignedQuizzes['ALL'];
 
-                if (classSpecificQuiz) {
-                    appData.currentQuestions = classSpecificQuiz.questions;
-                    appData.wordBank = classSpecificQuiz.wordBank;
-                } else if (allQuiz) {
+                if (classQuiz && classQuiz.questions && classQuiz.questions.length > 0) {
+                    appData.currentQuestions = classQuiz.questions;
+                    appData.wordBank = classQuiz.wordBank || [];
+                } else if (allQuiz && allQuiz.questions && allQuiz.questions.length > 0) {
                     appData.currentQuestions = allQuiz.questions;
-                    appData.wordBank = allQuiz.wordBank;
+                    appData.wordBank = allQuiz.wordBank || [];
+                }
+            }
+
+            // Priority 2: Fallback to localStorage saved current questions
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                const saved = localStorage.getItem('eduquiz_current_questions');
+                if (saved) {
+                    try { appData.currentQuestions = JSON.parse(saved); } catch(e) {}
                 }
             }
 
@@ -1016,7 +1027,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 return;
             }
 
-            // Default assign to ALL classes
             if (!appData.assignedQuizzes) appData.assignedQuizzes = {};
             appData.assignedQuizzes['ALL'] = {
                 questions: appData.currentQuestions,
@@ -1095,7 +1105,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ WITH INTERACTIVE DRAG & DROP
+        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1103,12 +1113,17 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             
             container.innerHTML = '';
 
+            // Ensure questions are loaded
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                loadAssignedQuizForStudent();
+            }
+
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
                         <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-circle-exclamation"></i></div>
-                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào được giao cho Lớp của bạn!</h4>
-                        <p class="text-xs text-slate-500">Vui lòng nhờ Giáo viên chọn Lớp và bấm nút <b>"GỬI BÀI TẬP ĐẾN LỚP"</b> ở Góc Giáo Viên.</p>
+                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào!</h4>
+                        <p class="text-xs text-slate-500">Vui lòng quay lại Góc Giáo Viên, bấm <b>"TẠO & XEM TRƯỚC BÀI TẬP"</b> rồi bấm nút <b>"GỬI BÀI TẬP ĐẾN LỚP"</b>.</p>
                     </div>
                 `;
                 wordBankCard.classList.add('hidden');
