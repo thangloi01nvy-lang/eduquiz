@@ -165,7 +165,7 @@
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phát Hành Đề Bài Tự Động Đến Mọi Trình Duyệt & Điện Thoại!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Khung từ kéo thả sẽ <b>TỰ TRÔI THEO MAN HÌNH (STICKY FLOATING)</b> khi học sinh cuộn trang!
+                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Khung từ kéo thả đã được làm sạch 100% các từ trùng lặp dính liền!
                         </p>
                     </div>
                 </div>
@@ -480,7 +480,7 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH STICKY WORD BANK & ACCURATE PARSER -->
+    <!-- JAVASCRIPT LOGIC WITH STRICT WORD BANK SANITIZATION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -533,12 +533,26 @@ Answer: passionate`;
         let timerSeconds = 0;
         let timerRunning = false;
 
+        // STRICT SANITIZER TO REMOVE GIANT CONCATENATED WORD BANK ITEMS
+        function sanitizeWordBank(wordList) {
+            if (!Array.isArray(wordList)) return [];
+            let cleaned = wordList.filter(w => {
+                if (!w || typeof w !== 'string') return false;
+                const trimmed = w.trim();
+                if (trimmed.length > 30) return false; // Strictly delete any string longer than 30 chars
+                if (trimmed.split(/\s+/).length > 4) return false; // Max 4 words per phrase
+                if (trimmed.toLowerCase().includes('attitude communication') || trimmed.toLowerCase().includes('skills critical')) return false;
+                return true;
+            });
+            return Array.from(new Set(cleaned));
+        }
+
         async function publishQuizToCloud(questions, wordBank) {
             updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
                 const payload = {
                     questions: questions,
-                    wordBank: wordBank,
+                    wordBank: sanitizeWordBank(wordBank),
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
                 await fetch(CLOUD_QUIZ_URL, {
@@ -561,7 +575,7 @@ Answer: passionate`;
                     const data = await res.json();
                     if (data && data.questions && data.questions.length > 0) {
                         appData.currentQuestions = data.questions;
-                        appData.wordBank = data.wordBank || [];
+                        appData.wordBank = sanitizeWordBank(data.wordBank || []);
                         saveStorage();
                         
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
@@ -610,14 +624,15 @@ Answer: passionate`;
                 appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
             }
 
+            const savedWordBank = localStorage.getItem('eduquiz_word_bank');
+            if (savedWordBank) {
+                try { appData.wordBank = sanitizeWordBank(JSON.parse(savedWordBank)); } catch(e) {}
+            }
+            appData.wordBank = sanitizeWordBank(appData.wordBank);
+
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
             document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
-
-            const savedWordBank = localStorage.getItem('eduquiz_word_bank');
-            if (savedWordBank) {
-                try { appData.wordBank = JSON.parse(savedWordBank); } catch(e) {}
-            }
 
             updateBadges();
 
@@ -633,6 +648,7 @@ Answer: passionate`;
         }
 
         function saveStorage() {
+            appData.wordBank = sanitizeWordBank(appData.wordBank);
             localStorage.setItem('eduquiz_pro_data', JSON.stringify(appData));
             if (appData.currentQuestions && appData.currentQuestions.length > 0) {
                 localStorage.setItem('eduquiz_current_questions', JSON.stringify(appData.currentQuestions));
@@ -935,7 +951,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // ULTRA SMART WORKSHEET & OCR PARSER WITH ACCURATE WORD BANK CLEANING
+        // ULTRA SMART WORKSHEET & OCR PARSER WITH STRICT SANITIZED WORD BANK
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -992,10 +1008,10 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                         const content = m[1].trim();
                         if (content.includes('/')) {
                             const choices = content.split('/').map(c => c.trim());
-                            choices.forEach(c => extractedWordBank.add(c));
+                            choices.forEach(c => { if(c.length <= 30) extractedWordBank.add(c); });
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: currentQ.answer || choices[0] });
                         } else {
-                            if (content && content !== '___' && content.length <= 35) {
+                            if (content && content !== '___' && content.length <= 30) {
                                 extractedWordBank.add(content);
                                 currentQ.answer = content;
                             }
@@ -1004,7 +1020,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                     });
                 } else if (cleanTitle.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()))) {
                     currentQ.type = 'fill_blank';
-                    if (currentQ.answer && currentQ.answer.length <= 35) extractedWordBank.add(currentQ.answer);
+                    if (currentQ.answer && currentQ.answer.length <= 30) extractedWordBank.add(currentQ.answer);
                 } else {
                     currentQ.type = currentQ.options.length > 0 ? 'multiple_choice' : 'fill_blank';
                 }
@@ -1018,13 +1034,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 line = line.trim();
                 if (!line) continue;
 
-                // Ignore full instruction lines from being added as a giant single word
+                // Ignore giant instruction lines
                 if (!line.startsWith('##') && (line.includes('can-do attitude') || line.includes('communication skills') || (line.split(/\s{2,}|\|/).length >= 3 && !questionHeaderRegex.test(line)))) {
                     const words = line.split(/\s{2,}|\||\,/);
                     words.forEach(w => {
                         const trimmedW = w.replace(/^(?:1\s*Complete|using the words).*$/i, '').trim();
-                        // Only add words if they are clean short phrases (under 30 chars, max 4 words)
-                        if (trimmedW.length > 2 && trimmedW.length <= 30 && trimmedW.split(' ').length <= 4 && !trimmedW.match(/^\d+/)) {
+                        if (trimmedW.length > 2 && trimmedW.length <= 28 && trimmedW.split(' ').length <= 3 && !trimmedW.match(/^\d+/)) {
                             extractedWordBank.add(trimmedW);
                         }
                     });
@@ -1036,7 +1051,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 const ansM = line.match(answerRegex);
                 if (ansM && currentQ) { 
                     currentQ.answer = ansM[1].trim(); 
-                    if (currentQ.answer && currentQ.answer.length <= 35) extractedWordBank.add(currentQ.answer); 
+                    if (currentQ.answer && currentQ.answer.length <= 30) extractedWordBank.add(currentQ.answer); 
                     continue; 
                 }
 
@@ -1065,9 +1080,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             }
             saveCurrent();
 
-            // Filter out any accidentally concatenated giant strings
-            let cleanBank = Array.from(extractedWordBank).filter(w => w.length <= 35 && w.split(' ').length <= 4);
-            appData.wordBank = cleanBank;
+            appData.wordBank = sanitizeWordBank(Array.from(extractedWordBank));
             return questions;
         }
 
@@ -1089,7 +1102,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
             renderTeacherPreview();
 
-            // PUBLISH TO CLOUD DB AUTOMATICALLY FOR ALL VERCEL USERS
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
         }
 
@@ -1155,7 +1167,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY & STICKY FLOATING WORD BANK
+        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY & STRICT CLEAN WORD BANK
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1168,6 +1180,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             }
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
+
+            // STRICT SANITIZE WORD BANK
+            appData.wordBank = sanitizeWordBank(appData.wordBank);
 
             if (appData.wordBank && appData.wordBank.length > 0) {
                 wordBankCard.classList.remove('hidden');
