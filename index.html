@@ -161,9 +161,9 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-layer-group"></i> Thuật Toán Quét Từ Ranh Giới (Word Boundary Parser)
+                            <i class="fa-solid fa-layer-group"></i> Thuật Toán Quét Ranh Giới Từ & Đồng Bộ Đám Mây Mọi Trình Duyệt
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chính Xác Cả 3 Bài Tập Cho Dùng Đề Dán Thô!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chuẩn Cả 3 Bài Tập Cho Dùng Đề Dán Thô!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
                             Mỗi bài tập sẽ ở <b>1 TRANG MỚI HẰNG HOÀN</b>. Tự động biến <i>confident/independent</i> thành nút bấm chọn tương tác và câu <i>___</i> thành ô kéo thả điền từ!
                         </p>
@@ -529,10 +529,10 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH PERFECTED SECTION PARSER & AUTO CHOICE CONVERSION -->
+    <!-- JAVASCRIPT LOGIC WITH STABLE JSONBLOB ENDPOINT -->
     <!-- ================================================================= -->
     <script>
-        const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
+        const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
 
         const SAMPLE_DATASETS = {
             multi_type: `## Transferable skills
@@ -731,8 +731,8 @@ can-do attitude communication skills critical thinking determination integrity s
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
                 await fetch(CLOUD_QUIZ_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
