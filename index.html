@@ -163,9 +163,9 @@
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Tự Động Đồng Bộ Đám Mây Real-Time Qua Vercel
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phân Loại Đề Bài & Câu Hỏi Con Trực Quan!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phân Loại Đề Bài Lớn & Câu Hỏi Con Chuẩn Xác!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Tự động phân biệt rõ ràng giữa <b>YÊU CẦU ĐỀ BÀI (Hộp màu tím)</b> và các <b>CÂU HỎI CON</b> bên dưới!
+                            Đề bài lớn (yêu cầu chung) hiển thị riêng biệt trong <b>KHUNG ĐỀ BÀI LỚN MÀU TÍM SẪM</b>. Các câu hỏi con phía dưới bắt đầu tính từ <b>Câu 1, Câu 2, Câu 3...</b>
                         </p>
                     </div>
                 </div>
@@ -482,7 +482,7 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH SECTION HEADERS VS SUB-QUESTIONS DISTINCTION -->
+    <!-- JAVASCRIPT LOGIC WITH EXPLICIT SECTION HEADERS VS SUB-QUESTIONS -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -952,7 +952,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // SMART PARSER DISTINGUISHING SECTION HEADERS & SUB-QUESTIONS
+        // SMART PARSER STRIPPING LEADING NUMBERS FROM SECTION TITLES
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1037,10 +1037,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 line = line.trim();
                 if (!line) continue;
 
-                // Detect Section Header / Exercise Instruction Line
+                // Detect Section Header / Instruction Line & Strip leading numbers like "1 " or "## 2 "
                 if (line.startsWith('##') || (sectionHeaderRegex.test(line) && (line.includes('using the words') || line.includes('in italics') || line.includes('in the box') || line.length > 35 || line.startsWith('##')))) {
                     saveCurrent();
-                    currentSectionTitle = line.replace(/^##\s*/, '').trim();
+                    // Strip leading ##, numbers like 1, 2, or 1.
+                    let cleanSec = line.replace(/^(?:##|\d+[\.\:\)\s]*)/, '').trim();
+                    currentSectionTitle = cleanSec || "Phần Bài Tập";
                     continue;
                 }
 
@@ -1114,15 +1116,15 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 if (q.sectionTitle && q.sectionTitle !== lastSectionTitle) {
                     lastSectionTitle = q.sectionTitle;
                     const secCard = document.createElement('div');
-                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-brand-400 my-4 flex items-center justify-between";
+                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-4 flex items-center justify-between";
                     secCard.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-brand-500/30 border border-brand-400/40 flex items-center justify-center text-amber-300 font-bold text-sm">
-                                <i class="fa-solid fa-layer-group"></i>
+                            <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
+                                <i class="fa-solid fa-file-signature"></i>
                             </div>
                             <div>
-                                <div class="text-[10px] uppercase font-bold text-brand-300 tracking-wider">Yêu Cầu Bài Tập</div>
-                                <h4 class="font-heading font-bold text-base sm:text-lg text-white">${marked.parseInline(q.sectionTitle)}</h4>
+                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">HƯỚNG DẪN BÀI TẬP (ĐỀ BÀI LỚN)</span>
+                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
                             </div>
                         </div>
                     `;
@@ -1182,7 +1184,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ WITH CLEAR SECTION HEADER BANNERS
+        // RENDER STUDENT QUIZ WITH EXPLICIT SECTION INSTRUCTION BANNERS
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1236,12 +1238,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                     secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-4 flex items-center justify-between";
                     secCard.innerHTML = `
                         <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-sm">
-                                <i class="fa-solid fa-clipboard-list"></i>
+                            <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
+                                <i class="fa-solid fa-file-signature"></i>
                             </div>
                             <div>
-                                <div class="text-[10px] uppercase font-bold text-amber-300 tracking-wider">Yêu Cầu Bài Tập</div>
-                                <h4 class="font-heading font-bold text-base sm:text-lg text-white">${marked.parseInline(q.sectionTitle)}</h4>
+                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">HƯỚNG DẪN BÀI TẬP (ĐỀ BÀI LỚN)</span>
+                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
                             </div>
                         </div>
                     `;
