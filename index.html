@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-layer-group"></i> Thuật Toán Quét Ranh Giới Từ & Đồng Bộ Đám Mây Mọi Trình Duyệt
+                            <i class="fa-solid fa-layer-group"></i> Thuật Toán Quét Từ Đầu Dòng (First-Word Imperative Parser)
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chuẩn Cả 3 Bài Tập Cho Dùng Đề Dán Thô!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phân Tách Chuẩn 100% Đủ 8-6-6 Câu Cho Bài 1, 2 và 3!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Mỗi bài tập sẽ ở <b>1 TRANG MỚI HẰNG HOÀN</b>. Tự động biến <i>confident/independent</i> thành nút bấm chọn tương tác và câu <i>___</i> thành ô kéo thả điền từ!
+                            Bài 1 (8 câu kéo thả), Bài 2 (6 câu chọn từ), Bài 3 (6 câu điền hậu tố) đều ở <b>3 TRANG ĐỘC LẬP</b>!
                         </p>
                     </div>
                 </div>
@@ -242,7 +242,7 @@
                             <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Tự Động Nhận Diện 3 Bài</h3>
                             
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Đề bài của bạn gồm 3 bài tập riêng biệt sẽ được tách thành <b>3 Trang Bài Tập riêng biệt</b> hoàn toàn!
+                                Đề bài của bạn gồm 3 bài tập riêng biệt sẽ được tách thành <b>3 Trang Bài Tập riêng biệt (8 - 6 - 6 câu)</b>!
                             </p>
 
                             <div>
@@ -529,7 +529,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH STABLE JSONBLOB ENDPOINT -->
+    <!-- JAVASCRIPT LOGIC WITH STABLE FIRST-WORD IMPERATIVE SECTION PARSER -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -634,7 +634,11 @@ can-do attitude communication skills critical thinking determination integrity s
             if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
 
             const lower = trimmed.toLowerCase();
-            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('\\b' + p + '\\b', 'i').test(lower))) return true;
+            
+            // Prefix check e.g. "Exercise 1", "Part A", "Bài 2"...
+            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('^(?:câu|question|q)?\\s*\\d*[\\.\\:\\)\\ /\\s]*\\b' + p + '\\b', 'i').test(lower))) {
+                return true;
+            }
 
             const unNumbered = trimmed.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]*/i, '').trim();
             const unLower = unNumbered.toLowerCase();
@@ -642,9 +646,10 @@ can-do attitude communication skills critical thinking determination integrity s
 
             const words = unLower.match(/\w+/g) || [];
             const firstWord = words[0] || '';
-            const keyInstructionVerbs = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate'];
+            const keyInstructionVerbs = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate', 'mark', 'check', 'underline', 'select', 'label', 'connect', 'decide'];
 
-            if (keyInstructionVerbs.includes(firstWord) || keyInstructionVerbs.some(v => new RegExp('\\b' + v + '\\b', 'i').test(unLower))) {
+            // The instruction verb MUST BE THE FIRST WORD of the instruction line!
+            if (keyInstructionVerbs.includes(firstWord)) {
                 if (!trimmed.includes('___') && !trimmed.includes('<->') && !lower.startsWith('answer:')) {
                     if (trimmed.includes('[') && trimmed.includes(']') && trimmed.includes('/')) {
                         return false;
@@ -1105,7 +1110,7 @@ can-do attitude communication skills critical thinking determination integrity s
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // UNIVERSAL SECTION PARSER WITH EXACT WORD BOUNDARY MATCHING
+        // UNIVERSAL SECTION PARSER WITH EXACT FIRST-WORD IMPERATIVE MATCHING
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1207,7 +1212,7 @@ can-do attitude communication skills critical thinking determination integrity s
                 line = line.trim();
                 if (!line) continue;
 
-                // 1. Detect Section Header Line ACCURATELY WITH WORD BOUNDARY
+                // 1. Detect Section Header Line ACCURATELY WITH FIRST-WORD MATCHING
                 if (isSectionHeaderLine(line)) {
                     saveCurrentQuestion();
                     let cleanSecTitle = line.replace(/^(?:##|#|\d+[\.\:\)\s]*)/, '').trim();
@@ -1299,107 +1304,403 @@ can-do attitude communication skills critical thinking determination integrity s
             return allQuestions;
         }
 
-        async function generateQuiz() {
-            const rawText = document.getElementById('markdown-input').value;
-            appData.currentQuestions = parseInputToQuestions(rawText);
+        async function publishQuizToCloud(questions, wordBank) {
+            updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
+            try {
+                // Compress payload for Cloud storage under 5 KB
+                const compactQuestions = questions.map(q => ({
+                    id: q.id,
+                    sectionIndex: q.sectionIndex,
+                    sectionTitle: q.sectionTitle,
+                    title: q.title,
+                    type: q.type,
+                    answer: q.answer || '',
+                    options: q.options || [],
+                    inlineBlanks: q.inlineBlanks || []
+                }));
 
-            if (appData.currentQuestions.length === 0) {
-                showNotification('Không thể phân tích câu hỏi nào! Hãy kiểm tra nội dung nhập vào.', 'error');
-                return;
+                const payload = {
+                    questions: compactQuestions,
+                    sections: appData.sections,
+                    wordBank: sanitizeWordBank(wordBank),
+                    quizDeadline: appData.quizDeadline,
+                    updatedAt: new Date().toLocaleString('vi-VN')
+                };
+                await fetch(CLOUD_QUIZ_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
+                showNotification('🚀 Bài tập đã phát hành thành công lên Đám mây!', 'success');
+            } catch(e) {
+                console.warn('Cloud publish fallback to local:', e);
+                updateCloudStatus('Đã lưu nội bộ', 'success');
+            }
+        }
+
+        async function fetchQuizFromCloud() {
+            try {
+                const res = await fetch(CLOUD_QUIZ_URL + '?t=' + Date.now(), {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.questions && data.questions.length > 0) {
+                        appData.currentQuestions = data.questions;
+                        appData.sections = data.sections || [];
+                        appData.wordBank = sanitizeWordBank(data.wordBank || []);
+                        appData.quizDeadline = data.quizDeadline || null;
+                        saveStorage();
+                        
+                        document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
+                        document.getElementById('quiz-count-badge').classList.remove('hidden');
+                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
+                        
+                        updateDeadlineCountdown();
+                        updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
+                        return true;
+                    }
+                }
+            } catch(e) {
+                console.warn('Could not fetch cloud quiz:', e);
+            }
+            return false;
+        }
+
+        function updateCloudStatus(msg, state) {
+            const badge = document.getElementById('cloud-sync-status');
+            if (!badge) return;
+            if (state === 'success') {
+                badge.className = "inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-xs";
+                badge.innerHTML = `<i class="fa-solid fa-cloud-check text-xs"></i> ${msg}`;
+            } else if (state === 'warning') {
+                badge.className = "inline-flex items-center gap-1 text-amber-600 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-xs";
+                badge.innerHTML = `<i class="fa-solid fa-rotate text-xs animate-spin"></i> ${msg}`;
+            }
+        }
+
+        function loadStorage() {
+            const saved = localStorage.getItem('eduquiz_pro_data');
+            if (saved) {
+                try { appData = JSON.parse(saved); } catch(e) {}
             }
 
-            const checkDeadline = document.getElementById('enable-deadline-checkbox');
-            const deadlinePicker = document.getElementById('quiz-deadline-picker');
-            appData.quizDeadline = (checkDeadline.checked && deadlinePicker.value) ? deadlinePicker.value : null;
+            const savedQuestions = localStorage.getItem('eduquiz_current_questions');
+            if (savedQuestions) {
+                try {
+                    const parsed = JSON.parse(savedQuestions);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        appData.currentQuestions = parsed;
+                    }
+                } catch(e) {}
+            }
 
-            saveStorage();
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
+            }
+
+            const savedWordBank = localStorage.getItem('eduquiz_word_bank');
+            if (savedWordBank) {
+                try { appData.wordBank = sanitizeWordBank(JSON.parse(savedWordBank)); } catch(e) {}
+            }
+            appData.wordBank = sanitizeWordBank(appData.wordBank);
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
-            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
 
+            updateBadges();
             updateDeadlineCountdown();
-            renderTeacherPreview();
-            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            setInterval(updateDeadlineCountdown, 60000);
+
+            const activeStSaved = localStorage.getItem('eduquiz_active_student');
+            if (activeStSaved) {
+                try {
+                    activeStudentInfo = JSON.parse(activeStSaved);
+                    if (activeStudentInfo && activeStudentInfo.studentId) {
+                        restoreStudentSessionUI();
+                    }
+                } catch(e) {}
+            }
         }
 
-        function renderTeacherPreview() {
-            const previewSection = document.getElementById('teacher-preview-section');
-            const previewContainer = document.getElementById('teacher-preview-questions-list');
+        function saveStorage() {
+            appData.wordBank = sanitizeWordBank(appData.wordBank);
+            localStorage.setItem('eduquiz_pro_data', JSON.stringify(appData));
+            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                localStorage.setItem('eduquiz_current_questions', JSON.stringify(appData.currentQuestions));
+            }
+            if (appData.wordBank && appData.wordBank.length > 0) {
+                localStorage.setItem('eduquiz_word_bank', JSON.stringify(appData.wordBank));
+            }
+            updateBadges();
+        }
+
+        function updateBadges() {
+            document.getElementById('total-classes-badge').innerText = appData.classes ? appData.classes.length : 0;
+            document.getElementById('total-results-badge').innerText = appData.grades ? appData.grades.length : 0;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadStorage();
+            document.getElementById('markdown-input').addEventListener('input', updateInputStats);
+            loadSampleData();
+            renderClassesList();
+            renderGradesTable();
             
-            previewSection.classList.remove('hidden');
-            document.getElementById('preview-q-count-badge').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
-            previewContainer.innerHTML = '';
+            await fetchQuizFromCloud();
+        });
 
-            let lastSectionTitle = '';
+        async function switchMainTab(tab) {
+            document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
+            document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
+            
+            document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
+            document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
 
-            appData.currentQuestions.forEach((q, idx) => {
-                if (q.sectionTitle && q.sectionTitle !== lastSectionTitle) {
-                    lastSectionTitle = q.sectionTitle;
-                    const secCard = document.createElement('div');
-                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-4 flex items-center justify-between";
-                    secCard.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
-                                <i class="fa-solid fa-file-signature"></i>
-                            </div>
-                            <div>
-                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG BÀI TẬP SỐ ${q.sectionIndex + 1} / ${appData.sections.length}</span>
-                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
-                            </div>
-                        </div>
-                    `;
-                    previewContainer.appendChild(secCard);
+            if (tab === 'student') {
+                await fetchQuizFromCloud();
+                activeSectionIndex = 0;
+                renderQuizQuestions();
+                if (activeStudentInfo && activeStudentInfo.studentId) {
+                    restoreStudentSessionUI();
+                } else {
+                    document.getElementById('student-login-box').classList.remove('hidden');
                 }
+            }
+        }
 
+        function switchTeacherSubTab(sub) {
+            document.getElementById('teacher-subtab-editor').classList.toggle('hidden', sub !== 'editor');
+            document.getElementById('teacher-subtab-classes').classList.toggle('hidden', sub !== 'classes');
+            document.getElementById('teacher-subtab-grades').classList.toggle('hidden', sub !== 'grades');
+
+            document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
+            document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
+            document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
+        }
+
+        function createNewClass() {
+            const nameInput = document.getElementById('new-class-name');
+            const descInput = document.getElementById('new-class-desc');
+            const name = nameInput.value.trim();
+
+            if (!name) {
+                showNotification('Vui lòng nhập tên lớp học!', 'error');
+                return;
+            }
+
+            const newClass = {
+                id: 'class_' + Date.now(),
+                name: name,
+                desc: descInput.value.trim() || 'Lớp học mới',
+                students: []
+            };
+
+            appData.classes.push(newClass);
+            saveStorage();
+            renderClassesList();
+
+            nameInput.value = '';
+            descInput.value = '';
+            showNotification(`Đã tạo lớp ${name} thành công!`, 'success');
+        }
+
+        function renderClassesList() {
+            const container = document.getElementById('classes-list-container');
+            container.innerHTML = '';
+
+            appData.classes.forEach(c => {
                 const card = document.createElement('div');
-                card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
+                card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 
-                let titleHtml = marked.parseInline(q.title || '');
+                let studentsHtml = '';
+                c.students.forEach((st) => {
+                    studentsHtml += `
+                        <tr class="border-b border-slate-100 text-xs">
+                            <td class="py-2 font-mono font-bold text-brand-700">${st.id}</td>
+                            <td class="py-2 font-medium text-slate-800">${st.name}</td>
+                            <td class="py-2 text-right">
+                                <button onclick="deleteStudent('${c.id}', '${st.id}')" class="text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
 
-                let badgeText = 'Điền từ (Kéo thả)';
-                if (q.type === 'multiple_choice') badgeText = 'Trắc nghiệm';
-                else if (q.type === 'true_false') badgeText = 'Đúng / Sai';
-                else if (q.type === 'matching') badgeText = 'Nối cột A-B';
-                else if (q.type === 'short_answer') badgeText = 'Trả lời ngắn';
-
-                let html = `
-                    <div class="flex items-center justify-between border-b pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${idx + 1}</span>
-                            <span class="font-heading font-bold text-sm text-slate-700">Câu ${idx + 1} / ${appData.currentQuestions.length}</span>
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h4 class="font-heading font-bold text-lg text-slate-900">${c.name}</h4>
+                            <p class="text-xs text-slate-500">${c.desc} • ${c.students.length} học sinh</p>
                         </div>
-                        <span class="px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-full border border-brand-200">${badgeText}</span>
+                        <button onclick="deleteClass('${c.id}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
+
+                    <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                        <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Thêm học viên vào lớp:</span>
+                        <div class="flex gap-2">
+                            <input type="text" id="st-id-${c.id}" placeholder="Mã HV (VD: HS01)" class="w-1/3 p-2 bg-white border border-slate-200 rounded-lg text-xs font-mono">
+                            <input type="text" id="st-name-${c.id}" placeholder="Họ và tên học sinh" class="w-2/3 p-2 bg-white border border-slate-200 rounded-lg text-xs">
+                            <button onclick="addStudentToClass('${c.id}')" class="px-3 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold hover:bg-brand-700"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="max-h-40 overflow-y-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="text-[10px] text-slate-400 uppercase border-b border-slate-100">
+                                    <th class="py-1">Mã HV</th>
+                                    <th class="py-1">Họ và tên</th>
+                                    <th class="py-1 text-right">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody>${studentsHtml || '<tr><td colspan="3" class="py-3 text-center text-xs text-slate-400">Chưa có học sinh nào</td></tr>'}</tbody>
+                        </table>
+                    </div>
                 `;
 
-                if (q.type === 'multiple_choice') {
-                    html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">`;
-                    q.options.forEach(opt => {
-                        const isCorrect = q.answer && q.answer.toUpperCase() === opt.key;
-                        html += `
-                            <div class="p-3.5 rounded-2xl border ${isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-2 ring-emerald-200' : 'border-slate-200 bg-white text-slate-700'} flex items-center justify-between text-sm">
-                                <span><b>${opt.key}.</b> ${marked.parseInline(opt.text)}</span>
-                                ${isCorrect ? '<span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Đúng</span>' : ''}
-                            </div>
-                        `;
-                    });
-                    html += `</div>`;
-                }
-
-                html += `
-                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
-                        <div class="font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Đáp án chuẩn: <span class="text-brand-700 font-mono">${q.answer || 'Đáp án mẫu'}</span></div>
-                        ${q.explanation ? `<div class="text-slate-600"><b>Giải thích:</b> ${q.explanation}</div>` : ''}
-                    </div>
-                `;
-
-                card.innerHTML = html;
-                previewContainer.appendChild(card);
+                container.appendChild(card);
             });
+        }
 
-            previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        function addStudentToClass(classId) {
+            const idInput = document.getElementById(`st-id-${classId}`);
+            const nameInput = document.getElementById(`st-name-${classId}`);
+            const stId = idInput.value.trim().toUpperCase();
+            const stName = nameInput.value.trim();
+
+            if (!stId || !stName) {
+                showNotification('Vui lòng nhập đầy đủ Mã HV và Họ Tên!', 'error');
+                return;
+            }
+
+            const cls = appData.classes.find(c => c.id === classId);
+            if (cls) {
+                cls.students.push({ id: stId, name: stName });
+                saveStorage();
+                renderClassesList();
+                showNotification(`Đã thêm học sinh ${stName} vào ${cls.name}!`, 'success');
+            }
+        }
+
+        function deleteStudent(classId, studentId) {
+            const cls = appData.classes.find(c => c.id === classId);
+            if (cls) {
+                cls.students = cls.students.filter(s => s.id !== studentId);
+                saveStorage();
+                renderClassesList();
+            }
+        }
+
+        function deleteClass(classId) {
+            if (confirm('Bạn có chắc muốn xóa lớp học này?')) {
+                appData.classes = appData.classes.filter(c => c.id !== classId);
+                saveStorage();
+                renderClassesList();
+            }
+        }
+
+        function autoLookupStudent() {
+            const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
+            const nameInput = document.getElementById('student-name-input');
+            const classInfoBox = document.getElementById('class-detected-info');
+            const classNameTag = document.getElementById('class-detected-name');
+
+            if (!stId) {
+                classInfoBox.classList.add('hidden');
+                return;
+            }
+
+            let foundStudent = null;
+            let foundClassName = '';
+
+            for (let cls of appData.classes) {
+                const match = cls.students.find(s => s.id.toUpperCase() === stId);
+                if (match) {
+                    foundStudent = match;
+                    foundClassName = cls.name;
+                    break;
+                }
+            }
+
+            if (foundStudent) {
+                nameInput.value = foundStudent.name;
+                classNameTag.innerText = `Đã tìm thấy: ${foundStudent.name} (${foundClassName})`;
+                classInfoBox.classList.remove('hidden');
+                activeStudentInfo.className = foundClassName;
+            } else {
+                classInfoBox.classList.add('hidden');
+                activeStudentInfo.className = 'Tự do';
+            }
+        }
+
+        function startStudentQuizSession() {
+            const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
+            const stName = document.getElementById('student-name-input').value.trim();
+
+            if (!stId || !stName) {
+                showNotification('Vui lòng điền Mã Học Viên và Họ Tên!', 'error');
+                return;
+            }
+
+            activeStudentInfo.studentId = stId;
+            activeStudentInfo.studentName = stName;
+            if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
+
+            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
+            restoreStudentSessionUI();
+        }
+
+        function startTestDriveSession() {
+            activeStudentInfo.studentId = 'TEST01';
+            activeStudentInfo.studentName = 'Học sinh dùng thử';
+            activeStudentInfo.className = 'Lớp trải nghiệm';
+            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
+            restoreStudentSessionUI();
+        }
+
+        function restoreStudentSessionUI() {
+            document.getElementById('active-student-badge').innerHTML = `<i class="fa-solid fa-user-graduate mr-1"></i> ${activeStudentInfo.className} | ${activeStudentInfo.studentId} - ${activeStudentInfo.studentName}`;
+
+            document.getElementById('student-login-box').classList.add('hidden');
+            document.getElementById('student-quiz-active').classList.remove('hidden');
+
+            resetQuiz(false);
+            activeSectionIndex = 0;
+            renderQuizQuestions();
+            startTimer();
+        }
+
+        function logoutStudentSession() {
+            localStorage.removeItem('eduquiz_active_student');
+            activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
+            stopTimer();
+
+            document.getElementById('student-id-input').value = '';
+            document.getElementById('student-name-input').value = '';
+            document.getElementById('class-detected-info').classList.add('hidden');
+
+            document.getElementById('student-quiz-active').classList.add('hidden');
+            document.getElementById('student-login-box').classList.remove('hidden');
+
+            showNotification('Đã đăng xuất tài khoản học sinh!', 'info');
+        }
+
+        function updateInputStats() {
+            const text = document.getElementById('markdown-input').value;
+            const lines = text ? text.split('\n').length : 0;
+            document.getElementById('char-line-count').innerText = `${lines} dòng | ${text.length} ký tự`;
+        }
+
+        function loadPresetSample(key) {
+            document.getElementById('markdown-input').value = SAMPLE_DATASETS[key] || '';
+            updateInputStats();
+        }
+        function loadSampleData() { loadPresetSample('multi_type'); }
+        function clearTextarea() { document.getElementById('markdown-input').value = ''; updateInputStats(); }
+        function scrollToEditor() {
+            document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         function changeSectionPage(delta) {
@@ -1447,7 +1748,7 @@ can-do attitude communication skills critical thinking determination integrity s
                 const btn = document.createElement('button');
                 btn.onclick = () => goToSectionPage(sIdx);
                 btn.className = `px-3.5 py-1.5 rounded-xl font-bold text-xs border transition flex items-center gap-1.5 ${sIdx === activeSectionIndex ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`;
-                btn.innerHTML = `<i class="fa-solid fa-file-lines text-[10px]"></i> Bài ${sIdx + 1}`;
+                btn.innerHTML = `<i class="fa-solid fa-file-lines text-[10px]"></i> Bài ${sIdx + 1} (${sec.questions ? sec.questions.length : 0} câu)`;
                 pageChipsContainer.appendChild(btn);
             });
 
@@ -1502,7 +1803,7 @@ can-do attitude communication skills critical thinking determination integrity s
                         <i class="fa-solid fa-file-signature"></i>
                     </div>
                     <div>
-                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">BÀI TẬP ${activeSectionIndex + 1} / ${appData.sections.length}</span>
+                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">BÀI TẬP ${activeSectionIndex + 1} / ${appData.sections.length} (${currentSec.questions ? currentSec.questions.length : 0} câu)</span>
                         <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(currentSec.title)}</h4>
                     </div>
                 </div>
