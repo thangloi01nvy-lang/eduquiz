@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Chấm Điểm AI Thông Minh Real-Time</title>
+    <title>EduQuiz Pro - Quản Lý Lớp Học & Tự Động Nhận Diện Bảng Đáp Án Cuối Đề</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,7 +111,7 @@
                         </h1>
                         <div class="flex items-center gap-2 text-xs text-slate-500">
                             <span id="cloud-sync-status" class="inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <i class="fa-solid fa-cloud-check text-xs"></i> Tích hợp AI Chấm Điểm & Giải Thích Chi Tiết
+                                <i class="fa-solid fa-cloud-check text-xs"></i> Tự Động Nhận Diện Bảng Đáp Án Cuối Đề
                             </span>
                         </div>
                     </div>
@@ -172,11 +172,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> Đã Tích Hợp AI Chấm Điểm & Giải Thích Ngữ Pháp
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> Tự Động Nhận Diện Khối Đáp Án Cuối Đề
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Chấm Điểm Chuẩn Xác & Tự Động Tạo Lời Giải Thích AI!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Hỗ Trợ Dán Bảng Đáp Án Ở Cuối Đề Mà Không Bị Nhầm Thành Câu Hỏi!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Mọi câu trả lời bỏ trống đều bị tính sai 100%. Học sinh nộp bài sẽ thấy lời giải thích ngữ pháp + dịch nghĩa chi tiết từng câu.
+                            Bạn có thể dán `## Đáp án:` ở cuối bài. Hệ thống sẽ tự tách riêng bảng đáp án để gán cho 20 câu hỏi mà không sinh ra câu hỏi thừa.
                         </p>
                     </div>
                 </div>
@@ -188,8 +188,11 @@
                         <button onclick="loadPresetSample('multi_type')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold rounded-lg transition border border-indigo-200">
                             <i class="fa-solid fa-layer-group text-indigo-500"></i> Tải Đề Dữ Liệu 3 Bài Tập (20 câu)
                         </button>
+                        <button onclick="loadPresetSample('answers_at_end')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition border border-emerald-200">
+                            <i class="fa-solid fa-key text-emerald-500"></i> Mẫu Đề Có Bảng Đáp Án Cuối Đề
+                        </button>
                         <button onclick="openAiModal()" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700 text-xs font-bold rounded-lg transition shadow-md flex items-center gap-1.5">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> ✨ AI Trợ Lý Phân Loại Đề (Gemini AI)
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> ✨ AI Trợ Lý Phân Loại Đề
                         </button>
                     </div>
                     <div class="flex items-center gap-2">
@@ -252,24 +255,22 @@
                     <!-- Cheat Sheet Sidebar -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
-                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Thiết Kế Tương Tác Cho Học Sinh</h3>
+                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-key text-amber-500 mr-2"></i>Cách Dán Đáp Án Ở Cuối Đề</h3>
                             
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Tự động tối ưu hóa trải nghiệm thao tác làm bài cho từng dạng bài tập:
+                                Bạn có thể ghi tiêu đề đáp án ở cuối văn bản theo các mẫu sau:
                             </p>
 
-                            <div>
-                                <span class="text-xs font-bold text-brand-700 uppercase">Bài 1 (Kéo thả 8 câu):</span>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Khung ngân hàng từ nổi. Kéo từ hoặc nhấp từ vào ô trống.</p>
+                            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 font-mono text-xs text-slate-800 space-y-1">
+                                <div class="font-bold text-brand-700">## Đáp án:</div>
+                                <div>1. think outside the box</div>
+                                <div>2. team player</div>
+                                <div>3. communication skills</div>
                             </div>
-                            <div>
-                                <span class="text-xs font-bold text-emerald-700 uppercase">Bài 2 (Chọn 1 trong 2 từ 6 câu):</span>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Nút bấm viên thuốc Nổi bật trực tiếp trong dòng câu. Nhấp 1 chạm là chọn ngay!</p>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-amber-700 uppercase">Bài 3 (Điền tự luận 6 câu):</span>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Ô nhập tự luận nhỏ gọn đặt ngay tại vị trí hậu tố `depend___` của câu.</p>
-                            </div>
+
+                            <p class="text-[11px] text-slate-500">
+                                💡 *Hệ thống tự động phát hiện tiêu đề `## Đáp án`, `## Answers` hoặc `## Keys` ở cuối đề để tách riêng thành đáp án chuẩn mà không sinh ra câu hỏi thừa!*
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -649,7 +650,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH AI EXPLANATION ENGINE ENHANCEMENTS -->
+    <!-- JAVASCRIPT LOGIC WITH ANSWER KEY AT END PARSER -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -705,6 +706,66 @@ can-do attitude communication skills critical thinking determination integrity s
 
 6 Maria wants to become a manager in the next two years – she has a lot of amb___.`,
 
+            answers_at_end: `## Transferable skills
+
+1 Complete these comments by interviewers using the words and phrases in the box.
+
+can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
+
+1 His ideas were creative and really innovative so he can obviously ___.
+2 I liked the way she worked with the other candidates so she is clearly a(n) ___.
+3 He has excellent ___. The presentation was first class and he answered the questions really clearly.
+4 She used ___ brilliantly. I thought she evaluated the three options in the case study carefully before deciding which one to choose.
+5 She has a lot of ___. This is the third time she's applied for a position in Marketing so she hasn't stopped trying.
+6 I like the way she has monthly objectives for herself which shows she can _____.
+7 I don't think he will complain about work. He seems prepared to try anything. He has a real ___.
+8 They all seemed to have ___. They answered the interview questions on attitudes towards work very well.
+
+## 2 Choose the correct option in italics.
+
+1 Our consultants need to be confident/independent because they often have to work alone.
+2 My manager is really ambitious / passionate about customer service.
+3 In an interview you need to show adaptability/confidence in your abilities.
+4 After four years in the job her motivation / passion was quite low and she started to look for a new one.
+5 Our budgets are not high so we need to be very resourceful / ambitious when planning travel.
+6 We get lots of different projects in our company so staff have to show great adaptability/authenticity.
+
+## 3 Complete the sentences using the correct word ending.
+
+1 Juan can deal with most people and all the managers trust him - he is very depend___.
+2 Things change so often in our industry. We have to be very flex___.
+3 Anna really enjoys working on her own from home. She shows great independ___.
+4 Henri loves his job and is really keen. It's good to see such enthus____.
+5 My manager is always really hon____ with me. He always tells me what he thinks.
+6 Maria wants to become a manager in the next two years – she has a lot of amb___.
+
+## Đáp án:
+Bài 1:
+1 think outside the box
+2 team player
+3 communication skills
+4 critical thinking
+5 determination
+6 set goals
+7 can-do attitude
+8 integrity
+
+Bài 2:
+1 independent
+2 passionate
+3 confidence
+4 motivation
+5 resourceful
+6 adaptability
+
+Bài 3:
+1 able
+2 ible
+3 ence
+4 iasm
+5 est
+6 ition`,
+
             ocr_json: `{
   "layoutParsingResults": [
     {
@@ -752,7 +813,7 @@ can-do attitude communication skills critical thinking determination integrity s
             },
             7: {
                 trans: "Tôi không nghĩ anh ấy sẽ phàn nàn về công việc. Anh ấy sẵn sàng thử bất cứ điều gì. Anh ấy có thái độ sẵn sàng làm việc.",
-                grammar: "Cụm danh me 'can-do attitude' đứng sau tính từ 'real'.",
+                grammar: "Cụm danh từ 'can-do attitude' đứng sau tính từ 'real'.",
                 tip: "Dấu hiệu 'prepared to try anything' chỉ thái độ hăng hái sẵn sàng làm việc."
             },
             8: {
@@ -1455,7 +1516,53 @@ can-do attitude communication skills critical thinking determination integrity s
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // UNIVERSAL SECTION PARSER WITH TOPIC TITLE MERGING & AUTOMATIC AI EXPLANATION ENHANCEMENTS
+        // SMART 2-PASS PARSER WITH EXTRACT ANSWER KEY AT END SUPPORT
+        function extractAnswerKeyMap(lines) {
+            const answerKeyMap = {};
+            let inAnswerKey = false;
+            let currentSecIndex = 0;
+            const remainingLines = [];
+
+            const answerHeaderRegex = /^(?:##|#)?\s*(?:answer\s*key|answers|đáp\s*án|key|keys|đ\/a)\b/i;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) {
+                    if (inAnswerKey) continue;
+                    remainingLines.push(lines[i]);
+                    continue;
+                }
+
+                if (answerHeaderRegex.test(line)) {
+                    inAnswerKey = true;
+                    continue;
+                }
+
+                if (inAnswerKey) {
+                    const secM = line.match(/^(?:bài|part|section|exercise|phần)?\s*(\d+)[\.\:\)]?$/i);
+                    if (secM && !line.includes('___')) {
+                        currentSecIndex = parseInt(secM[1]) - 1;
+                        continue;
+                    }
+
+                    const kvM = line.match(/^(?:câu|question|q)?\s*(\d+)[\.\:\)\s\-]+(.*)$/i);
+                    if (kvM) {
+                        const qNum = parseInt(kvM[1]);
+                        const ansVal = kvM[2].trim();
+                        if (ansVal) {
+                            answerKeyMap[`sec_${currentSecIndex}_q_${qNum}`] = ansVal;
+                            answerKeyMap[`q_${qNum}`] = ansVal;
+                        }
+                        continue;
+                    }
+                }
+
+                remainingLines.push(lines[i]);
+            }
+
+            return { answerKeyMap, remainingLines };
+        }
+
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1484,7 +1591,9 @@ can-do attitude communication skills critical thinking determination integrity s
                 }
             }
 
-            const lines = textToParse.split('\n');
+            const initialLines = textToParse.split('\n');
+            const { answerKeyMap, remainingLines } = extractAnswerKeyMap(initialLines);
+
             const sections = [];
             let currentSec = null;
             let currentQ = null;
@@ -1552,7 +1661,7 @@ can-do attitude communication skills critical thinking determination integrity s
                 currentQ = null;
             }
 
-            for (let line of lines) {
+            for (let line of remainingLines) {
                 line = line.trim();
                 if (!line) continue;
 
@@ -1631,10 +1740,18 @@ can-do attitude communication skills critical thinking determination integrity s
 
             sections.forEach((sec, sIdx) => {
                 sec.id = sIdx;
-                sec.questions.forEach((q) => {
+                sec.questions.forEach((q, qIdx) => {
                     q.id = globalQId;
                     q.sectionIndex = sIdx;
                     q.sectionTitle = sec.title;
+
+                    // INJECT ANSWER FROM END-OF-TEXT ANSWER KEY IF NOT ALREADY SET
+                    const secKey = `sec_${sIdx}_q_${qIdx + 1}`;
+                    const globalKey = `q_${globalQId}`;
+
+                    if (!q.answer && (answerKeyMap[secKey] || answerKeyMap[globalKey])) {
+                        q.answer = answerKeyMap[secKey] || answerKeyMap[globalKey];
+                    }
 
                     // INJECT AI PEDAGOGICAL EXPLANATION IF MISSING
                     if (AI_EXPLANATION_DICTIONARY[globalQId]) {
