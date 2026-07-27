@@ -89,7 +89,7 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Đơn giản - Nhanh chóng - Tương tác cao</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Hỗ trợ nhập Đề bài bằng Text, Markdown & JSON</p>
                     </div>
                 </div>
 
@@ -137,11 +137,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ soạn bài tập thông minh
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ soạn đề Đa Định Dạng (Text / Markdown / JSON)
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập & Tự Động Tạo Quiz!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập Dạng Văn Bản Hoặc JSON!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Nhập đề bài dạng Text/Markdown bên dưới. Học sinh chỉ cần nhập <b>Họ tên</b> và <b>Mã học viên</b> là có thể làm bài ngay lập tức.
+                            Hệ thống tự động nhận diện nếu bạn dán văn bản thường hoặc mảng dữ liệu <b>JSON</b>.
                         </p>
                     </div>
                 </div>
@@ -149,12 +149,12 @@
                 <!-- Preset Toolbar -->
                 <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Đề mẫu:</span>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Mẫu có sẵn:</span>
                         <button onclick="loadPresetSample('english')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
-                            <i class="fa-solid fa-language text-brand-500"></i> Tiếng Anh
+                            <i class="fa-solid fa-language text-brand-500"></i> Tiếng Anh (Text)
                         </button>
-                        <button onclick="loadPresetSample('general')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
-                            <i class="fa-solid fa-brain text-purple-500"></i> Kiến Thức Chung
+                        <button onclick="loadPresetSample('json')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
+                            <i class="fa-solid fa-code text-amber-500"></i> Mẫu JSON
                         </button>
                     </div>
                     <div class="flex items-center gap-2">
@@ -172,12 +172,12 @@
                     <div class="lg:col-span-2 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                             <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                                <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài</span>
-                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Sẵn sàng nhận đề</span>
+                                <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài (Text / Markdown / JSON)</span>
+                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Tự động nhận diện JSON/Text</span>
                             </div>
                             <div class="p-4 flex-1">
                                 <textarea id="markdown-input" spellcheck="false" rows="16" 
-                                    placeholder="Dán hoặc gõ đề bài tại đây..."
+                                    placeholder="Dán văn bản đề bài hoặc mảng JSON tại đây..."
                                     class="w-full min-h-[380px] p-4 text-slate-800 font-mono text-sm leading-relaxed bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-100 focus:border-brand-500 transition"></textarea>
                                 <div class="mt-2 text-xs text-slate-400" id="char-line-count">0 dòng | 0 ký tự</div>
                             </div>
@@ -193,27 +193,49 @@
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
                             <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Hướng Dẫn Cú Pháp</h3>
+                            
+                            <!-- Tab 1: Text -->
                             <div>
-                                <span class="text-xs font-bold text-slate-700 uppercase">1. Trắc nghiệm:</span>
-                                <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1">1. Capital of France?
+                                <span class="text-xs font-bold text-slate-700 uppercase">1. Văn Bản / Text:</span>
+                                <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto">1. Capital of France?
 A) London
 B) Paris
 Answer: B
 Explanation: Paris is capital.</pre>
                             </div>
+
+                            <!-- Tab 2: JSON -->
                             <div>
-                                <span class="text-xs font-bold text-slate-700 uppercase">2. Điền từ:</span>
-                                <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1">2. She [is/am/are] a teacher.
-Answer: is</pre>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-700 uppercase">2. Định dạng JSON:</span>
+                                    <button onclick="copySnippet('json-snippet')" class="text-[11px] text-brand-600 hover:underline font-semibold"><i class="fa-regular fa-copy"></i> Copy</button>
+                                </div>
+                                <pre id="json-snippet" class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto leading-relaxed border border-slate-800">[
+  {
+    "title": "What is the capital of France?",
+    "type": "multiple_choice",
+    "options": [
+      {"key": "A", "text": "London"},
+      {"key": "B", "text": "Paris"}
+    ],
+    "answer": "B",
+    "explanation": "Paris is the capital."
+  },
+  {
+    "title": "She [is/am/are] a teacher.",
+    "type": "fill_blank",
+    "answer": "is"
+  }
+]</pre>
                             </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SUB-TAB 2: QUẢN LÝ LỚP HỌC & HỌC SINH (CLASS ROSTER MANAGEMENT) -->
+            <!-- SUB-TAB 2: QUẢN LÝ LỚP HỌC & HỌC SINH -->
             <div id="teacher-subtab-classes" class="hidden space-y-6">
-                <!-- Create New Class Form -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
                         <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
@@ -226,12 +248,10 @@ Answer: is</pre>
                         </button>
                     </div>
                 </div>
-
-                <!-- Classes List Display -->
                 <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- SUB-TAB 3: BẢNG ĐIỂM & KẾT QUẢ (GRADEBOOK & SUBMISSIONS) -->
+            <!-- SUB-TAB 3: BẢNG ĐIỂM & KẾT QUẢ -->
             <div id="teacher-subtab-grades" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -251,7 +271,6 @@ Answer: is</pre>
                         </div>
                     </div>
 
-                    <!-- Grades Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-b border-slate-200">
@@ -279,7 +298,7 @@ Answer: is</pre>
         <!-- ================================================================= -->
         <div id="student-view" class="hidden space-y-6">
 
-            <!-- Streamlined Student Login Box (Name & ID only) -->
+            <!-- Streamlined Student Login Box -->
             <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-10">
                 <div class="text-center space-y-2">
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border border-brand-100">
@@ -319,7 +338,6 @@ Answer: is</pre>
 
             <!-- Quiz Active Interface -->
             <div id="student-quiz-active" class="hidden space-y-6">
-                <!-- Header Info Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2">
@@ -331,7 +349,6 @@ Answer: is</pre>
                         <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-900 mt-1">Bài Tập Tương Tác Online</h2>
                     </div>
 
-                    <!-- Timer Box -->
                     <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-inner">
                         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-sm">
                             <i class="fa-solid fa-stopwatch"></i>
@@ -343,7 +360,7 @@ Answer: is</pre>
                     </div>
                 </div>
 
-                <!-- Result Score Summary Banner -->
+                <!-- Result Summary Banner -->
                 <div id="quiz-result-banner" class="hidden bg-white rounded-3xl border border-slate-200 p-6 shadow-md space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div class="flex items-center gap-4">
@@ -368,10 +385,8 @@ Answer: is</pre>
                     </div>
                 </div>
 
-                <!-- Questions List Container -->
                 <div id="questions-list-container" class="space-y-6"></div>
 
-                <!-- Bottom Submit Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-lg sticky bottom-6 z-30 flex items-center justify-between gap-4">
                     <span id="answered-progress-text" class="text-sm text-slate-600 font-medium"><i class="fa-solid fa-list-check text-brand-600 mr-2"></i>Đã trả lời: 0/0 câu</span>
                     <div class="flex items-center gap-3">
@@ -401,7 +416,6 @@ Answer: is</pre>
     <!-- JAVASCRIPT LOGIC -->
     <!-- ================================================================= -->
     <script>
-        // State Store
         let appData = {
             classes: [
                 {
@@ -528,7 +542,6 @@ Answer: is</pre>
                         <button onclick="deleteClass('${c.id}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
                     </div>
 
-                    <!-- Add Student Input -->
                     <div class="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
                         <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Thêm học viên vào lớp:</span>
                         <div class="flex gap-2">
@@ -538,7 +551,6 @@ Answer: is</pre>
                         </div>
                     </div>
 
-                    <!-- Students Table -->
                     <div class="max-h-40 overflow-y-auto">
                         <table class="w-full text-left">
                             <thead>
@@ -594,7 +606,7 @@ Answer: is</pre>
             }
         }
 
-        // STREAMLINED STUDENT LOGIN (AUTO LOOKUP BY STUDENT ID)
+        // STREAMLINED STUDENT LOGIN
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
@@ -606,7 +618,6 @@ Answer: is</pre>
                 return;
             }
 
-            // Search across all class rosters
             let foundStudent = null;
             let foundClassName = '';
 
@@ -653,7 +664,7 @@ Answer: is</pre>
             startTimer();
         }
 
-        // PARSER & EDITOR
+        // PRESETS & SAMPLE DATA (SUPPORTING TEXT & JSON)
         const SAMPLE_DATASETS = {
             english: `1. What is the capital of France?
 A) London
@@ -666,12 +677,26 @@ Explanation: Paris is the capital city of France.
 2. She [is/am/are] a teacher at our primary school.
 Answer: is
 Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.`,
-            general: `1. Nước sôi ở nhiệt độ bao nhiêu độ C?
-A) 80 độ C
-B) 90 độ C
-C) 100 độ C
-Answer: C
-Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khiết sôi ở 100°C.`
+
+            json: `[
+  {
+    "title": "Hành tinh nào lớn nhất trong Hệ Mặt Trời?",
+    "type": "multiple_choice",
+    "options": [
+      { "key": "A", "text": "Trái Đất" },
+      { "key": "B", "text": "Sao Hỏa" },
+      { "key": "C", "text": "Sao Mộc" }
+    ],
+    "answer": "C",
+    "explanation": "Sao Mộc có khối lượng lớn nhất Hệ Mặt Trời."
+  },
+  {
+    "title": "Nước tinh khiết sôi ở [100/90/80] độ C.",
+    "type": "fill_blank",
+    "answer": "100",
+    "explanation": "Ở 1 atm, nước tinh khiết sôi ở 100°C."
+  }
+]`
         };
 
         function updateInputStats() {
@@ -686,9 +711,76 @@ Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khi
         }
         function loadSampleData() { loadPresetSample('english'); }
         function clearTextarea() { document.getElementById('markdown-input').value = ''; updateInputStats(); }
+        function copySnippet(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
+                showNotification('Đã sao chép mẫu JSON!', 'success');
+            });
+        }
 
+        // SMART MULTI-FORMAT PARSER (TEXT, MARKDOWN & JSON)
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
+            const trimmed = rawText.trim();
+
+            // Check if input is JSON (starts with [ or {)
+            if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+                try {
+                    const parsedJson = JSON.parse(trimmed);
+                    const list = Array.isArray(parsedJson) ? parsedJson : [parsedJson];
+                    
+                    return list.map((item, idx) => {
+                        const title = item.title || item.question || item.text || `Câu hỏi ${idx + 1}`;
+                        const answer = item.answer || item.correctAnswer || item.key || '';
+                        const explanation = item.explanation || item.explain || '';
+                        
+                        let options = [];
+                        if (Array.isArray(item.options)) {
+                            options = item.options.map((o, oIdx) => {
+                                if (typeof o === 'string') {
+                                    const key = String.fromCharCode(65 + oIdx);
+                                    return { key: key, text: o };
+                                }
+                                return { key: (o.key || String.fromCharCode(65 + oIdx)).toUpperCase(), text: o.text || o.label || '' };
+                            });
+                        }
+
+                        // Inline blanks detection
+                        const bracketRegex = /\[(.*?)\]/g;
+                        const matches = [...title.matchAll(bracketRegex)];
+                        const inlineBlanks = [];
+
+                        let qType = item.type || (options.length > 0 ? 'multiple_choice' : 'fill_blank');
+
+                        if (matches.length > 0) {
+                            qType = 'fill_blank';
+                            matches.forEach(m => {
+                                const content = m[1].trim();
+                                if (content.includes('/')) {
+                                    const choices = content.split('/').map(c => c.trim());
+                                    inlineBlanks.push({ placeholder: m[0], choices: choices, answer: answer || choices[0] });
+                                } else {
+                                    inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || answer });
+                                }
+                            });
+                        }
+
+                        return {
+                            id: idx + 1,
+                            title: title,
+                            rawText: title,
+                            type: qType,
+                            options: options,
+                            answer: answer,
+                            explanation: explanation,
+                            inlineBlanks: inlineBlanks
+                        };
+                    });
+                } catch(e) {
+                    console.warn('JSON parsing error, falling back to text parser:', e);
+                }
+            }
+
+            // Fallback: Smart Text/Markdown Parser
             const lines = rawText.split('\n');
             const questions = [];
             let currentQ = null;
@@ -761,7 +853,7 @@ Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khi
             appData.currentQuestions = parseInputToQuestions(rawText);
 
             if (appData.currentQuestions.length === 0) {
-                showNotification('Không thể phân tích câu hỏi nào!', 'error');
+                showNotification('Không thể phân tích câu hỏi nào! Hãy kiểm tra cú pháp Text hoặc JSON.', 'error');
                 return;
             }
 
@@ -769,7 +861,7 @@ Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khi
             document.getElementById('quiz-count-badge').classList.remove('hidden');
 
             switchMainTab('student');
-            showNotification(`Đã tạo thành công ${appData.currentQuestions.length} câu hỏi!`, 'success');
+            showNotification(`Đã phân tích thành công ${appData.currentQuestions.length} câu hỏi!`, 'success');
         }
 
         // RENDER STUDENT QUIZ
