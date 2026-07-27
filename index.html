@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-cloud-arrow-up"></i> Hỗ Trợ 5 Dạng Bài Tập & Hẹn Giờ Nộp Bài (Deadline)
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Tự Động Đồng Bộ Đám Mây Real-Time Qua Vercel
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Hệ Thống Bài Tập Đa Dạng & Nhắc Nhở Deadline Tự Động!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tự Động Bóc Tách Ngân Hàng Từ & Đánh Số Câu Hỏi Chuẩn 100%!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Nhận diện 5 dạng bài: <b>Kéo thả từ, Trắc nghiệm, Đúng/Sai, Nối cột A-B, Trả lời ngắn</b> + Cài đặt <b>ĐỒNG HỒ ĐẾM NGƯỢC DEADLINE</b> cho học sinh.
+                            Dòng danh sách từ vựng Word Bank sẽ <b>KHÔNG BAO GIỜ BỊ TÍNH LÀ CÂU 1</b>. Hệ thống tự động trích xuất các từ vào khung trôi và bắt đầu tính <b>Câu 1</b> từ câu hỏi kéo thả đầu tiên!
                         </p>
                     </div>
                 </div>
@@ -367,7 +367,6 @@ Answer: communication skills</pre>
                         <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">
                             <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
                         </span>
-                        <!-- Student View Deadline Countdown Badge -->
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
                     </div>
                     <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">7 câu hỏi</span></h3>
@@ -515,7 +514,7 @@ Answer: communication skills</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH MULTI-TYPE ENGINE & DEADLINE REMINDER -->
+    <!-- JAVASCRIPT LOGIC WITH AUTOMATIC WORD BANK LINE DETECTION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -524,6 +523,8 @@ Answer: communication skills</pre>
             multi_type: `## 1 Transferable skills (Kéo thả điền từ)
 
 1 Complete these comments by interviewers using the words in the box.
+
+can-do attitude | communication skills | critical thinking | determination | integrity | set goals | team player | think outside the box
 
 1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].
 
@@ -546,17 +547,6 @@ Answer: False
 
 1 What skill helps express presentation ideas clearly?
 Answer: communication skills`,
-
-            english: `1 What is the capital of France?
-A) London
-B) Paris
-C) Berlin
-D) Madrid
-Answer: B
-Explanation: Paris is the capital city of France.
-
-2 She [is/am/are] a teacher at our primary school.
-Answer: is`,
 
             ocr_json: `{
   "layoutParsingResults": [
@@ -597,14 +587,12 @@ Answer: is`,
         let timerInterval = null;
         let timerSeconds = 0;
         let timerRunning = false;
-        let deadlineCountdownInterval = null;
 
         function toggleDeadlineInput() {
             const check = document.getElementById('enable-deadline-checkbox');
             const picker = document.getElementById('quiz-deadline-picker');
             picker.disabled = !check.checked;
             if (check.checked && !picker.value) {
-                // Default to tomorrow 23:59
                 const tomorrow = new Date();
                 tomorrow.setDate(tomorrow.getDate() + 1);
                 tomorrow.setHours(23, 59, 0, 0);
@@ -653,6 +641,24 @@ Answer: is`,
                 return true;
             });
             return Array.from(new Set(cleaned));
+        }
+
+        // DETECT WORD BANK VOCABULARY LIST LINES TO PREVENT THEM FROM BECOMING QUESTION #1
+        function isWordBankLine(line) {
+            if (!line) return false;
+            const lower = line.toLowerCase();
+            
+            if (lower.includes('word bank') || lower.includes('words in the box') || lower.includes('phrases in the box')) return true;
+            
+            if ((lower.includes('can-do attitude') || lower.includes('communication skills') || lower.includes('critical thinking') || lower.includes('team player') || lower.includes('think outside the box')) && !line.includes('[') && !line.includes('___')) {
+                return true;
+            }
+            
+            if ((line.split('|').length >= 3 || line.split(/\s{2,}/).length >= 3) && !line.match(/^\d+[\.\:\)]/) && !line.includes('[') && !line.includes('___')) {
+                return true;
+            }
+
+            return false;
         }
 
         async function publishQuizToCloud(questions, wordBank) {
@@ -1039,7 +1045,7 @@ Answer: is`,
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // ULTRA SMART MULTI-TYPE EXERCISE PARSER (5 TYPES RECOGNIZED)
+        // SMART PARSER PREVENTING WORD BANK LINES FROM BECOMING QUESTION #1
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1092,7 +1098,6 @@ Answer: is`,
                 const matches = [...cleanTitle.matchAll(bracketRegex)];
                 currentQ.inlineBlanks = [];
 
-                // TYPE RECOGNITION HIERARCHY
                 if (cleanTitle.toLowerCase().includes('[true/false]') || cleanTitle.toLowerCase().includes('[true / false]') || cleanTitle.toLowerCase().includes('[true/false/not given]')) {
                     currentQ.type = 'true_false';
                     currentQ.title = cleanTitle.replace(/\[true\/false.*?\]/i, '').trim();
@@ -1140,12 +1145,25 @@ Answer: is`,
                 line = line.trim();
                 if (!line) continue;
 
-                // Section Header Detection & Strip Leading Number
+                // 1. Detect Section Header / Instruction Line & Strip leading numbers
                 if (line.startsWith('##') || (sectionHeaderRegex.test(line) && (line.includes('using the words') || line.includes('in italics') || line.includes('in the box') || line.length > 35 || line.startsWith('##')))) {
                     saveCurrent();
                     let cleanSec = line.replace(/^(?:##|\d+[\.\:\)\s]*)/, '').trim();
                     currentSectionTitle = cleanSec || "Phần Bài Tập";
                     continue;
+                }
+
+                // 2. Detect Word Bank lines and extract words WITHOUT turning into Question #1
+                if (isWordBankLine(line)) {
+                    saveCurrent();
+                    const rawWords = line.split(/\s{2,}|\||\,/);
+                    rawWords.forEach(w => {
+                        const cleanW = w.replace(/^(?:1\s*Complete|using the words).*$/i, '').trim();
+                        if (cleanW.length > 2 && cleanW.length <= 30 && cleanW.split(' ').length <= 4) {
+                            extractedWordBank.add(cleanW);
+                        }
+                    });
+                    continue; // Skip creating a question for Word Bank lines!
                 }
 
                 const ansM = line.match(answerRegex);
@@ -1287,7 +1305,6 @@ Answer: is`,
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ SUPPORTING ALL 5 EXERCISE TYPES
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1410,7 +1427,6 @@ Answer: is`,
                     <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
                 `;
 
-                // TYPE-SPECIFIC STUDENT INPUT CONTROLS
                 if (q.type === 'multiple_choice') {
                     html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">`;
                     q.options.forEach(opt => {
@@ -1521,7 +1537,6 @@ Answer: is`,
         function submitQuiz() {
             if (isSubmitted) return;
 
-            // Check deadline expired
             if (appData.quizDeadline && new Date().getTime() > new Date(appData.quizDeadline).getTime()) {
                 if (!confirm('⚠️ Hạn nộp bài đã qua. Bạn vẫn muốn nộp bài chứ?')) return;
             }
@@ -1657,7 +1672,7 @@ Answer: is`,
             timerRunning = true;
             timerInterval = setInterval(() => {
                 timerSeconds++;
-                document.getElementById('quiz-timer-display').innerText = formatTime(timerSeconds);
+                document.getElementById('quiz-timer-display').innerText = formatTime(formatTime(timerSeconds));
             }, 1000);
         }
         function stopTimer() { timerRunning = false; clearInterval(timerInterval); }
