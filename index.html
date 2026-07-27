@@ -89,7 +89,7 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Hỗ trợ nhập Đề bài bằng Text, Markdown & JSON</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Hỗ trợ Text, Markdown & Kết Quả OCR AI (PaddleOCR / MinerU)</p>
                     </div>
                 </div>
 
@@ -137,11 +137,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ soạn đề Đa Định Dạng (Text / Markdown / JSON)
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ phân tích Đa Định Dạng Thông Minh
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập Dạng Văn Bản Hoặc JSON!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập (Text / Markdown / OCR AI JSON)!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Hệ thống tự động nhận diện nếu bạn dán văn bản thường hoặc mảng dữ liệu <b>JSON</b>.
+                            Hỗ trợ dán văn bản thường, mảng câu hỏi JSON hoặc kết quả JSON quét từ **PaddleOCR / MinerU AI**!
                         </p>
                     </div>
                 </div>
@@ -153,8 +153,8 @@
                         <button onclick="loadPresetSample('english')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
                             <i class="fa-solid fa-language text-brand-500"></i> Tiếng Anh (Text)
                         </button>
-                        <button onclick="loadPresetSample('json')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
-                            <i class="fa-solid fa-code text-amber-500"></i> Mẫu JSON
+                        <button onclick="loadPresetSample('ocr_json')" class="px-3 py-1.5 bg-slate-100 hover:bg-brand-50 hover:text-brand-700 text-slate-700 text-xs font-semibold rounded-lg transition border border-slate-200">
+                            <i class="fa-solid fa-robot text-purple-500"></i> Kết Quả Quét OCR AI
                         </button>
                     </div>
                     <div class="flex items-center gap-2">
@@ -172,12 +172,12 @@
                     <div class="lg:col-span-2 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                             <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                                <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài (Text / Markdown / JSON)</span>
-                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Tự động nhận diện JSON/Text</span>
+                                <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài</span>
+                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Hỗ trợ Text & AI OCR JSON</span>
                             </div>
                             <div class="p-4 flex-1">
                                 <textarea id="markdown-input" spellcheck="false" rows="16" 
-                                    placeholder="Dán văn bản đề bài hoặc mảng JSON tại đây..."
+                                    placeholder="Dán văn bản đề bài hoặc kết quả OCR AI JSON tại đây..."
                                     class="w-full min-h-[380px] p-4 text-slate-800 font-mono text-sm leading-relaxed bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-100 focus:border-brand-500 transition"></textarea>
                                 <div class="mt-2 text-xs text-slate-400" id="char-line-count">0 dòng | 0 ký tự</div>
                             </div>
@@ -194,7 +194,6 @@
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
                             <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Hướng Dẫn Cú Pháp</h3>
                             
-                            <!-- Tab 1: Text -->
                             <div>
                                 <span class="text-xs font-bold text-slate-700 uppercase">1. Văn Bản / Text:</span>
                                 <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto">1. Capital of France?
@@ -204,29 +203,15 @@ Answer: B
 Explanation: Paris is capital.</pre>
                             </div>
 
-                            <!-- Tab 2: JSON -->
                             <div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-700 uppercase">2. Định dạng JSON:</span>
-                                    <button onclick="copySnippet('json-snippet')" class="text-[11px] text-brand-600 hover:underline font-semibold"><i class="fa-regular fa-copy"></i> Copy</button>
-                                </div>
-                                <pre id="json-snippet" class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto leading-relaxed border border-slate-800">[
-  {
-    "title": "What is the capital of France?",
-    "type": "multiple_choice",
-    "options": [
-      {"key": "A", "text": "London"},
-      {"key": "B", "text": "Paris"}
-    ],
-    "answer": "B",
-    "explanation": "Paris is the capital."
-  },
-  {
-    "title": "She [is/am/are] a teacher.",
-    "type": "fill_blank",
-    "answer": "is"
-  }
-]</pre>
+                                <span class="text-xs font-bold text-slate-700 uppercase">2. Kết quả Quét AI (PaddleOCR / MinerU):</span>
+                                <pre class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto leading-relaxed border border-slate-800">{
+  "layoutParsingResults": [
+    {
+      "markdown": { "text": "## Title\\n1. Question..." }
+    }
+  ]
+}</pre>
                             </div>
 
                         </div>
@@ -338,17 +323,23 @@ Explanation: Paris is capital.</pre>
 
             <!-- Quiz Active Interface -->
             <div id="student-quiz-active" class="hidden space-y-6">
+                <!-- Header Info Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <div class="flex items-center gap-2">
                             <span id="active-student-badge" class="px-3 py-1 bg-brand-100 text-brand-800 text-xs font-bold rounded-full border border-brand-200">
                                 <i class="fa-solid fa-user-graduate mr-1"></i> HV: -- | --
                             </span>
-                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold">0 câu hỏi</span>
+                            <!-- Logout / Switch Account Button -->
+                            <button onclick="logoutStudentSession()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline flex items-center gap-1">
+                                <i class="fa-solid fa-right-from-bracket"></i> Đổi tài khoản
+                            </button>
+                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">0 câu hỏi</span>
                         </div>
                         <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-900 mt-1">Bài Tập Tương Tác Online</h2>
                     </div>
 
+                    <!-- Timer Box -->
                     <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-inner">
                         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-sm">
                             <i class="fa-solid fa-stopwatch"></i>
@@ -446,6 +437,17 @@ Explanation: Paris is capital.</pre>
                 try { appData = JSON.parse(saved); } catch(e) {}
             }
             updateBadges();
+
+            // Restore active student session if refreshed (F5)
+            const activeStSaved = localStorage.getItem('eduquiz_active_student');
+            if (activeStSaved) {
+                try {
+                    activeStudentInfo = JSON.parse(activeStSaved);
+                    if (activeStudentInfo && activeStudentInfo.studentId) {
+                        restoreStudentSessionUI();
+                    }
+                } catch(e) {}
+            }
         }
 
         function saveStorage() {
@@ -606,7 +608,7 @@ Explanation: Paris is capital.</pre>
             }
         }
 
-        // STREAMLINED STUDENT LOGIN
+        // STUDENT SESSION LOGIC & PERSISTENCE
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
@@ -654,7 +656,14 @@ Explanation: Paris is capital.</pre>
             activeStudentInfo.studentName = stName;
             if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
 
-            document.getElementById('active-student-badge').innerHTML = `<i class="fa-solid fa-user-graduate mr-1"></i> ${activeStudentInfo.className} | ${stId} - ${stName}`;
+            // Save active session to LocalStorage so F5 refresh preserves login!
+            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
+
+            restoreStudentSessionUI();
+        }
+
+        function restoreStudentSessionUI() {
+            document.getElementById('active-student-badge').innerHTML = `<i class="fa-solid fa-user-graduate mr-1"></i> ${activeStudentInfo.className} | ${activeStudentInfo.studentId} - ${activeStudentInfo.studentName}`;
 
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
@@ -664,7 +673,22 @@ Explanation: Paris is capital.</pre>
             startTimer();
         }
 
-        // PRESETS & SAMPLE DATA (SUPPORTING TEXT & JSON)
+        function logoutStudentSession() {
+            localStorage.removeItem('eduquiz_active_student');
+            activeStudentInfo = { className: '', studentId: '', studentName: '' };
+            stopTimer();
+
+            document.getElementById('student-id-input').value = '';
+            document.getElementById('student-name-input').value = '';
+            document.getElementById('class-detected-info').classList.add('hidden');
+
+            document.getElementById('student-quiz-active').classList.add('hidden');
+            document.getElementById('student-login-box').classList.remove('hidden');
+
+            showNotification('Đã đăng xuất tài khoản học sinh!', 'info');
+        }
+
+        // PRESETS & SAMPLE DATA
         const SAMPLE_DATASETS = {
             english: `1. What is the capital of France?
 A) London
@@ -678,25 +702,15 @@ Explanation: Paris is the capital city of France.
 Answer: is
 Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.`,
 
-            json: `[
-  {
-    "title": "Hành tinh nào lớn nhất trong Hệ Mặt Trời?",
-    "type": "multiple_choice",
-    "options": [
-      { "key": "A", "text": "Trái Đất" },
-      { "key": "B", "text": "Sao Hỏa" },
-      { "key": "C", "text": "Sao Mộc" }
-    ],
-    "answer": "C",
-    "explanation": "Sao Mộc có khối lượng lớn nhất Hệ Mặt Trời."
-  },
-  {
-    "title": "Nước tinh khiết sôi ở [100/90/80] độ C.",
-    "type": "fill_blank",
-    "answer": "100",
-    "explanation": "Ở 1 atm, nước tinh khiết sôi ở 100°C."
-  }
-]`
+            ocr_json: `{
+  "layoutParsingResults": [
+    {
+      "markdown": {
+        "text": "## Transferable skills\\n\\n1 His ideas were creative and really innovative so he can obviously [___/think outside the box].\\n\\n2 I liked the way she worked with the other candidates so she is clearly a(n) [___/team player].\\n\\n3 He has excellent [___/communication skills]. The presentation was first class.\\n\\n## 2 Choose the correct option in italics.\\n\\n1 Our consultants need to be [confident/independent] because they often have to work alone.\\nAnswer: independent\\n\\n2 My manager is really [ambitious/passionate] about customer service.\\nAnswer: passionate"
+      }
+    }
+  ]
+}`
         };
 
         function updateInputStats() {
@@ -711,77 +725,90 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
         }
         function loadSampleData() { loadPresetSample('english'); }
         function clearTextarea() { document.getElementById('markdown-input').value = ''; updateInputStats(); }
-        function copySnippet(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => {
-                showNotification('Đã sao chép mẫu JSON!', 'success');
-            });
-        }
 
-        // SMART MULTI-FORMAT PARSER (TEXT, MARKDOWN & JSON)
+        // SMART UNIVERSAL PARSER (HANDLES TEXT, MARKDOWN & AI OCR JSON LAYOUT RESULTS)
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
-            const trimmed = rawText.trim();
+            let textToParse = rawText.trim();
 
-            // Check if input is JSON (starts with [ or {)
-            if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+            // Check if JSON object or array
+            if (textToParse.startsWith('[') || textToParse.startsWith('{')) {
                 try {
-                    const parsedJson = JSON.parse(trimmed);
-                    const list = Array.isArray(parsedJson) ? parsedJson : [parsedJson];
-                    
-                    return list.map((item, idx) => {
-                        const title = item.title || item.question || item.text || `Câu hỏi ${idx + 1}`;
-                        const answer = item.answer || item.correctAnswer || item.key || '';
-                        const explanation = item.explanation || item.explain || '';
-                        
-                        let options = [];
-                        if (Array.isArray(item.options)) {
-                            options = item.options.map((o, oIdx) => {
-                                if (typeof o === 'string') {
-                                    const key = String.fromCharCode(65 + oIdx);
-                                    return { key: key, text: o };
-                                }
-                                return { key: (o.key || String.fromCharCode(65 + oIdx)).toUpperCase(), text: o.text || o.label || '' };
-                            });
+                    const parsedJson = JSON.parse(textToParse);
+
+                    // CASE 1: OCR AI Layout Parsing Results (PaddleOCR / MinerU / Mathpix)
+                    if (parsedJson.layoutParsingResults && Array.isArray(parsedJson.layoutParsingResults)) {
+                        let extractedText = '';
+                        parsedJson.layoutParsingResults.forEach(res => {
+                            if (res.markdown && res.markdown.text) {
+                                extractedText += res.markdown.text + '\n\n';
+                            } else if (res.parsing_res_list && Array.isArray(res.parsing_res_list)) {
+                                res.parsing_res_list.forEach(block => {
+                                    if (block.block_content) extractedText += block.block_content + '\n';
+                                });
+                            }
+                        });
+                        if (extractedText.trim()) {
+                            textToParse = extractedText; // Pass extracted text to smart text parser below!
                         }
+                    } else if (parsedJson.markdown && parsedJson.markdown.text) {
+                        textToParse = parsedJson.markdown.text;
+                    } else {
+                        // CASE 2: Direct Quiz Questions Array JSON
+                        const list = Array.isArray(parsedJson) ? parsedJson : [parsedJson];
+                        return list.map((item, idx) => {
+                            const title = item.title || item.question || item.text || `Câu hỏi ${idx + 1}`;
+                            const answer = item.answer || item.correctAnswer || item.key || '';
+                            const explanation = item.explanation || item.explain || '';
+                            
+                            let options = [];
+                            if (Array.isArray(item.options)) {
+                                options = item.options.map((o, oIdx) => {
+                                    if (typeof o === 'string') {
+                                        return { key: String.fromCharCode(65 + oIdx), text: o };
+                                    }
+                                    return { key: (o.key || String.fromCharCode(65 + oIdx)).toUpperCase(), text: o.text || o.label || '' };
+                                });
+                            }
 
-                        // Inline blanks detection
-                        const bracketRegex = /\[(.*?)\]/g;
-                        const matches = [...title.matchAll(bracketRegex)];
-                        const inlineBlanks = [];
+                            const bracketRegex = /\[(.*?)\]/g;
+                            const matches = [...title.matchAll(bracketRegex)];
+                            const inlineBlanks = [];
 
-                        let qType = item.type || (options.length > 0 ? 'multiple_choice' : 'fill_blank');
+                            let qType = item.type || (options.length > 0 ? 'multiple_choice' : 'fill_blank');
 
-                        if (matches.length > 0) {
-                            qType = 'fill_blank';
-                            matches.forEach(m => {
-                                const content = m[1].trim();
-                                if (content.includes('/')) {
-                                    const choices = content.split('/').map(c => c.trim());
-                                    inlineBlanks.push({ placeholder: m[0], choices: choices, answer: answer || choices[0] });
-                                } else {
-                                    inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || answer });
-                                }
-                            });
-                        }
+                            if (matches.length > 0) {
+                                qType = 'fill_blank';
+                                matches.forEach(m => {
+                                    const content = m[1].trim();
+                                    if (content.includes('/')) {
+                                        const choices = content.split('/').map(c => c.trim());
+                                        inlineBlanks.push({ placeholder: m[0], choices: choices, answer: answer || choices[0] });
+                                    } else {
+                                        inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || answer });
+                                    }
+                                });
+                            }
 
-                        return {
-                            id: idx + 1,
-                            title: title,
-                            rawText: title,
-                            type: qType,
-                            options: options,
-                            answer: answer,
-                            explanation: explanation,
-                            inlineBlanks: inlineBlanks
-                        };
-                    });
+                            return {
+                                id: idx + 1,
+                                title: title,
+                                rawText: title,
+                                type: qType,
+                                options: options,
+                                answer: answer,
+                                explanation: explanation,
+                                inlineBlanks: inlineBlanks
+                            };
+                        });
+                    }
                 } catch(e) {
-                    console.warn('JSON parsing error, falling back to text parser:', e);
+                    console.warn('JSON parse fallback to text:', e);
                 }
             }
 
-            // Fallback: Smart Text/Markdown Parser
-            const lines = rawText.split('\n');
+            // SMART TEXT & MARKDOWN PARSER
+            const lines = textToParse.split('\n');
             const questions = [];
             let currentQ = null;
 
@@ -794,6 +821,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 if (!currentQ) return;
                 currentQ.title = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/]\s*/i, '');
                 
+                // Detect fill in the blank markers: [___], [is/am/are], ___, flex___
                 const bracketRegex = /\[(.*?)\]/g;
                 const matches = [...currentQ.title.matchAll(bracketRegex)];
                 currentQ.inlineBlanks = [];
@@ -809,9 +837,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || currentQ.answer });
                         }
                     });
+                } else if (currentQ.title.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()))) {
+                    currentQ.type = 'fill_blank';
                 } else {
                     currentQ.type = currentQ.options.length > 0 ? 'multiple_choice' : 'fill_blank';
                 }
+
                 questions.push(currentQ);
                 currentQ = null;
             }
@@ -819,6 +850,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
+
+                // Skip pure markdown section headers like "## Transferable skills" unless starting question
+                if (line.startsWith('##')) continue;
 
                 const ansM = line.match(answerRegex);
                 if (ansM && currentQ) { currentQ.answer = ansM[1].trim(); continue; }
@@ -842,6 +876,10 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
                 if (!currentQ) {
                     currentQ = { id: questions.length + 1, text: line, options: [], answer: '', explanation: '' };
+                } else {
+                    if (currentQ.options.length === 0) {
+                        currentQ.text += ' ' + line;
+                    }
                 }
             }
             saveCurrent();
@@ -853,7 +891,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             appData.currentQuestions = parseInputToQuestions(rawText);
 
             if (appData.currentQuestions.length === 0) {
-                showNotification('Không thể phân tích câu hỏi nào! Hãy kiểm tra cú pháp Text hoặc JSON.', 'error');
+                showNotification('Không thể phân tích câu hỏi nào! Hãy kiểm tra nội dung nhập vào.', 'error');
                 return;
             }
 
@@ -886,10 +924,14 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                             b.choices.forEach(c => { optionsStr += `<option value="${c}" ${val === c ? 'selected' : ''}>${c}</option>`; });
                             inputElement = `<select onchange="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" class="mx-1 font-semibold text-brand-700 bg-brand-50 border-2 border-brand-200 rounded-xl px-3 py-1 text-sm">${optionsStr}</select>`;
                         } else {
-                            inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" placeholder="Đáp án..." class="mx-1 px-3 py-1 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-32 text-center">`;
+                            inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" placeholder="Đáp án..." class="mx-1 px-3 py-1 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-36 text-center">`;
                         }
                         titleHtml = titleHtml.replace(b.placeholder, inputElement);
                     });
+                } else if (q.type === 'fill_blank' && q.title.includes('___')) {
+                    const val = studentAnswers[`q_${q.id}_blank_0`] || '';
+                    const inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, 0, this.value)" placeholder="Gõ từ..." class="mx-1 px-3 py-1 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-36 text-center">`;
+                    titleHtml = titleHtml.replace(/___+/g, inputElement);
                 }
 
                 let html = `
@@ -959,7 +1001,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 feedbackBox.classList.remove('hidden');
                 feedbackBox.innerHTML = `
                     <div class="p-3.5 rounded-2xl ${isCorrect ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-rose-50 text-rose-900 border border-rose-200'} text-xs space-y-1">
-                        <div><b>Đáp án đúng:</b> ${q.answer}</div>
+                        <div><b>Đáp án đúng:</b> ${q.answer || 'Xem lại hướng dẫn'}</div>
                         ${q.explanation ? `<div><b>Giải thích:</b> ${q.explanation}</div>` : ''}
                     </div>
                 `;
