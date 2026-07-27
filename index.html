@@ -89,7 +89,7 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Quản lý Lớp học, Mã học viên & Bài tập tương tác</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Đơn giản - Nhanh chóng - Tương tác cao</p>
                     </div>
                 </div>
 
@@ -137,11 +137,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ soạn bài tập & Quản lý lớp
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ soạn bài tập thông minh
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập & Giao Cho Lớp Học!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Đề Bài Tập & Tự Động Tạo Quiz!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Nhập đề bài dạng Text/Markdown bên dưới. Bạn có thể chọn lớp áp dụng ở phần Quản lý Lớp học để học sinh nhập đúng Mã Học Viên trước khi làm bài.
+                            Nhập đề bài dạng Text/Markdown bên dưới. Học sinh chỉ cần nhập <b>Họ tên</b> và <b>Mã học viên</b> là có thể làm bài ngay lập tức.
                         </p>
                     </div>
                 </div>
@@ -213,7 +213,6 @@ Answer: is</pre>
 
             <!-- SUB-TAB 2: QUẢN LÝ LỚP HỌC & HỌC SINH (CLASS ROSTER MANAGEMENT) -->
             <div id="teacher-subtab-classes" class="hidden space-y-6">
-                
                 <!-- Create New Class Form -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
@@ -221,7 +220,7 @@ Answer: is</pre>
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <input type="text" id="new-class-name" placeholder="Tên lớp (VD: Lớp 10A1, Tiếng Anh K64)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                        <input type="text" id="new-class-desc" placeholder="Ghi chú / Môn học (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <input type="text" id="new-class-desc" placeholder="Ghi chú (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <button onclick="createNewClass()" class="py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2">
                             <i class="fa-solid fa-folder-plus"></i> Tạo Lớp
                         </button>
@@ -229,9 +228,7 @@ Answer: is</pre>
                 </div>
 
                 <!-- Classes List Display -->
-                <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Dynamic Class Cards will be rendered here -->
-                </div>
+                <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
             <!-- SUB-TAB 3: BẢNG ĐIỂM & KẾT QUẢ (GRADEBOOK & SUBMISSIONS) -->
@@ -268,9 +265,7 @@ Answer: is</pre>
                                     <th class="py-3.5 px-4 font-bold text-center">Thời gian làm</th>
                                 </tr>
                             </thead>
-                            <tbody id="grades-table-body" class="divide-y divide-slate-100">
-                                <!-- Dynamic Grade Rows -->
-                            </tbody>
+                            <tbody id="grades-table-body" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -284,32 +279,36 @@ Answer: is</pre>
         <!-- ================================================================= -->
         <div id="student-view" class="hidden space-y-6">
 
-            <!-- Student Login / Information Dialog Box -->
-            <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-lg mx-auto shadow-md space-y-6 my-8">
+            <!-- Streamlined Student Login Box (Name & ID only) -->
+            <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-10">
                 <div class="text-center space-y-2">
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border border-brand-100">
-                        <i class="fa-solid fa-id-card"></i>
+                        <i class="fa-solid fa-user-check"></i>
                     </div>
-                    <h3 class="font-heading font-bold text-2xl text-slate-900">Thông Tin Học Sinh</h3>
-                    <p class="text-slate-500 text-xs">Vui lòng chọn Lớp và nhập Mã Học Viên trước khi bắt đầu làm bài</p>
+                    <h3 class="font-heading font-bold text-2xl text-slate-900">Đăng Nhập Làm Bài</h3>
+                    <p class="text-slate-500 text-xs">Điền Họ tên và Mã học viên để bắt đầu</p>
                 </div>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">1. Chọn Lớp Học:</label>
-                        <select id="student-select-class" onchange="onClassSelectedForStudent()" class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                            <option value="">-- Chọn Lớp Học --</option>
-                        </select>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mã Học Viên (Student ID):</label>
+                        <div class="relative">
+                            <input type="text" id="student-id-input" oninput="autoLookupStudent()" placeholder="Ví dụ: HS01, HV02..." 
+                                class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none uppercase">
+                            <i class="fa-solid fa-id-badge absolute left-3.5 top-4 text-slate-400"></i>
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">2. Mã Học Viên (Student ID):</label>
-                        <input type="text" id="student-id-input" oninput="autoLookupStudentName()" placeholder="Ví dụ: HV01, HS001..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">3. Họ và Tên:</label>
-                        <input type="text" id="student-name-input" placeholder="Nhập Họ và Tên..." class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Họ và Tên:</label>
+                        <div class="relative">
+                            <input type="text" id="student-name-input" placeholder="Nhập Họ và tên..." 
+                                class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <i class="fa-solid fa-user absolute left-3.5 top-4 text-slate-400"></i>
+                        </div>
+                        <div id="class-detected-info" class="hidden mt-1.5 text-xs text-brand-600 font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> <span id="class-detected-name">Lớp: ---</span>
+                        </div>
                     </div>
                 </div>
 
@@ -318,7 +317,7 @@ Answer: is</pre>
                 </button>
             </div>
 
-            <!-- Quiz Active Interface (Hidden until student info entered & questions ready) -->
+            <!-- Quiz Active Interface -->
             <div id="student-quiz-active" class="hidden space-y-6">
                 <!-- Header Info Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -420,14 +419,13 @@ Answer: is</pre>
             currentQuestions: []
         };
 
-        let activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
+        let activeStudentInfo = { className: '', studentId: '', studentName: '' };
         let studentAnswers = {};
         let isSubmitted = false;
         let timerInterval = null;
         let timerSeconds = 0;
         let timerRunning = false;
 
-        // Load & Save LocalStorage
         function loadStorage() {
             const saved = localStorage.getItem('eduquiz_pro_data');
             if (saved) {
@@ -452,7 +450,6 @@ Answer: is</pre>
             loadSampleData();
             renderClassesList();
             renderGradesTable();
-            populateStudentClassDropdown();
         });
 
         // Tab Switching
@@ -462,10 +459,6 @@ Answer: is</pre>
             
             document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
             document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
-
-            if (tab === 'student') {
-                populateStudentClassDropdown();
-            }
         }
 
         function switchTeacherSubTab(sub) {
@@ -499,7 +492,6 @@ Answer: is</pre>
             appData.classes.push(newClass);
             saveStorage();
             renderClassesList();
-            populateStudentClassDropdown();
 
             nameInput.value = '';
             descInput.value = '';
@@ -515,7 +507,7 @@ Answer: is</pre>
                 card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 
                 let studentsHtml = '';
-                c.students.forEach((st, idx) => {
+                c.students.forEach((st) => {
                     studentsHtml += `
                         <tr class="border-b border-slate-100 text-xs">
                             <td class="py-2 font-mono font-bold text-brand-700">${st.id}</td>
@@ -599,61 +591,57 @@ Answer: is</pre>
                 appData.classes = appData.classes.filter(c => c.id !== classId);
                 saveStorage();
                 renderClassesList();
-                populateStudentClassDropdown();
             }
         }
 
-        // STUDENT SESSION LOGIN
-        function populateStudentClassDropdown() {
-            const select = document.getElementById('student-select-class');
-            select.innerHTML = '<option value="">-- Chọn Lớp Học --</option>';
-            appData.classes.forEach(c => {
-                select.innerHTML += `<option value="${c.id}">${c.name} (${c.students.length} HV)</option>`;
-            });
-        }
-
-        function onClassSelectedForStudent() {
-            const classId = document.getElementById('student-select-class').value;
-            const idInput = document.getElementById('student-id-input');
+        // STREAMLINED STUDENT LOGIN (AUTO LOOKUP BY STUDENT ID)
+        function autoLookupStudent() {
+            const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
-            
-            idInput.value = '';
-            nameInput.value = '';
-        }
+            const classInfoBox = document.getElementById('class-detected-info');
+            const classNameTag = document.getElementById('class-detected-name');
 
-        function autoLookupStudentName() {
-            const classId = document.getElementById('student-select-class').value;
-            const inputId = document.getElementById('student-id-input').value.trim().toUpperCase();
-            const nameInput = document.getElementById('student-name-input');
+            if (!stId) {
+                classInfoBox.classList.add('hidden');
+                return;
+            }
 
-            if (!classId || !inputId) return;
+            // Search across all class rosters
+            let foundStudent = null;
+            let foundClassName = '';
 
-            const cls = appData.classes.find(c => c.id === classId);
-            if (cls) {
-                const st = cls.students.find(s => s.id.toUpperCase() === inputId);
-                if (st) {
-                    nameInput.value = st.name;
+            for (let cls of appData.classes) {
+                const match = cls.students.find(s => s.id.toUpperCase() === stId);
+                if (match) {
+                    foundStudent = match;
+                    foundClassName = cls.name;
+                    break;
                 }
+            }
+
+            if (foundStudent) {
+                nameInput.value = foundStudent.name;
+                classNameTag.innerText = `Đã tìm thấy: ${foundStudent.name} (${foundClassName})`;
+                classInfoBox.classList.remove('hidden');
+                activeStudentInfo.className = foundClassName;
+            } else {
+                classInfoBox.classList.add('hidden');
+                activeStudentInfo.className = 'Tự do';
             }
         }
 
         function startStudentQuizSession() {
-            const classId = document.getElementById('student-select-class').value;
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const stName = document.getElementById('student-name-input').value.trim();
 
-            if (!classId || !stId || !stName) {
-                showNotification('Vui lòng chọn Lớp và nhập đầy đủ Mã HV + Họ Tên!', 'error');
+            if (!stId || !stName) {
+                showNotification('Vui lòng điền Mã Học Viên và Họ Tên!', 'error');
                 return;
             }
 
-            const cls = appData.classes.find(c => c.id === classId);
-            activeStudentInfo = {
-                classId: classId,
-                className: cls ? cls.name : 'Lớp Học',
-                studentId: stId,
-                studentName: stName
-            };
+            activeStudentInfo.studentId = stId;
+            activeStudentInfo.studentName = stName;
+            if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
 
             document.getElementById('active-student-badge').innerHTML = `<i class="fa-solid fa-user-graduate mr-1"></i> ${activeStudentInfo.className} | ${stId} - ${stName}`;
 
@@ -798,7 +786,6 @@ Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khi
 
                 if (q.type === 'fill_blank' && q.inlineBlanks && q.inlineBlanks.length > 0) {
                     q.inlineBlanks.forEach((b, bIdx) => {
-                        const inputId = `blank-input-${q.id}-${bIdx}`;
                         const val = studentAnswers[`q_${q.id}_blank_${bIdx}`] || '';
                         let inputElement = '';
 
@@ -893,10 +880,10 @@ Explanation: Ở áp suất khí quyển tiêu chuẩn (1 atm), nước tinh khi
             document.getElementById('stat-correct').innerText = `${correctCount}/${appData.currentQuestions.length}`;
             document.getElementById('stat-time-taken').innerText = formatTime(timerSeconds);
 
-            // SAVE GRADE RECORD TO CLASS GRADEBOOK
+            // SAVE GRADE RECORD
             const gradeRecord = {
                 timestamp: new Date().toLocaleString('vi-VN'),
-                className: activeStudentInfo.className || 'Chưa phân lớp',
+                className: activeStudentInfo.className || 'Tự do',
                 studentId: activeStudentInfo.studentId || 'N/A',
                 studentName: activeStudentInfo.studentName || 'N/A',
                 scoreText: `${correctCount}/${appData.currentQuestions.length}`,
