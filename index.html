@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Bài Tập Tương Tác</title>
+    <title>EduQuiz Pro - Quản Lý Lớp Học & Giao Bài Tập Tương Tác</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -69,11 +69,7 @@
         .choice-card:hover { transform: translateY(-2px); }
         .choice-card.selected { border-color: #026fc7; background-color: #f0f7ff; }
 
-        .drag-word {
-            cursor: grab;
-            user-select: none;
-            transition: all 0.2s ease;
-        }
+        .drag-word { cursor: grab; user-select: none; transition: all 0.2s ease; }
         .drag-word:active { cursor: grabbing; transform: scale(1.05); }
         .drag-word.used { opacity: 0.3; cursor: not-allowed; }
 
@@ -113,7 +109,7 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Hỗ trợ Kéo & Thả từ tương tác & Đa dạng câu hỏi OCR AI</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Giao Bài Tập Đến Lớp Học Cụ Thể & Kéo Thả Tương Tác</p>
                     </div>
                 </div>
 
@@ -161,11 +157,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-hand-pointer"></i> Hỗ trợ Kéo & Thả (Drag & Drop) Điền Từ
+                            <i class="fa-solid fa-paper-plane"></i> Quy Trình: Nhập Đề -> Xem Trước -> Gửi Đến Lớp
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Bài Tập Kéo Thả & Trắc Nghiệm Thông Minh!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Bài Tập & Gửi Cho Lớp Học Cụ Thể!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Bấm <b>"TẠO & XEM TRƯỚC BÀI TẬP"</b>. Đề bài sẽ được phân tích thành từng câu hỏi rõ ràng và lưu tự động cho Học sinh!
+                            Nhập đề bên dưới, bấm <b>"TẠO & XEM TRƯỚC"</b>. Sau đó chọn Lớp học và bấm <b>"GỬI BÀI TẬP ĐẾN LỚP"</b> để giao bài cho học sinh.
                         </p>
                     </div>
                 </div>
@@ -197,7 +193,7 @@
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                             <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                                 <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài</span>
-                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Sẵn sàng nhận đề</span>
+                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Hỗ trợ Text & AI OCR JSON</span>
                             </div>
                             <div class="p-4 flex-1">
                                 <textarea id="markdown-input" spellcheck="false" rows="16" 
@@ -224,31 +220,43 @@
 2 She works well as a [___/team player].</pre>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-slate-700 uppercase">2. Chọn Từ Trong Ngoặc nghiêng:</span>
-                                <pre class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto border border-slate-800">1 Our staff need to be [confident/independent] because...
+                                <span class="text-xs font-bold text-slate-700 uppercase">2. Chọn Từ Trong Ngoặc:</span>
+                                <pre class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto border border-slate-800">1 Our staff need to be [confident/independent]...
 Answer: independent</pre>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TEACHER QUIZ PREVIEW SECTION -->
+                <!-- TEACHER QUIZ PREVIEW SECTION & ASSIGN TO CLASS CONTROL -->
                 <div id="teacher-preview-section" class="hidden space-y-6 pt-6 border-t border-slate-200">
-                    <div class="bg-emerald-600 rounded-3xl p-6 text-white shadow-lg flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">Bản Xem Trước Của Giáo Viên</span>
-                                <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">0 câu hỏi</span>
+                    <div class="bg-emerald-600 rounded-3xl p-6 text-white shadow-lg space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-emerald-500/50 pb-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">Bản Xem Trước Của Giáo Viên</span>
+                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">0 câu hỏi</span>
+                                </div>
+                                <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Tạo! Chọn Lớp Để Giao Bài:</h3>
                             </div>
-                            <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phân Tách Thành Công!</h3>
-                            <p class="text-xs text-emerald-100 mt-1">Đã lưu đề bài. Học sinh sang Góc Học Sinh sẽ làm được bài tập kéo thả tương tác!</p>
-                        </div>
-                        <div class="flex items-center gap-3">
+                            
                             <button onclick="scrollToEditor()" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition border border-white/20">
-                                <i class="fa-solid fa-pen mr-1"></i> Chỉnh sửa đề
+                                <i class="fa-solid fa-pen mr-1"></i> Chỉnh sửa đề bài
                             </button>
-                            <button onclick="switchMainTab('student')" class="px-6 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-2">
-                                <span>Chuyển Sang Góc Học Sinh</span> <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+
+                        <!-- ASSIGN TO CLASS BAR -->
+                        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-wrap items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <label class="text-xs font-bold text-white uppercase tracking-wider whitespace-nowrap"><i class="fa-solid fa-users-rectangle mr-1.5"></i>Gửi đến Lớp:</label>
+                                <select id="assign-class-select" class="p-2.5 bg-white text-slate-800 font-bold text-sm rounded-xl border border-slate-200 focus:outline-none min-w-[200px]">
+                                    <option value="ALL">Tất cả các lớp (Mặc định)</option>
+                                </select>
+                            </div>
+
+                            <button onclick="assignQuizToClass()" class="w-full sm:w-auto px-8 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-base rounded-xl transition shadow-md flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-paper-plane text-emerald-600"></i>
+                                <span>GỬI BÀI TẬP ĐẾN LỚP HỌC</span>
                             </button>
                         </div>
                     </div>
@@ -390,7 +398,7 @@ Answer: independent</pre>
                     </div>
                 </div>
 
-                <!-- Word Bank Container (Interactive Drag & Drop Chips) -->
+                <!-- Word Bank Container -->
                 <div id="word-bank-card" class="hidden bg-gradient-to-r from-brand-50 to-indigo-50 border border-brand-200 rounded-3xl p-5 shadow-sm space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
@@ -448,7 +456,7 @@ Answer: independent</pre>
     <!-- FOOTER -->
     <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
         <div class="max-w-7xl mx-auto px-4">
-            <p>EduQuiz Pro &copy; 2026 - Quản Lý Lớp Học & Bài Tập Tương Tác Kéo Thả</p>
+            <p>EduQuiz Pro &copy; 2026 - Quản Lý Lớp Học & Giao Bài Tập Tương Tác</p>
         </div>
     </footer>
 
@@ -470,12 +478,13 @@ Answer: independent</pre>
                     ]
                 }
             ],
+            assignedQuizzes: {}, // Map classId -> { questions, wordBank, assignedAt }
             grades: [],
             currentQuestions: [],
             wordBank: []
         };
 
-        let activeStudentInfo = { className: '', studentId: '', studentName: '' };
+        let activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
         let studentAnswers = {};
         let selectedWordForClick = null;
         let isSubmitted = false;
@@ -531,8 +540,9 @@ Answer: independent</pre>
         }
 
         function updateBadges() {
-            document.getElementById('total-classes-badge').innerText = appData.classes.length;
-            document.getElementById('total-results-badge').innerText = appData.grades.length;
+            document.getElementById('total-classes-badge').innerText = appData.classes ? appData.classes.length : 0;
+            document.getElementById('total-results-badge').innerText = appData.grades ? appData.grades.length : 0;
+            populateAssignClassDropdown();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -571,7 +581,7 @@ Answer: independent</pre>
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
         }
 
-        // CLASS MANAGEMENT
+        // CLASS MANAGEMENT & ASSIGNMENT
         function createNewClass() {
             const nameInput = document.getElementById('new-class-name');
             const descInput = document.getElementById('new-class-desc');
@@ -596,6 +606,41 @@ Answer: independent</pre>
             nameInput.value = '';
             descInput.value = '';
             showNotification(`Đã tạo lớp ${name} thành công!`, 'success');
+        }
+
+        function populateAssignClassDropdown() {
+            const select = document.getElementById('assign-class-select');
+            if (!select) return;
+            select.innerHTML = '<option value="ALL">Tất cả các lớp (Mặc định)</option>';
+            if (appData.classes) {
+                appData.classes.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.name} (${c.students.length} học sinh)</option>`;
+                });
+            }
+        }
+
+        function assignQuizToClass() {
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                showNotification('Chưa có đề bài tập để giao!', 'error');
+                return;
+            }
+
+            const targetClassId = document.getElementById('assign-class-select').value;
+            const targetClassName = targetClassId === 'ALL' ? 'Tất cả các lớp' : (appData.classes.find(c => c.id === targetClassId)?.name || 'Lớp học');
+
+            if (!appData.assignedQuizzes) appData.assignedQuizzes = {};
+
+            appData.assignedQuizzes[targetClassId] = {
+                questions: appData.currentQuestions,
+                wordBank: appData.wordBank,
+                assignedAt: new Date().toLocaleString('vi-VN')
+            };
+
+            saveStorage();
+            showNotification(`🚀 Đã giao bài tập thành công cho ${targetClassName}!`, 'success');
+
+            // Switch to student view automatically to test
+            switchMainTab('student');
         }
 
         function renderClassesList() {
@@ -692,7 +737,7 @@ Answer: independent</pre>
             }
         }
 
-        // STUDENT SESSION LOGIC & PERSISTENCE
+        // STUDENT SESSION LOGIC & QUIZ ASSIGNMENT LOOKUP
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
@@ -706,12 +751,14 @@ Answer: independent</pre>
 
             let foundStudent = null;
             let foundClassName = '';
+            let foundClassId = '';
 
             for (let cls of appData.classes) {
                 const match = cls.students.find(s => s.id.toUpperCase() === stId);
                 if (match) {
                     foundStudent = match;
                     foundClassName = cls.name;
+                    foundClassId = cls.id;
                     break;
                 }
             }
@@ -720,9 +767,11 @@ Answer: independent</pre>
                 nameInput.value = foundStudent.name;
                 classNameTag.innerText = `Đã tìm thấy: ${foundStudent.name} (${foundClassName})`;
                 classInfoBox.classList.remove('hidden');
+                activeStudentInfo.classId = foundClassId;
                 activeStudentInfo.className = foundClassName;
             } else {
                 classInfoBox.classList.add('hidden');
+                activeStudentInfo.classId = 'ALL';
                 activeStudentInfo.className = 'Tự do';
             }
         }
@@ -750,16 +799,34 @@ Answer: independent</pre>
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
-            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions ? appData.currentQuestions.length : 0} câu hỏi`;
+            // Load Quiz assigned to student's specific class or ALL classes
+            loadAssignedQuizForStudent();
 
             resetQuiz(false);
             renderQuizQuestions();
             startTimer();
         }
 
+        function loadAssignedQuizForStudent() {
+            if (appData.assignedQuizzes) {
+                const classSpecificQuiz = appData.assignedQuizzes[activeStudentInfo.classId];
+                const allQuiz = appData.assignedQuizzes['ALL'];
+
+                if (classSpecificQuiz) {
+                    appData.currentQuestions = classSpecificQuiz.questions;
+                    appData.wordBank = classSpecificQuiz.wordBank;
+                } else if (allQuiz) {
+                    appData.currentQuestions = allQuiz.questions;
+                    appData.wordBank = allQuiz.wordBank;
+                }
+            }
+
+            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions ? appData.currentQuestions.length : 0} câu hỏi`;
+        }
+
         function logoutStudentSession() {
             localStorage.removeItem('eduquiz_active_student');
-            activeStudentInfo = { className: '', studentId: '', studentName: '' };
+            activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
             stopTimer();
 
             document.getElementById('student-id-input').value = '';
@@ -772,7 +839,7 @@ Answer: independent</pre>
             showNotification('Đã đăng xuất tài khoản học sinh!', 'info');
         }
 
-        // PRESETS & SAMPLE DATA (INCLUDING WORD BANK & OCR)
+        // PRESETS & SAMPLE DATA
         const SAMPLE_DATASETS = {
             english: `1. What is the capital of France?
 A) London
@@ -849,7 +916,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             const extractedWordBank = new Set();
             let currentQ = null;
 
-            // Question Header Regex: Matches "1.", "1)", "1:", "1/ ", "1 " or "Câu 1"
             const questionHeaderRegex = /^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]/i;
             const optionRegex = /^\s*([a-hA-H])[\.\)\/]\s*(.*)$/;
             const answerRegex = /^\s*(?:answer|đáp án|ans|key|đ\/a)[:\s]+(.*)$/i;
@@ -861,7 +927,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
                 cleanTitle = cleanTitle.replace(/^##\s*/, '');
 
-                // Detect fill-in-the-blank brackets e.g. [is/am/are] or ___ [think outside the box]
                 const bracketRegex = /\[(.*?)\]/g;
                 const matches = [...cleanTitle.matchAll(bracketRegex)];
                 currentQ.inlineBlanks = [];
@@ -898,7 +963,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 line = line.trim();
                 if (!line) continue;
 
-                // Extract word bank line e.g. "can-do attitude communication skills critical thinking..."
                 if (!line.startsWith('##') && (line.includes('can-do attitude') || line.includes('communication skills') || (line.split(/\s{2,}|\|/).length >= 3 && !questionHeaderRegex.test(line)))) {
                     const words = line.split(/\s{2,}|\||\,/);
                     words.forEach(w => {
@@ -952,13 +1016,21 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 return;
             }
 
+            // Default assign to ALL classes
+            if (!appData.assignedQuizzes) appData.assignedQuizzes = {};
+            appData.assignedQuizzes['ALL'] = {
+                questions: appData.currentQuestions,
+                wordBank: appData.wordBank,
+                assignedAt: new Date().toLocaleString('vi-VN')
+            };
+
             saveStorage();
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
 
             renderTeacherPreview();
-            showNotification(`Đã tạo thành công ${appData.currentQuestions.length} câu hỏi! Đề đã được lưu vĩnh viễn.`, 'success');
+            showNotification(`Đã phân tích thành công ${appData.currentQuestions.length} câu hỏi! Hãy chọn Lớp và bấm 'GỬI BÀI TẬP ĐẾN LỚP'.`, 'success');
         }
 
         function renderTeacherPreview() {
@@ -1035,8 +1107,8 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 container.innerHTML = `
                     <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
                         <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-circle-exclamation"></i></div>
-                        <h4 class="font-bold text-lg text-slate-800">Chưa có đề bài tập nào!</h4>
-                        <p class="text-xs text-slate-500">Giáo viên chưa bấm "TẠO BÀI TẬP". Vui lòng nhờ Giáo viên bấm nút Tạo Bài Tập ở Góc Giáo Viên.</p>
+                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào được giao cho Lớp của bạn!</h4>
+                        <p class="text-xs text-slate-500">Vui lòng nhờ Giáo viên chọn Lớp và bấm nút <b>"GỬI BÀI TẬP ĐẾN LỚP"</b> ở Góc Giáo Viên.</p>
                     </div>
                 `;
                 wordBankCard.classList.add('hidden');
@@ -1045,12 +1117,11 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
-            // RENDER WORD BANK CHIPS IF FILL-IN-BLANK QUESTIONS EXIST
             if (appData.wordBank && appData.wordBank.length > 0) {
                 wordBankCard.classList.remove('hidden');
                 wordChipsContainer.innerHTML = '';
                 
-                appData.wordBank.forEach((w, wIdx) => {
+                appData.wordBank.forEach((w) => {
                     const isUsed = Object.values(studentAnswers).includes(w);
                     const chip = document.createElement('div');
                     chip.className = `drag-word px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-sm transition border ${isUsed ? 'bg-slate-200 text-slate-400 border-slate-300 used' : 'bg-white text-brand-800 border-brand-300 hover:border-brand-600 hover:bg-brand-50'}`;
@@ -1074,7 +1145,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 wordBankCard.classList.add('hidden');
             }
 
-            // RENDER QUESTIONS
             appData.currentQuestions.forEach((q, idx) => {
                 const card = document.createElement('div');
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
