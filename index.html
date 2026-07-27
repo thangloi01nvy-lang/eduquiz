@@ -163,9 +163,9 @@
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Tự Động Đồng Bộ Đám Mây Real-Time Qua Vercel
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phát Hành Đề Bài Tự Động Đến Mọi Trình Duyệt & Điện Thoại!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phân Loại Đề Bài & Câu Hỏi Con Trực Quan!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Khung từ kéo thả đã được làm sạch 100% các từ trùng lặp dính liền!
+                            Tự động phân biệt rõ ràng giữa <b>YÊU CẦU ĐỀ BÀI (Hộp màu tím)</b> và các <b>CÂU HỎI CON</b> bên dưới!
                         </p>
                     </div>
                 </div>
@@ -218,14 +218,16 @@
                             <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Hướng Dẫn Cú Pháp</h3>
                             <div>
                                 <span class="text-xs font-bold text-slate-700 uppercase">1. Bài Tập Kéo Thả (Word Bank):</span>
-                                <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto">can-do attitude | communication skills
+                                <pre class="bg-slate-900 text-slate-100 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto">1 Complete these comments...
 
 1 His ideas were creative so he can [___/think outside the box].
 2 She works well as a [___/team player].</pre>
                             </div>
                             <div>
                                 <span class="text-xs font-bold text-slate-700 uppercase">2. Chọn Từ Trong Ngoặc:</span>
-                                <pre class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto border border-slate-800">1 Our staff need to be [confident/independent]...
+                                <pre class="bg-slate-900 text-amber-300 text-xs p-3 rounded-xl font-mono mt-1 overflow-x-auto border border-slate-800">2 Choose the correct option in italics.
+
+1 Our staff need to be [confident/independent]...
 Answer: independent</pre>
                             </div>
                         </div>
@@ -480,7 +482,7 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH STRICT WORD BANK SANITIZATION -->
+    <!-- JAVASCRIPT LOGIC WITH SECTION HEADERS VS SUB-QUESTIONS DISTINCTION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -499,7 +501,7 @@ Answer: independent</pre>
 
 5 She has a lot of ___ [determination]. This is the third time she's applied.
 
-## 2 Choose the correct option in italics.
+2 Choose the correct option in italics.
 
 1 Our consultants need to be [confident/independent] because they often have to work alone.
 Answer: independent
@@ -533,14 +535,13 @@ Answer: passionate`;
         let timerSeconds = 0;
         let timerRunning = false;
 
-        // STRICT SANITIZER TO REMOVE GIANT CONCATENATED WORD BANK ITEMS
         function sanitizeWordBank(wordList) {
             if (!Array.isArray(wordList)) return [];
             let cleaned = wordList.filter(w => {
                 if (!w || typeof w !== 'string') return false;
                 const trimmed = w.trim();
-                if (trimmed.length > 30) return false; // Strictly delete any string longer than 30 chars
-                if (trimmed.split(/\s+/).length > 4) return false; // Max 4 words per phrase
+                if (trimmed.length > 30) return false;
+                if (trimmed.split(/\s+/).length > 4) return false;
                 if (trimmed.toLowerCase().includes('attitude communication') || trimmed.toLowerCase().includes('skills critical')) return false;
                 return true;
             });
@@ -912,7 +913,7 @@ Answer: passionate`;
 
         // PRESETS & SAMPLE DATA
         const SAMPLE_DATASETS = {
-            english: `1. What is the capital of France?
+            english: `1 What is the capital of France?
 A) London
 B) Paris
 C) Berlin
@@ -920,7 +921,7 @@ D) Madrid
 Answer: B
 Explanation: Paris is the capital city of France.
 
-2. She [is/am/are] a teacher at our primary school.
+2 She [is/am/are] a teacher at our primary school.
 Answer: is
 Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.`,
 
@@ -928,7 +929,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
   "layoutParsingResults": [
     {
       "markdown": {
-        "text": "## Transferable skills\\n\\n1 Complete these comments by interviewers using the words and phrases in the box.\\n\\ncan-do attitude communication skills critical thinking determination integrity set goals team player think outside the box\\n\\n1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].\\n\\n2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].\\n\\n3 He has excellent ___ [communication skills]. The presentation was first class and he answered the questions really clearly.\\n\\n4 She used ___ [critical thinking] brilliantly. I thought she evaluated the options carefully.\\n\\n5 She has a lot of ___ [determination]. This is the third time she's applied.\\n\\n## 2 Choose the correct option in italics.\\n\\n1 Our consultants need to be [confident/independent] because they often have to work alone.\\nAnswer: independent\\n\\n2 My manager is really [ambitious/passionate] about customer service.\\nAnswer: passionate"
+        "text": "## Transferable skills\\n\\n1 Complete these comments by interviewers using the words and phrases in the box.\\n\\ncan-do attitude communication skills critical thinking determination integrity set goals team player think outside the box\\n\\n1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].\\n\\n2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].\\n\\n3 He has excellent ___ [communication skills]. The presentation was first class and he answered the questions really clearly.\\n\\n4 She used ___ [critical thinking] brilliantly. I thought she evaluated the options carefully.\\n\\n5 She has a lot of ___ [determination]. This is the third time she's applied.\\n\\n2 Choose the correct option in italics.\\n\\n1 Our consultants need to be [confident/independent] because they often have to work alone.\\nAnswer: independent\\n\\n2 My manager is really [ambitious/passionate] about customer service.\\nAnswer: passionate"
       }
     }
   ]
@@ -951,7 +952,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // ULTRA SMART WORKSHEET & OCR PARSER WITH STRICT SANITIZED WORD BANK
+        // SMART PARSER DISTINGUISHING SECTION HEADERS & SUB-QUESTIONS
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -971,9 +972,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                                 });
                             }
                         });
-                        if (extractedText.trim()) {
-                            textToParse = extractedText;
-                        }
+                        if (extractedText.trim()) textToParse = extractedText;
                     } else if (parsedJson.markdown && parsedJson.markdown.text) {
                         textToParse = parsedJson.markdown.text;
                     }
@@ -985,8 +984,11 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             const lines = textToParse.split('\n');
             const questions = [];
             const extractedWordBank = new Set();
+
+            let currentSectionTitle = "Phần Bài Tập Tương Tác";
             let currentQ = null;
 
+            const sectionHeaderRegex = /^(?:##|\d+\s*(?:complete|choose|read|fill|match|put|use|write|circle|find|listen|look|answer|rewrite|translate|mark|exercise|part|phần|bài))/i;
             const questionHeaderRegex = /^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]/i;
             const optionRegex = /^\s*([a-hA-H])[\.\)\/]\s*(.*)$/;
             const answerRegex = /^\s*(?:answer|đáp án|ans|key|đ\/a)[:\s]+(.*)$/i;
@@ -1026,6 +1028,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 }
 
                 currentQ.title = cleanTitle;
+                currentQ.sectionTitle = currentSectionTitle;
                 questions.push(currentQ);
                 currentQ = null;
             }
@@ -1034,19 +1037,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 line = line.trim();
                 if (!line) continue;
 
-                // Ignore giant instruction lines
-                if (!line.startsWith('##') && (line.includes('can-do attitude') || line.includes('communication skills') || (line.split(/\s{2,}|\|/).length >= 3 && !questionHeaderRegex.test(line)))) {
-                    const words = line.split(/\s{2,}|\||\,/);
-                    words.forEach(w => {
-                        const trimmedW = w.replace(/^(?:1\s*Complete|using the words).*$/i, '').trim();
-                        if (trimmedW.length > 2 && trimmedW.length <= 28 && trimmedW.split(' ').length <= 3 && !trimmedW.match(/^\d+/)) {
-                            extractedWordBank.add(trimmedW);
-                        }
-                    });
+                // Detect Section Header / Exercise Instruction Line
+                if (line.startsWith('##') || (sectionHeaderRegex.test(line) && (line.includes('using the words') || line.includes('in italics') || line.includes('in the box') || line.length > 35 || line.startsWith('##')))) {
+                    saveCurrent();
+                    currentSectionTitle = line.replace(/^##\s*/, '').trim();
                     continue;
                 }
-
-                if (line.startsWith('##')) { saveCurrent(); continue; }
 
                 const ansM = line.match(answerRegex);
                 if (ansM && currentQ) { 
@@ -1084,7 +1080,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             return questions;
         }
 
-        // GENERATE QUIZ, SAVE TO LOCALSTORAGE & PUBLISH TO CLOUD DB
         async function generateQuiz() {
             const rawText = document.getElementById('markdown-input').value;
             appData.currentQuestions = parseInputToQuestions(rawText);
@@ -1101,7 +1096,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
             renderTeacherPreview();
-
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
         }
 
@@ -1113,7 +1107,28 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('preview-q-count-badge').innerText = `${appData.currentQuestions.length} câu hỏi`;
             previewContainer.innerHTML = '';
 
+            let lastSectionTitle = '';
+
             appData.currentQuestions.forEach((q, idx) => {
+                // Render Section Header Box if section changed
+                if (q.sectionTitle && q.sectionTitle !== lastSectionTitle) {
+                    lastSectionTitle = q.sectionTitle;
+                    const secCard = document.createElement('div');
+                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-brand-400 my-4 flex items-center justify-between";
+                    secCard.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-brand-500/30 border border-brand-400/40 flex items-center justify-center text-amber-300 font-bold text-sm">
+                                <i class="fa-solid fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-bold text-brand-300 tracking-wider">Yêu Cầu Bài Tập</div>
+                                <h4 class="font-heading font-bold text-base sm:text-lg text-white">${marked.parseInline(q.sectionTitle)}</h4>
+                            </div>
+                        </div>
+                    `;
+                    previewContainer.appendChild(secCard);
+                }
+
                 const card = document.createElement('div');
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 
@@ -1167,7 +1182,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY & STRICT CLEAN WORD BANK
+        // RENDER STUDENT QUIZ WITH CLEAR SECTION HEADER BANNERS
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1181,7 +1196,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
-            // STRICT SANITIZE WORD BANK
             appData.wordBank = sanitizeWordBank(appData.wordBank);
 
             if (appData.wordBank && appData.wordBank.length > 0) {
@@ -1212,7 +1226,28 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 wordBankCard.classList.add('hidden');
             }
 
+            let lastSectionTitle = '';
+
             appData.currentQuestions.forEach((q, idx) => {
+                // Render Section Header Box if section changed
+                if (q.sectionTitle && q.sectionTitle !== lastSectionTitle) {
+                    lastSectionTitle = q.sectionTitle;
+                    const secCard = document.createElement('div');
+                    secCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-4 flex items-center justify-between";
+                    secCard.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-sm">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            <div>
+                                <div class="text-[10px] uppercase font-bold text-amber-300 tracking-wider">Yêu Cầu Bài Tập</div>
+                                <h4 class="font-heading font-bold text-base sm:text-lg text-white">${marked.parseInline(q.sectionTitle)}</h4>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(secCard);
+                }
+
                 const card = document.createElement('div');
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 card.id = `question-card-${q.id}`;
