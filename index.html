@@ -69,8 +69,8 @@
         .choice-card:hover { transform: translateY(-2px); }
         .choice-card.selected { border-color: #026fc7; background-color: #f0f7ff; }
 
-        .blank-input { border-bottom: 2px solid #94a3b8; transition: all 0.2s ease; }
-        .blank-input:focus { border-color: #026fc7; outline: none; background-color: #f0f7ff; }
+        .blank-input { border-bottom: 2px solid #026fc7; transition: all 0.2s ease; }
+        .blank-input:focus { outline: none; background-color: #e0effe; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans selection:bg-brand-100 selection:text-brand-700">
@@ -89,7 +89,7 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Xem trước đề bài tập tại Góc Giáo Viên</p>
+                        <p class="text-xs text-slate-500 hidden sm:block">Phân tích đề bài chuẩn xác & Trình bày trực quan</p>
                     </div>
                 </div>
 
@@ -137,11 +137,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> Xem trước đề bài trực tiếp dành cho Giáo viên
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Công cụ phân tích Đa Định Dạng Thông Minh
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn & Xem Trước Bài Tập Ngay Tại Đây!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn & Tạo Bài Tập Tương Tác!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Bấm nút <b>"Tạo & Xem Trước Đề Bài"</b> để kiểm tra giao diện đề bài ngay bên dưới trước khi chuyển cho Học sinh làm bài.
+                            Bấm <b>"TẠO & XEM TRƯỚC BÀI TẬP"</b> để kiểm tra giao diện trước. Đề bài sẽ được tự động đồng bộ sang Góc Học Sinh!
                         </p>
                     </div>
                 </div>
@@ -184,7 +184,7 @@
                         </div>
                         <button onclick="generateQuiz()" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white font-heading font-bold text-lg rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-3">
                             <i class="fa-solid fa-eye text-xl"></i>
-                            <span>TẠO & XEM TRƯỚC ĐỀ BÀI TẬP</span>
+                            <span>TẠO & XEM TRƯỚC BÀI TẬP</span>
                         </button>
                     </div>
 
@@ -214,23 +214,23 @@ Explanation: Paris is capital.</pre>
                     </div>
                 </div>
 
-                <!-- TEACHER QUIZ PREVIEW SECTION (Renders directly on Teacher Tab) -->
+                <!-- TEACHER QUIZ PREVIEW SECTION -->
                 <div id="teacher-preview-section" class="hidden space-y-6 pt-6 border-t border-slate-200">
                     <div class="bg-emerald-600 rounded-3xl p-6 text-white shadow-lg flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">Bản Xem Trước Của Giáo Viên</span>
+                                <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">Bản Xem Trước Đề Bài</span>
                                 <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">0 câu hỏi</span>
                             </div>
-                            <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Tập Đã Được Tạo Thành Công!</h3>
-                            <p class="text-xs text-emerald-100 mt-1">Dưới đây là giao diện bài tập tương tác như học sinh sẽ nhìn thấy (Đã hiển thị sẵn đáp án đúng cho giáo viên kiểm tra).</p>
+                            <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Tạo Thành Công & Đã Lưu!</h3>
+                            <p class="text-xs text-emerald-100 mt-1">Học sinh sang Góc Học Sinh sẽ thấy ngay đề bài này để làm bài.</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <button onclick="scrollToEditor()" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition border border-white/20">
-                                <i class="fa-solid fa-pen mr-1"></i> Sửa lại đề bài
+                                <i class="fa-solid fa-pen mr-1"></i> Chỉnh sửa đề
                             </button>
                             <button onclick="switchMainTab('student')" class="px-6 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-2">
-                                <span>Chuyển Sang Góc Học Sinh</span> <i class="fa-solid fa-arrow-right"></i>
+                                <span>Đến Góc Học Sinh Làm Bài</span> <i class="fa-solid fa-arrow-right"></i>
                             </button>
                         </div>
                     </div>
@@ -457,8 +457,23 @@ Explanation: Paris is capital.</pre>
             if (saved) {
                 try { appData = JSON.parse(saved); } catch(e) {}
             }
+
+            // Restore current active questions from localStorage so student always sees created quiz!
+            const savedQuestions = localStorage.getItem('eduquiz_current_questions');
+            if (savedQuestions) {
+                try {
+                    const parsed = JSON.parse(savedQuestions);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        appData.currentQuestions = parsed;
+                        document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
+                        document.getElementById('quiz-count-badge').classList.remove('hidden');
+                    }
+                } catch(e) {}
+            }
+
             updateBadges();
 
+            // Restore active student session
             const activeStSaved = localStorage.getItem('eduquiz_active_student');
             if (activeStSaved) {
                 try {
@@ -472,6 +487,9 @@ Explanation: Paris is capital.</pre>
 
         function saveStorage() {
             localStorage.setItem('eduquiz_pro_data', JSON.stringify(appData));
+            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                localStorage.setItem('eduquiz_current_questions', JSON.stringify(appData.currentQuestions));
+            }
             updateBadges();
         }
 
@@ -495,6 +513,15 @@ Explanation: Paris is capital.</pre>
             
             document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
             document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
+
+            if (tab === 'student') {
+                if (activeStudentInfo && activeStudentInfo.studentId) {
+                    restoreStudentSessionUI();
+                } else {
+                    document.getElementById('student-login-box').classList.remove('hidden');
+                    document.getElementById('student-quiz-active').classList.add('hidden');
+                }
+            }
         }
 
         function switchTeacherSubTab(sub) {
@@ -686,6 +713,8 @@ Explanation: Paris is capital.</pre>
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
+            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions ? appData.currentQuestions.length : 0} câu hỏi`;
+
             resetQuiz(false);
             renderQuizQuestions();
             startTimer();
@@ -724,7 +753,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
   "layoutParsingResults": [
     {
       "markdown": {
-        "text": "## Transferable skills\\n\\n1 His ideas were creative and really innovative so he can obviously [___/think outside the box].\\n\\n2 I liked the way she worked with the other candidates so she is clearly a(n) [___/team player].\\n\\n3 He has excellent [___/communication skills]. The presentation was first class.\\n\\n## 2 Choose the correct option in italics.\\n\\n1 Our consultants need to be [confident/independent] because they often have to work alone.\\nAnswer: independent\\n\\n2 My manager is really [ambitious/passionate] about customer service.\\nAnswer: passionate"
+        "text": "## Transferable skills\\n\\n1 Complete these comments by interviewers using the words in the box.\\n\\ncan-do attitude | communication skills | critical thinking | team player\\n\\n1 His ideas were creative and really innovative so he can obviously [___/think outside the box].\\n\\n2 I liked the way she worked with the other candidates so she is clearly a(n) [___/team player].\\n\\n3 He has excellent [___/communication skills]. The presentation was first class.\\n\\n## 2 Choose the correct option in italics.\\n\\n1 Our consultants need to be [confident/independent] because they often have to work alone.\\nAnswer: independent\\n\\n2 My manager is really [ambitious/passionate] about customer service.\\nAnswer: passionate"
       }
     }
   ]
@@ -747,7 +776,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // SMART UNIVERSAL PARSER
+        // ROBUST MULTI-FORMAT PARSER (TEXT, MARKDOWN & AI OCR JSON LAYOUT RESULTS)
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -825,6 +854,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 }
             }
 
+            // SMART TEXT & MARKDOWN PARSER FOR WORKSHEETS
             const lines = textToParse.split('\n');
             const questions = [];
             let currentQ = null;
@@ -836,10 +866,14 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
             function saveCurrent() {
                 if (!currentQ) return;
-                currentQ.title = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/]\s*/i, '');
                 
+                // Clean title
+                let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/]\s*/i, '');
+                cleanTitle = cleanTitle.replace(/^##\s*/, ''); // Clean markdown title hashes
+
+                // Detect fill-in-the-blank options e.g. [option1/option2] or [answer] or ___
                 const bracketRegex = /\[(.*?)\]/g;
-                const matches = [...currentQ.title.matchAll(bracketRegex)];
+                const matches = [...cleanTitle.matchAll(bracketRegex)];
                 currentQ.inlineBlanks = [];
 
                 if (matches.length > 0) {
@@ -853,12 +887,13 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: [], answer: content || currentQ.answer });
                         }
                     });
-                } else if (currentQ.title.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()))) {
+                } else if (cleanTitle.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()))) {
                     currentQ.type = 'fill_blank';
                 } else {
                     currentQ.type = currentQ.options.length > 0 ? 'multiple_choice' : 'fill_blank';
                 }
 
+                currentQ.title = cleanTitle;
                 questions.push(currentQ);
                 currentQ = null;
             }
@@ -866,7 +901,12 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
-                if (line.startsWith('##')) continue;
+
+                // If line is section header like "## Transferable skills" or instructions box
+                if (line.startsWith('##')) {
+                    saveCurrent();
+                    continue;
+                }
 
                 const ansM = line.match(answerRegex);
                 if (ansM && currentQ) { currentQ.answer = ansM[1].trim(); continue; }
@@ -900,7 +940,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             return questions;
         }
 
-        // GENERATE QUIZ & RENDER PREVIEW ON TEACHER TAB (WITHOUT AUTO SWITCHING)
+        // GENERATE QUIZ, SAVE TO LOCALSTORAGE & RENDER
         function generateQuiz() {
             const rawText = document.getElementById('markdown-input').value;
             appData.currentQuestions = parseInputToQuestions(rawText);
@@ -910,13 +950,17 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 return;
             }
 
+            // Save questions to localStorage so Student View ALWAYS has questions
+            localStorage.setItem('eduquiz_current_questions', JSON.stringify(appData.currentQuestions));
+            saveStorage();
+
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
 
-            // Render Teacher Preview Section directly on Teacher Tab
+            // Render Teacher Preview directly
             renderTeacherPreview();
             
-            showNotification(`Đã tạo thành công ${appData.currentQuestions.length} câu hỏi! Bản xem trước hiển thị ở dưới.`, 'success');
+            showNotification(`Đã tạo thành công ${appData.currentQuestions.length} câu hỏi! Đề đã được lưu cho Học sinh.`, 'success');
         }
 
         function renderTeacherPreview() {
@@ -936,10 +980,10 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 if (q.type === 'fill_blank' && q.inlineBlanks && q.inlineBlanks.length > 0) {
                     q.inlineBlanks.forEach(b => {
                         let placeholderText = b.choices && b.choices.length > 0 ? `[${b.choices.join(' / ')}]` : `[${b.answer || '___'}]`;
-                        titleHtml = titleHtml.replace(b.placeholder, `<span class="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-lg text-sm">${placeholderText}</span>`);
+                        titleHtml = titleHtml.replace(b.placeholder, `<span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-lg text-sm">${placeholderText}</span>`);
                     });
                 } else if (q.type === 'fill_blank' && q.title.includes('___')) {
-                    titleHtml = titleHtml.replace(/___+/g, `<span class="px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-lg text-sm">[${q.answer || '___'}]</span>`);
+                    titleHtml = titleHtml.replace(/___+/g, `<span class="px-2.5 py-1 bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-lg text-sm">[${q.answer || '___'}]</span>`);
                 }
 
                 let html = `
@@ -950,7 +994,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                         </div>
                         <span class="px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-full border border-brand-200">${q.type === 'multiple_choice' ? 'Trắc nghiệm' : 'Điền từ'}</span>
                     </div>
-                    <div class="text-slate-800 font-medium text-base leading-relaxed">${titleHtml}</div>
+                    <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
                 `;
 
                 if (q.type === 'multiple_choice') {
@@ -967,10 +1011,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                     html += `</div>`;
                 }
 
-                // Show Explanation Box for Teacher
                 html += `
                     <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
-                        <div class="font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Đáp án chuẩn: <span class="text-brand-700 font-mono">${q.answer || 'Tự luận/Điền từ'}</span></div>
+                        <div class="font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Đáp án chuẩn: <span class="text-brand-700 font-mono">${q.answer || 'Điền vào chỗ trống'}</span></div>
                         ${q.explanation ? `<div class="text-slate-600"><b>Giải thích:</b> ${q.explanation}</div>` : ''}
                     </div>
                 `;
@@ -979,14 +1022,26 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 previewContainer.appendChild(card);
             });
 
-            // Smooth scroll to preview section
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ
+        // RENDER STUDENT QUIZ (GUARANTEED TO RENDER SAVED QUESTIONS)
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             container.innerHTML = '';
+
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
+                        <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <h4 class="font-bold text-lg text-slate-800">Chưa có đề bài tập nào!</h4>
+                        <p class="text-xs text-slate-500">Giáo viên chưa tạo câu hỏi. Vui lòng nhắn Giáo viên bấm nút "TẠO BÀI TẬP" ở Góc Giáo Viên.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
             appData.currentQuestions.forEach((q, idx) => {
                 const card = document.createElement('div');
@@ -1003,24 +1058,27 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                         if (b.choices && b.choices.length > 0) {
                             let optionsStr = `<option value="">-- Chọn --</option>`;
                             b.choices.forEach(c => { optionsStr += `<option value="${c}" ${val === c ? 'selected' : ''}>${c}</option>`; });
-                            inputElement = `<select onchange="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" class="mx-1 font-semibold text-brand-700 bg-brand-50 border-2 border-brand-200 rounded-xl px-3 py-1 text-sm">${optionsStr}</select>`;
+                            inputElement = `<select onchange="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" class="mx-1 font-semibold text-brand-700 bg-brand-50 border-2 border-brand-200 rounded-xl px-3 py-1.5 text-sm">${optionsStr}</select>`;
                         } else {
-                            inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" placeholder="Đáp án..." class="mx-1 px-3 py-1 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-36 text-center">`;
+                            inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" placeholder="Gõ từ..." class="mx-1 px-3 py-1.5 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-40 text-center focus:bg-white transition">`;
                         }
                         titleHtml = titleHtml.replace(b.placeholder, inputElement);
                     });
                 } else if (q.type === 'fill_blank' && q.title.includes('___')) {
                     const val = studentAnswers[`q_${q.id}_blank_0`] || '';
-                    const inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, 0, this.value)" placeholder="Gõ từ..." class="mx-1 px-3 py-1 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-36 text-center">`;
+                    const inputElement = `<input type="text" value="${val}" oninput="saveBlankAnswer(${q.id}, 0, this.value)" placeholder="Gõ từ..." class="mx-1 px-3 py-1.5 font-semibold text-brand-700 bg-brand-50 blank-input rounded-lg text-sm w-40 text-center focus:bg-white transition">`;
                     titleHtml = titleHtml.replace(/___+/g, inputElement);
                 }
 
                 let html = `
                     <div class="flex items-center justify-between border-b pb-3">
-                        <span class="font-heading font-bold text-sm text-slate-400">Câu ${idx + 1} / ${appData.currentQuestions.length}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${idx + 1}</span>
+                            <span class="font-heading font-bold text-sm text-slate-700">Câu ${idx + 1} / ${appData.currentQuestions.length}</span>
+                        </div>
                         <div id="q-status-badge-${q.id}"><span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">${q.type === 'multiple_choice' ? 'Trắc nghiệm' : 'Điền từ'}</span></div>
                     </div>
-                    <div class="text-slate-800 font-medium text-base leading-relaxed">${titleHtml}</div>
+                    <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
                 `;
 
                 if (q.type === 'multiple_choice') {
@@ -1029,7 +1087,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                         const isSelected = studentAnswers[`q_${q.id}`] === opt.key;
                         html += `
                             <button onclick="selectOption(${q.id}, '${opt.key}')" ${isSubmitted ? 'disabled' : ''}
-                                class="choice-card text-left p-4 rounded-2xl border ${isSelected ? 'border-brand-500 bg-brand-50 font-semibold' : 'border-slate-200 bg-white'} flex items-center justify-between w-full">
+                                class="choice-card text-left p-4 rounded-2xl border ${isSelected ? 'border-brand-500 bg-brand-50 font-semibold text-brand-900 ring-2 ring-brand-200' : 'border-slate-200 bg-white text-slate-700'} flex items-center justify-between w-full">
                                 <span><b>${opt.key}.</b> ${marked.parseInline(opt.text)}</span>
                             </button>
                         `;
@@ -1041,10 +1099,25 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 card.innerHTML = html;
                 container.appendChild(card);
             });
+
+            updateProgressText();
         }
 
         function selectOption(qId, key) { if (!isSubmitted) { studentAnswers[`q_${qId}`] = key; renderQuizQuestions(); } }
-        function saveBlankAnswer(qId, bIdx, val) { if (!isSubmitted) { studentAnswers[`q_${qId}_blank_${bIdx}`] = val.trim(); } }
+        function saveBlankAnswer(qId, bIdx, val) { if (!isSubmitted) { studentAnswers[`q_${qId}_blank_${bIdx}`] = val.trim(); updateProgressText(); } }
+
+        function updateProgressText() {
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) return;
+            let count = 0;
+            appData.currentQuestions.forEach(q => {
+                if (q.type === 'multiple_choice') {
+                    if (studentAnswers[`q_${q.id}`]) count++;
+                } else {
+                    if (studentAnswers[`q_${q.id}_blank_0`]) count++;
+                }
+            });
+            document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
+        }
 
         // SUBMIT & SCORE
         function submitQuiz() {
