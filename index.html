@@ -649,7 +649,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH SUBMIT FEEDBACK & RETAKE SOLUTION -->
+    <!-- JAVASCRIPT LOGIC WITH AI & STRICT BLANK EVALUATION FIX -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -853,7 +853,7 @@ can-do attitude communication skills critical thinking determination integrity s
             if (!line) return false;
             const trimmed = line.trim();
             if (!trimmed) return false;
-            if (trimmed.startswith('##') || trimmed.startswith('#')) return true;
+            if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
 
             const lower = trimmed.toLowerCase();
             if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('^(?:câu|question|q)?\\s*\\d*[\\.\\:\\)\\ /\\s]*\\b' + p + '\\b', 'i').test(lower))) {
@@ -1660,6 +1660,44 @@ can-do attitude communication skills critical thinking determination integrity s
             window.scrollTo({ top: 120, behavior: 'smooth' });
         }
 
+        // ACCURATE GRADING ENGINE (STRICT NULL & EMPTY STRING CHECK)
+        function gradeSingleQuestion(q, studentAnswersMap) {
+            const rawUserVal = studentAnswersMap[`q_${q.id}`] || studentAnswersMap[`q_${q.id}_blank_0`] || '';
+            const userVal = rawUserVal.trim();
+
+            // RULE 1: IF STUDENT LEFT ANSWER BLANK, IT IS UNCONDITIONALLY WRONG!
+            if (!userVal || userVal === '') {
+                return { isCorrect: false, userVal: '' };
+            }
+
+            const cleanUser = userVal.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+
+            let expected = (q.inlineBlanks && q.inlineBlanks.length > 0 && q.inlineBlanks[0].answer) 
+                ? q.inlineBlanks[0].answer 
+                : (q.answer || '');
+
+            const cleanExpected = expected.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+
+            if (q.type === 'multiple_choice' || q.type === 'true_false') {
+                return { isCorrect: cleanUser === cleanExpected, userVal: userVal };
+            }
+
+            // Exact match
+            if (cleanUser === cleanExpected) {
+                return { isCorrect: true, userVal: userVal };
+            }
+
+            // Check slash choices e.g. "confident/independent"
+            if (cleanExpected.includes('/')) {
+                const slashParts = cleanExpected.split('/').map(p => p.trim());
+                if (slashParts.includes(cleanUser)) {
+                    return { isCorrect: true, userVal: userVal };
+                }
+            }
+
+            return { isCorrect: false, userVal: userVal };
+        }
+
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -1901,21 +1939,11 @@ can-do attitude communication skills critical thinking determination integrity s
                     `;
                 }
 
-                // SUBMITTED FEEDBACK BOX & EXPLANATIONS ON EVERY PAGE
+                // ACCURATE SUBMITTED FEEDBACK BOX & EXPLANATIONS ON EVERY PAGE
                 if (isSubmitted) {
-                    let isCorrect = false;
-                    let userVal = (studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`] || '').trim();
-
-                    if (q.type === 'multiple_choice' || q.type === 'true_false') {
-                        if (userVal.toLowerCase() === (q.answer || '').toLowerCase()) isCorrect = true;
-                    } else if (q.type === 'matching') {
-                        if (userVal.toLowerCase().includes((q.answer || '').toLowerCase()) || (q.answer || '').toLowerCase().includes(userVal.toLowerCase())) isCorrect = true;
-                    } else if (q.type === 'short_answer') {
-                        if (userVal.toLowerCase() === (q.answer || '').toLowerCase() || (userVal.length > 2 && (q.answer || '').toLowerCase().includes(userVal.toLowerCase()))) isCorrect = true;
-                    } else {
-                        let expected = (q.inlineBlanks && q.inlineBlanks.length > 0) ? (q.inlineBlanks[0].answer || q.answer) : q.answer;
-                        if (userVal.toLowerCase() === (expected || '').toLowerCase()) isCorrect = true;
-                    }
+                    const gradeRes = gradeSingleQuestion(q, studentAnswers);
+                    const isCorrect = gradeRes.isCorrect;
+                    const userVal = gradeRes.userVal;
 
                     card.classList.add(isCorrect ? 'border-emerald-300' : 'border-rose-300', isCorrect ? 'bg-emerald-50/20' : 'bg-rose-50/20');
                     
@@ -1931,7 +1959,7 @@ can-do attitude communication skills critical thinking determination integrity s
                                 <span class="px-2.5 py-0.5 ${isCorrect ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-bold text-[10px] rounded-full uppercase">${isCorrect ? 'ĐÚNG' : 'SAI'}</span>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200/40">
-                                <div><b>Của bạn:</b> <span class="font-mono ${isCorrect ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}">${userVal || '(Bỏ trống)'}</span></div>
+                                <div><b>Của bạn:</b> <span class="font-mono ${isCorrect ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}">${userVal || '<i class="text-rose-400 font-normal">(Bỏ trống)</i>'}</span></div>
                                 <div><b>Đáp án chuẩn:</b> <span class="font-mono text-brand-700 font-bold">${expectedAnswerStr}</span></div>
                             </div>
                             ${q.explanation ? `<div class="text-slate-600 border-t border-slate-200/60 pt-1.5 mt-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i><b>Giải thích chi tiết:</b> ${q.explanation}</div>` : ''}
@@ -1998,12 +2026,13 @@ can-do attitude communication skills critical thinking determination integrity s
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) return;
             let count = 0;
             appData.currentQuestions.forEach(q => {
-                if (studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`]) count++;
+                const val = studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`];
+                if (val && val.trim() !== '') count++;
             });
             document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
         }
 
-        // SUBMIT & SCORE FOR ALL SECTIONS WITH AUTO SCROLL & FULL FEEDBACK
+        // SUBMIT & SCORE FOR ALL SECTIONS WITH STRICT NULL CHECK
         function submitQuiz() {
             if (isSubmitted) return;
 
@@ -2017,21 +2046,8 @@ can-do attitude communication skills critical thinking determination integrity s
             let correctCount = 0;
 
             appData.currentQuestions.forEach(q => {
-                let isCorrect = false;
-                let userVal = (studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`] || '').trim();
-
-                if (q.type === 'multiple_choice' || q.type === 'true_false') {
-                    if (userVal.toLowerCase() === (q.answer || '').toLowerCase()) isCorrect = true;
-                } else if (q.type === 'matching') {
-                    if (userVal.toLowerCase().includes((q.answer || '').toLowerCase()) || (q.answer || '').toLowerCase().includes(userVal.toLowerCase())) isCorrect = true;
-                } else if (q.type === 'short_answer') {
-                    if (userVal.toLowerCase() === (q.answer || '').toLowerCase() || (userVal.length > 2 && (q.answer || '').toLowerCase().includes(userVal.toLowerCase()))) isCorrect = true;
-                } else {
-                    let expected = (q.inlineBlanks && q.inlineBlanks.length > 0) ? (q.inlineBlanks[0].answer || q.answer) : q.answer;
-                    if (userVal.toLowerCase() === (expected || '').toLowerCase()) isCorrect = true;
-                }
-
-                if (isCorrect) correctCount++;
+                const gradeRes = gradeSingleQuestion(q, studentAnswers);
+                if (gradeRes.isCorrect) correctCount++;
             });
 
             const percent = Math.round((correctCount / appData.currentQuestions.length) * 100);
