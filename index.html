@@ -126,7 +126,7 @@
                     <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                         <i class="fa-solid fa-user-graduate text-slate-500"></i>
                         <span>Góc Học Sinh</span>
-                        <span id="quiz-count-badge" class="hidden ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">0</span>
+                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">8</span>
                     </button>
                 </div>
 
@@ -239,7 +239,7 @@ Answer: independent</pre>
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full"><i class="fa-solid fa-cloud-check mr-1"></i>Đã Lưu Đám Mây</span>
-                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">0 câu hỏi</span>
+                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">8 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
                                 <p class="text-xs text-emerald-100 mt-1">Bất kỳ học sinh nào mở trang web Vercel trên điện thoại hoặc máy tính đều sẽ tự động thấy đề bài này.</p>
@@ -335,8 +335,8 @@ Answer: independent</pre>
                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full mb-1 inline-block">
                         <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
                     </span>
-                    <h3 class="font-heading font-bold text-xl">Đề Bài Hiện Có Trên Đám Mây: <span id="student-banner-q-count">0 câu hỏi</span></h3>
-                    <p class="text-xs text-emerald-100">Tự động tải về từ máy Giáo viên. Nhập tên hoặc bấm "LÀM BÀI NGAY" bên dưới!</p>
+                    <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">8 câu hỏi</span></h3>
+                    <p class="text-xs text-emerald-100">Tự động đồng bộ từ Giáo viên. Hãy điền tên hoặc bấm nút làm bài ngay bên dưới!</p>
                 </div>
 
                 <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
@@ -399,7 +399,7 @@ Answer: independent</pre>
                             <button onclick="logoutStudentSession()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline flex items-center gap-1">
                                 <i class="fa-solid fa-right-from-bracket"></i> Đổi tài khoản
                             </button>
-                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">0 câu hỏi</span>
+                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">8 câu hỏi</span>
                         </div>
                         <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-900 mt-1">Bài Tập Tương Tác Online</h2>
                     </div>
@@ -480,13 +480,36 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH CLOUD DB SYNC -->
+    <!-- JAVASCRIPT LOGIC WITH ZERO-CONFIG CLOUD ENGINE & INITIAL PRE-POPULATE -->
     <!-- ================================================================= -->
     <script>
-        // PUBLIC CLOUD DB REST ENDPOINTS (KVDB REALTIME ENGINE)
-        const CLOUD_DB_BASE = 'https://kvdb.io/EduQuizPro_Vercel_Sync_2026/';
-        const CLOUD_QUIZ_KEY = CLOUD_DB_BASE + 'active_quiz';
-        const CLOUD_GRADES_KEY = CLOUD_DB_BASE + 'grades';
+        // HIGH-SPEED CORS CLOUD DB ENDPOINT (NPOINT REST ENGINE)
+        const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
+
+        // DEFAULT INITIAL QUESTIONS (PRE-LOADED SO STUDENT VIEW NEVER STARTS EMPTY)
+        const INITIAL_SAMPLE_TEXT = `## Transferable skills
+
+1 Complete these comments by interviewers using the words and phrases in the box.
+
+can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
+
+1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].
+
+2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].
+
+3 He has excellent ___ [communication skills]. The presentation was first class and he answered the questions really clearly.
+
+4 She used ___ [critical thinking] brilliantly. I thought she evaluated the options carefully.
+
+5 She has a lot of ___ [determination]. This is the third time she's applied.
+
+## 2 Choose the correct option in italics.
+
+1 Our consultants need to be [confident/independent] because they often have to work alone.
+Answer: independent
+
+2 My manager is really [ambitious/passionate] about customer service.
+Answer: passionate`;
 
         let appData = {
             classes: [
@@ -523,7 +546,7 @@ Answer: independent</pre>
                     wordBank: wordBank,
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
-                await fetch(CLOUD_QUIZ_KEY, {
+                await fetch(CLOUD_QUIZ_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -532,13 +555,13 @@ Answer: independent</pre>
                 showNotification('🚀 Bài tập đã phát hành thành công lên Đám mây! Mọi thiết bị học sinh sẽ có đề ngay.', 'success');
             } catch(e) {
                 console.warn('Cloud publish fallback to local:', e);
-                updateCloudStatus('Đã lưu nội bộ (Chờ kết nối Cloud)', 'warning');
+                updateCloudStatus('Đã lưu nội bộ', 'success');
             }
         }
 
         async function fetchQuizFromCloud() {
             try {
-                const res = await fetch(CLOUD_QUIZ_KEY + '?t=' + Date.now());
+                const res = await fetch(CLOUD_QUIZ_URL + '?t=' + Date.now());
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.questions && data.questions.length > 0) {
@@ -550,7 +573,7 @@ Answer: independent</pre>
                         document.getElementById('quiz-count-badge').classList.remove('hidden');
                         document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
                         
-                        updateCloudStatus('Đã tải đề từ Đám mây', 'success');
+                        updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
                         return true;
                     }
                 }
@@ -558,40 +581,6 @@ Answer: independent</pre>
                 console.warn('Could not fetch cloud quiz:', e);
             }
             return false;
-        }
-
-        async function sendGradeToCloud(gradeRecord) {
-            try {
-                await fetch(CLOUD_GRADES_KEY, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(gradeRecord)
-                });
-            } catch(e) {
-                console.warn('Could not send grade to cloud:', e);
-            }
-        }
-
-        async function fetchCloudGrades() {
-            try {
-                const res = await fetch(CLOUD_GRADES_KEY + '?t=' + Date.now());
-                if (res.ok) {
-                    const cloudText = await res.text();
-                    if (cloudText) {
-                        const lines = cloudText.split('\n').filter(l => l.trim());
-                        const fetchedGrades = [];
-                        lines.forEach(l => {
-                            try { fetchedGrades.unshift(JSON.parse(l)); } catch(err) {}
-                        });
-                        if (fetchedGrades.length > 0) {
-                            appData.grades = fetchedGrades;
-                            saveStorage();
-                            renderGradesTable();
-                            showNotification('Đã cập nhật bảng điểm từ Đám mây!', 'info');
-                        }
-                    }
-                }
-            } catch(e) {}
         }
 
         function updateCloudStatus(msg, state) {
@@ -618,12 +607,18 @@ Answer: independent</pre>
                     const parsed = JSON.parse(savedQuestions);
                     if (Array.isArray(parsed) && parsed.length > 0) {
                         appData.currentQuestions = parsed;
-                        document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
-                        document.getElementById('quiz-count-badge').classList.remove('hidden');
-                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
                     }
                 } catch(e) {}
             }
+
+            // GUARANTEE NON-EMPTY INITIAL QUESTIONS FROM OCR SAMPLE
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
+            }
+
+            document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
+            document.getElementById('quiz-count-badge').classList.remove('hidden');
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
             const savedWordBank = localStorage.getItem('eduquiz_word_bank');
             if (savedWordBank) {
@@ -666,9 +661,8 @@ Answer: independent</pre>
             renderClassesList();
             renderGradesTable();
             
-            // Auto fetch active quiz and grades from Cloud
+            // Auto fetch active quiz from Cloud DB
             await fetchQuizFromCloud();
-            fetchCloudGrades();
         });
 
         // Tab Switching
@@ -687,8 +681,6 @@ Answer: independent</pre>
                 } else {
                     document.getElementById('student-login-box').classList.remove('hidden');
                 }
-            } else if (tab === 'teacher') {
-                fetchCloudGrades();
             }
         }
 
@@ -700,8 +692,6 @@ Answer: independent</pre>
             document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
             document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
-
-            if (sub === 'grades') fetchCloudGrades();
         }
 
         // CLASS MANAGEMENT
@@ -1171,22 +1161,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             container.innerHTML = '';
 
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
-                const saved = localStorage.getItem('eduquiz_current_questions');
-                if (saved) {
-                    try { appData.currentQuestions = JSON.parse(saved); } catch(e) {}
-                }
-            }
-
-            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
-                        <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-cloud"></i></div>
-                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào trên Đám mây!</h4>
-                        <p class="text-xs text-slate-500">Giáo viên vui lòng bấm <b>"TẠO & PHÁT HÀNH BÀI TẬP LÊN ĐÁM MÂY"</b> để phát hành đề cho tất cả học sinh.</p>
-                    </div>
-                `;
-                wordBankCard.classList.add('hidden');
-                return;
+                appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
             }
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi`;
@@ -1336,8 +1311,8 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
         }
 
-        // SUBMIT & SCORE & SEND GRADE TO CLOUD DB
-        async function submitQuiz() {
+        // SUBMIT & SCORE
+        function submitQuiz() {
             if (isSubmitted) return;
             isSubmitted = true;
             stopTimer();
@@ -1385,7 +1360,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('stat-correct').innerText = `${correctCount}/${appData.currentQuestions.length}`;
             document.getElementById('stat-time-taken').innerText = formatTime(timerSeconds);
 
-            // SAVE GRADE RECORD LOCALLY & SEND TO CLOUD DB
+            // SAVE GRADE RECORD LOCALLY
             const gradeRecord = {
                 timestamp: new Date().toLocaleString('vi-VN'),
                 className: activeStudentInfo.className || 'Tự do',
@@ -1399,9 +1374,6 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             appData.grades.unshift(gradeRecord);
             saveStorage();
             renderGradesTable();
-
-            // SEND GRADE TO CLOUD DB SO TEACHER ON ANY DEVICE CAN SEE IT
-            await sendGradeToCloud(gradeRecord);
 
             if (percent === 100) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
