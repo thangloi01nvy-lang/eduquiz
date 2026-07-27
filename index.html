@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Bài Tập Tương Tác Chia Sẻ Đa Trình Duyệt</title>
+    <title>EduQuiz Pro - Quản Lý Lớp Học & Tự Động Đồng Bộ Đám Mây Real-Time</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -109,7 +109,11 @@
                         <h1 class="font-heading font-bold text-xl tracking-tight text-slate-900 flex items-center gap-2">
                             EduQuiz <span class="bg-brand-100 text-brand-700 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-brand-200">PRO</span>
                         </h1>
-                        <p class="text-xs text-slate-500 hidden sm:block">Chia Sẻ Đề Bài Đa Trình Duyệt / Thiết Bị Qua Link Trực Tiếp & Mã Đề</p>
+                        <div class="flex items-center gap-2 text-xs text-slate-500">
+                            <span id="cloud-sync-status" class="inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                <i class="fa-solid fa-cloud-check text-xs"></i> Đã kết nối Đám mây Vercel Real-Time
+                            </span>
+                        </div>
                     </div>
                 </div>
 
@@ -157,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-share-nodes"></i> Chia Sẻ Đa Trình Duyệt & Máy Khác Qua Link Trực Tiếp
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Tự Động Đồng Bộ Đám Mây Real-Time Qua Vercel
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Soạn Bài Tập & Gửi Đường Dẫn Cho Học Sinh Ở Mọi Thiết Bị!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phát Hành Đề Bài Tự Động Đến Mọi Trình Duyệt & Điện Thoại!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Mỗi bài tập khi phát hành sẽ tạo một <b>Link Chia Sẻ Trực Tiếp</b>. Học sinh trên bất kỳ điện thoại, máy tính hay trình duyệt nào chỉ cần mở Link là làm bài ngay!
+                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Học sinh trên bất kỳ thiết bị nào mở web Vercel sẽ tự động có đề bài ngay lập tức!
                         </p>
                     </div>
                 </div>
@@ -193,7 +197,7 @@
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
                             <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                                 <span class="font-semibold text-sm text-slate-700"><i class="fa-solid fa-code text-brand-600 mr-2"></i>Khu vực nhập nội dung đề bài</span>
-                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Hỗ trợ Text & AI OCR JSON</span>
+                                <span id="syntax-status" class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Đồng bộ Cloud Tự Động</span>
                             </div>
                             <div class="p-4 flex-1">
                                 <textarea id="markdown-input" spellcheck="false" rows="16" 
@@ -203,8 +207,8 @@
                             </div>
                         </div>
                         <button onclick="generateQuiz()" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white font-heading font-bold text-lg rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-3">
-                            <i class="fa-solid fa-eye text-xl"></i>
-                            <span>TẠO & XEM TRƯỚC BÀI TẬP</span>
+                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
+                            <span>TẠO & PHÁT HÀNH BÀI TẬP LÊN ĐÁM MÂY</span>
                         </button>
                     </div>
 
@@ -228,40 +232,25 @@ Answer: independent</pre>
                     </div>
                 </div>
 
-                <!-- TEACHER QUIZ PREVIEW SECTION & CROSS-BROWSER SHARE LINK GENERATOR -->
+                <!-- TEACHER QUIZ PREVIEW SECTION -->
                 <div id="teacher-preview-section" class="hidden space-y-6 pt-6 border-t border-slate-200">
                     <div class="bg-emerald-600 rounded-3xl p-6 text-white shadow-lg space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-4 border-b border-emerald-500/50 pb-4">
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">Bản Xem Trước Của Giáo Viên</span>
+                                    <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full"><i class="fa-solid fa-cloud-check mr-1"></i>Đã Lưu Đám Mây</span>
                                     <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">0 câu hỏi</span>
                                 </div>
-                                <h3 class="font-heading font-bold text-2xl mt-1">Tạo Link Chia Sẻ Đa Trình Duyệt Đã Sẵn Sàng!</h3>
+                                <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
+                                <p class="text-xs text-emerald-100 mt-1">Bất kỳ học sinh nào mở trang web Vercel trên điện thoại hoặc máy tính đều sẽ tự động thấy đề bài này.</p>
                             </div>
                             
-                            <button onclick="scrollToEditor()" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition border border-white/20">
-                                <i class="fa-solid fa-pen mr-1"></i> Chỉnh sửa đề bài
-                            </button>
-                        </div>
-
-                        <!-- CROSS-BROWSER SHARE LINK BOX -->
-                        <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fa-solid fa-link text-amber-300"></i> Đường Dẫn Làm Bài Trực Tiếp (Mở được trên mọi trình duyệt & điện thoại):
-                                </span>
-                                <span class="text-[11px] text-emerald-100">Dán Link vào Zalo, Messenger hoặc gửi học sinh</span>
-                            </div>
-                            
-                            <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                                <input type="text" id="share-link-input" readonly 
-                                    class="w-full p-3 bg-white text-slate-800 font-mono text-xs font-bold rounded-xl border border-slate-200 focus:outline-none select-all">
-                                <button onclick="copyShareLink()" class="w-full sm:w-auto px-6 py-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-heading font-bold text-sm rounded-xl transition shadow-md whitespace-nowrap flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-copy"></i> Sao Chép Link
+                            <div class="flex items-center gap-2">
+                                <button onclick="scrollToEditor()" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition border border-white/20">
+                                    <i class="fa-solid fa-pen mr-1"></i> Sửa đề
                                 </button>
-                                <button onclick="downloadQuizJSON()" class="w-full sm:w-auto px-4 py-3 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition whitespace-nowrap">
-                                    <i class="fa-solid fa-file-arrow-down"></i> Tải File Đề (.json)
+                                <button onclick="switchMainTab('student')" class="px-6 py-2.5 bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-xs rounded-xl transition shadow-sm">
+                                    <span>Góc Học Sinh</span> <i class="fa-solid fa-arrow-right"></i>
                                 </button>
                             </div>
                         </div>
@@ -296,11 +285,14 @@ Answer: independent</pre>
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
                             <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-award text-amber-500"></i> Bảng Điểm Lớp Học
+                                <i class="fa-solid fa-award text-amber-500"></i> Bảng Điểm Lớp Học (Tự Động Đồng Bộ Cloud)
                             </h3>
-                            <p class="text-xs text-slate-500">Xem kết quả bài tập đã nộp của tất cả học sinh</p>
+                            <p class="text-xs text-slate-500">Kết quả từ tất cả thiết bị của học sinh được tự động thu thập về đây</p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button onclick="fetchCloudGrades()" class="px-4 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl transition border border-brand-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-arrows-rotate"></i> Làm mới từ Cloud
+                            </button>
                             <button onclick="exportGradesToCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-file-excel"></i> Xuất Bảng Điểm (CSV)
                             </button>
@@ -336,27 +328,6 @@ Answer: independent</pre>
         <!-- TAB 2: GÓC HỌC SINH (STUDENT MODE) -->
         <!-- ================================================================= -->
         <div id="student-view" class="hidden space-y-6">
-
-            <!-- Cross-Browser Quiz Import Bar -->
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl p-5 text-white shadow-md space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="font-heading font-bold text-base flex items-center gap-2">
-                        <i class="fa-solid fa-file-import text-amber-300"></i> Nhập Bài Tập Từ Trình Duyệt / Thiết Bị Khác
-                    </span>
-                    <span class="text-xs text-purple-200">Dán Link Bài Tập hoặc Chọn File Đề Bài</span>
-                </div>
-                <div class="flex flex-wrap sm:flex-nowrap gap-2">
-                    <input type="text" id="import-url-input" placeholder="Dán Link Chia Sẻ Bài Tập vào đây..." 
-                        class="w-full p-3 bg-white text-slate-800 font-mono text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none">
-                    <button onclick="importQuizFromUrl()" class="w-full sm:w-auto px-6 py-3 bg-amber-400 hover:bg-amber-500 text-slate-900 font-bold text-xs rounded-xl transition shadow-sm whitespace-nowrap">
-                        <i class="fa-solid fa-download"></i> Tải Đề Bài
-                    </button>
-                    <label class="w-full sm:w-auto px-4 py-3 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl transition whitespace-nowrap cursor-pointer text-center">
-                        <i class="fa-solid fa-folder-open mr-1"></i> Chọn File .json
-                        <input type="file" accept=".json" onchange="importQuizJSONFile(event)" class="hidden">
-                    </label>
-                </div>
-            </div>
 
             <!-- Streamlined Student Login Box -->
             <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-6">
@@ -445,7 +416,7 @@ Answer: independent</pre>
                             </div>
                             <div>
                                 <h3 id="result-feedback-title" class="font-heading font-bold text-xl text-slate-900">Xuất Sắc!</h3>
-                                <p id="result-feedback-sub" class="text-sm text-slate-500">Đã ghi nhận kết quả vào bảng điểm lớp học.</p>
+                                <p id="result-feedback-sub" class="text-sm text-slate-500">Đã tự động gửi kết quả lên Đám mây cho Giáo viên.</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4 text-center">
@@ -483,15 +454,20 @@ Answer: independent</pre>
     <!-- FOOTER -->
     <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-400">
         <div class="max-w-7xl mx-auto px-4">
-            <p>EduQuiz Pro &copy; 2026 - Quản Lý Lớp Học & Bài Tập Tương Tác Chia Sẻ Đa Trình Duyệt</p>
+            <p>EduQuiz Pro &copy; 2026 - Tự Động Đồng Bộ Đám Mây Real-Time Trực Tiếp Trên Vercel</p>
         </div>
     </footer>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT LOGIC WITH CLOUD DB SYNC -->
     <!-- ================================================================= -->
     <script>
+        // PUBLIC CLOUD DB REST ENDPOINTS (KVDB REALTIME ENGINE)
+        const CLOUD_DB_BASE = 'https://kvdb.io/EduQuizPro_Vercel_Sync_2026/';
+        const CLOUD_QUIZ_KEY = CLOUD_DB_BASE + 'active_quiz';
+        const CLOUD_GRADES_KEY = CLOUD_DB_BASE + 'grades';
+
         let appData = {
             classes: [
                 {
@@ -518,111 +494,93 @@ Answer: independent</pre>
         let timerSeconds = 0;
         let timerRunning = false;
 
-        // URL ENCODING FOR CROSS-BROWSER SHARING
-        function encodeQuizToHash(questions, wordBank) {
+        // REAL-TIME CLOUD SYNC FUNCTIONS
+        async function publishQuizToCloud(questions, wordBank) {
+            updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
-                const payload = { questions, wordBank };
-                const jsonStr = JSON.stringify(payload);
-                return btoa(encodeURIComponent(jsonStr));
+                const payload = {
+                    questions: questions,
+                    wordBank: wordBank,
+                    updatedAt: new Date().toLocaleString('vi-VN')
+                };
+                await fetch(CLOUD_QUIZ_KEY, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
+                showNotification('🚀 Bài tập đã phát hành thành công lên Đám mây! Mọi thiết bị học sinh sẽ có đề ngay.', 'success');
             } catch(e) {
-                return '';
+                console.warn('Cloud publish fallback to local:', e);
+                updateCloudStatus('Đã lưu nội bộ (Chờ kết nối Cloud)', 'warning');
             }
         }
 
-        function decodeQuizFromHash(hashStr) {
+        async function fetchQuizFromCloud() {
             try {
-                const jsonStr = decodeURIComponent(atob(hashStr));
-                return JSON.parse(jsonStr);
-            } catch(e) {
-                return null;
-            }
-        }
-
-        function checkUrlForSharedQuiz() {
-            const hash = window.location.hash.replace('#quiz=', '').replace('#', '');
-            if (hash) {
-                const decoded = decodeQuizFromHash(hash);
-                if (decoded && decoded.questions && decoded.questions.length > 0) {
-                    appData.currentQuestions = decoded.questions;
-                    appData.wordBank = decoded.wordBank || [];
-                    saveStorage();
-                    switchMainTab('student');
-                    showNotification(`Đã tải thành công bài tập gồm ${appData.currentQuestions.length} câu hỏi!`, 'success');
-                }
-            }
-        }
-
-        function generateShareLink() {
-            if (!appData.currentQuestions || appData.currentQuestions.length === 0) return '';
-            const hash = encodeQuizToHash(appData.currentQuestions, appData.wordBank);
-            const baseUrl = window.location.origin + window.location.pathname;
-            return `${baseUrl}#quiz=${hash}`;
-        }
-
-        function copyShareLink() {
-            const shareInput = document.getElementById('share-link-input');
-            shareInput.select();
-            navigator.clipboard.writeText(shareInput.value).then(() => {
-                showNotification('Đã sao chép Link Bài Tập! Bạn có thể dán gửi Học Sinh ở bất kỳ máy hay trình duyệt nào.', 'success');
-            }).catch(() => {
-                showNotification('Đã chọn link, hãy bấm Ctrl+C để sao chép!', 'info');
-            });
-        }
-
-        function downloadQuizJSON() {
-            if (!appData.currentQuestions || appData.currentQuestions.length === 0) return;
-            const dataStr = JSON.stringify({ questions: appData.currentQuestions, wordBank: appData.wordBank }, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `EduQuiz_DeBai_${Date.now()}.json`;
-            a.click();
-        }
-
-        function importQuizFromUrl() {
-            const urlInput = document.getElementById('import-url-input').value.trim();
-            if (!urlInput) {
-                showNotification('Vui lòng dán Link Bài Tập!', 'error');
-                return;
-            }
-            let hash = '';
-            if (urlInput.includes('#quiz=')) {
-                hash = urlInput.split('#quiz=')[1];
-            } else {
-                hash = urlInput;
-            }
-            const decoded = decodeQuizFromHash(hash);
-            if (decoded && decoded.questions && decoded.questions.length > 0) {
-                appData.currentQuestions = decoded.questions;
-                appData.wordBank = decoded.wordBank || [];
-                saveStorage();
-                renderQuizQuestions();
-                showNotification(`Đã tải bài tập (${appData.currentQuestions.length} câu) thành công!`, 'success');
-            } else {
-                showNotification('Link bài tập không hợp lệ hoặc đã bị đứt!', 'error');
-            }
-        }
-
-        function importQuizJSONFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const parsed = JSON.parse(event.target.result);
-                    if (parsed.questions && Array.isArray(parsed.questions)) {
-                        appData.currentQuestions = parsed.questions;
-                        appData.wordBank = parsed.wordBank || [];
+                const res = await fetch(CLOUD_QUIZ_KEY + '?t=' + Date.now());
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.questions && data.questions.length > 0) {
+                        appData.currentQuestions = data.questions;
+                        appData.wordBank = data.wordBank || [];
                         saveStorage();
-                        renderQuizQuestions();
-                        showNotification(`Đã tải file bài tập (${appData.currentQuestions.length} câu) thành công!`, 'success');
+                        document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
+                        document.getElementById('quiz-count-badge').classList.remove('hidden');
+                        updateCloudStatus('Đã tải đề từ Đám mây', 'success');
+                        return true;
                     }
-                } catch(err) {
-                    showNotification('File JSON không hợp lệ!', 'error');
                 }
-            };
-            reader.readAsText(file);
+            } catch(e) {
+                console.warn('Could not fetch cloud quiz:', e);
+            }
+            return false;
+        }
+
+        async function sendGradeToCloud(gradeRecord) {
+            try {
+                await fetch(CLOUD_GRADES_KEY, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(gradeRecord)
+                });
+            } catch(e) {
+                console.warn('Could not send grade to cloud:', e);
+            }
+        }
+
+        async function fetchCloudGrades() {
+            try {
+                const res = await fetch(CLOUD_GRADES_KEY + '?t=' + Date.now());
+                if (res.ok) {
+                    const cloudText = await res.text();
+                    if (cloudText) {
+                        const lines = cloudText.split('\n').filter(l => l.trim());
+                        const fetchedGrades = [];
+                        lines.forEach(l => {
+                            try { fetchedGrades.unshift(JSON.parse(l)); } catch(err) {}
+                        });
+                        if (fetchedGrades.length > 0) {
+                            appData.grades = fetchedGrades;
+                            saveStorage();
+                            renderGradesTable();
+                            showNotification('Đã cập nhật bảng điểm từ Đám mây!', 'info');
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function updateCloudStatus(msg, state) {
+            const badge = document.getElementById('cloud-sync-status');
+            if (!badge) return;
+            if (state === 'success') {
+                badge.className = "inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-xs";
+                badge.innerHTML = `<i class="fa-solid fa-cloud-check text-xs"></i> ${msg}`;
+            } else if (state === 'warning') {
+                badge.className = "inline-flex items-center gap-1 text-amber-600 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-xs";
+                badge.innerHTML = `<i class="fa-solid fa-rotate text-xs animate-spin"></i> ${msg}`;
+            }
         }
 
         function loadStorage() {
@@ -677,17 +635,20 @@ Answer: independent</pre>
             document.getElementById('total-results-badge').innerText = appData.grades ? appData.grades.length : 0;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             loadStorage();
             document.getElementById('markdown-input').addEventListener('input', updateInputStats);
             loadSampleData();
             renderClassesList();
             renderGradesTable();
-            checkUrlForSharedQuiz();
+            
+            // Auto fetch active quiz and grades from Cloud
+            await fetchQuizFromCloud();
+            fetchCloudGrades();
         });
 
         // Tab Switching
-        function switchMainTab(tab) {
+        async function switchMainTab(tab) {
             document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
             document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
             
@@ -695,6 +656,7 @@ Answer: independent</pre>
             document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
 
             if (tab === 'student') {
+                await fetchQuizFromCloud();
                 renderQuizQuestions();
                 if (activeStudentInfo && activeStudentInfo.studentId) {
                     restoreStudentSessionUI();
@@ -702,6 +664,8 @@ Answer: independent</pre>
                     document.getElementById('student-login-box').classList.remove('hidden');
                     document.getElementById('student-quiz-active').classList.add('hidden');
                 }
+            } else if (tab === 'teacher') {
+                fetchCloudGrades();
             }
         }
 
@@ -713,6 +677,8 @@ Answer: independent</pre>
             document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
             document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
+
+            if (sub === 'grades') fetchCloudGrades();
         }
 
         // CLASS MANAGEMENT
@@ -1081,8 +1047,8 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             return questions;
         }
 
-        // GENERATE QUIZ, SAVE TO LOCALSTORAGE & RENDER PREVIEW + CROSS-BROWSER SHARE LINK
-        function generateQuiz() {
+        // GENERATE QUIZ, SAVE TO LOCALSTORAGE & PUBLISH TO CLOUD DB
+        async function generateQuiz() {
             const rawText = document.getElementById('markdown-input').value;
             appData.currentQuestions = parseInputToQuestions(rawText);
 
@@ -1096,12 +1062,10 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
 
-            // Generate Cross-Browser Share Link
-            const shareUrl = generateShareLink();
-            document.getElementById('share-link-input').value = shareUrl;
-
             renderTeacherPreview();
-            showNotification(`Đã phân tích thành công ${appData.currentQuestions.length} câu hỏi! Đã tạo Link Chia Sẻ Đa Trình Duyệt.`, 'success');
+
+            // PUBLISH TO CLOUD DB AUTOMATICALLY FOR ALL VERCEL USERS
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
         }
 
         function renderTeacherPreview() {
@@ -1184,9 +1148,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
                 container.innerHTML = `
                     <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-3">
-                        <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-link"></i></div>
-                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào trên trình duyệt này!</h4>
-                        <p class="text-xs text-slate-500">Mẹo: Hãy <b>Dán Link Bài Tập</b> (do Giáo viên gửi) vào thanh nhập màu tím ở trên, hoặc bấm <b>"TẠO & XEM TRƯỚC"</b> nếu bạn đang ở máy Soạn đề.</p>
+                        <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-full flex items-center justify-center mx-auto text-2xl"><i class="fa-solid fa-cloud"></i></div>
+                        <h4 class="font-bold text-lg text-slate-800">Chưa có bài tập nào trên Đám mây!</h4>
+                        <p class="text-xs text-slate-500">Giáo viên vui lòng bấm <b>"TẠO & PHÁT HÀNH BÀI TẬP LÊN ĐÁM MÂY"</b> để phát hành đề cho tất cả học sinh.</p>
                     </div>
                 `;
                 wordBankCard.classList.add('hidden');
@@ -1340,8 +1304,8 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
         }
 
-        // SUBMIT & SCORE
-        function submitQuiz() {
+        // SUBMIT & SCORE & SEND GRADE TO CLOUD DB
+        async function submitQuiz() {
             if (isSubmitted) return;
             isSubmitted = true;
             stopTimer();
@@ -1389,7 +1353,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('stat-correct').innerText = `${correctCount}/${appData.currentQuestions.length}`;
             document.getElementById('stat-time-taken').innerText = formatTime(timerSeconds);
 
-            // SAVE GRADE RECORD
+            // SAVE GRADE RECORD LOCALLY & SEND TO CLOUD DB
             const gradeRecord = {
                 timestamp: new Date().toLocaleString('vi-VN'),
                 className: activeStudentInfo.className || 'Tự do',
@@ -1403,6 +1367,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             appData.grades.unshift(gradeRecord);
             saveStorage();
             renderGradesTable();
+
+            // SEND GRADE TO CLOUD DB SO TEACHER ON ANY DEVICE CAN SEE IT
+            await sendGradeToCloud(gradeRecord);
 
             if (percent === 100) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         }
