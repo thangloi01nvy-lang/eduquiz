@@ -486,27 +486,30 @@
                     <div id="word-chips-container" class="flex flex-wrap gap-2.5 pt-1 max-h-36 overflow-y-auto"></div>
                 </div>
 
-                <!-- Result Summary Banner -->
-                <div id="quiz-result-banner" class="hidden bg-white rounded-3xl border border-slate-200 p-6 shadow-md space-y-4">
+                <!-- RESULT SUMMARY BANNER WITH RETAKE OPTION -->
+                <div id="quiz-result-banner" class="hidden bg-white rounded-3xl border-2 border-emerald-300 p-6 shadow-xl space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div class="flex items-center gap-4">
-                            <div id="result-score-circle" class="w-16 h-16 rounded-2xl bg-emerald-500 text-white font-heading font-extrabold text-2xl flex items-center justify-center shadow-lg">
+                            <div id="result-score-circle" class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-heading font-extrabold text-3xl flex items-center justify-center shadow-lg shadow-emerald-200">
                                 0%
                             </div>
                             <div>
-                                <h3 id="result-feedback-title" class="font-heading font-bold text-xl text-slate-900">Xuất Sắc!</h3>
+                                <h3 id="result-feedback-title" class="font-heading font-bold text-xl sm:text-2xl text-slate-900">Kết Quả Bài Làm</h3>
                                 <p id="result-feedback-sub" class="text-sm text-slate-500">Đã tự động gửi kết quả lên Đám mây cho Giáo viên.</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4 text-center">
-                            <div class="px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div class="text-xs text-slate-400 font-medium">Đúng</div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Số câu đúng</div>
                                 <div id="stat-correct" class="font-bold text-emerald-600 text-lg">0/0</div>
                             </div>
-                            <div class="px-4 py-2 bg-slate-50 rounded-2xl border border-slate-100">
-                                <div class="text-xs text-slate-400 font-medium">Thời gian</div>
+                            <div class="px-4 py-2 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Thời gian</div>
                                 <div id="stat-time-taken" class="font-bold text-slate-700 text-lg">00:00</div>
                             </div>
+                            <button onclick="resetQuiz(true)" class="px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-sm rounded-2xl transition shadow-md shadow-brand-200 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-left"></i> LÀM LẠI BÀI TẬP
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -516,11 +519,11 @@
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-lg sticky bottom-6 z-30 flex items-center justify-between gap-4">
                     <span id="answered-progress-text" class="text-sm text-slate-600 font-medium"><i class="fa-solid fa-list-check text-brand-600 mr-2"></i>Đã trả lời: 0/0 câu</span>
                     <div class="flex items-center gap-3">
-                        <button onclick="resetQuiz(true)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition border border-slate-200">
+                        <button onclick="resetQuiz(true)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition border border-slate-200 flex items-center gap-1.5">
                             <i class="fa-solid fa-rotate-left"></i> Làm lại
                         </button>
-                        <button id="submit-quiz-btn" onclick="submitQuiz()" class="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Nộp Bài
+                        <button id="submit-quiz-btn" onclick="submitQuiz()" class="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> NỘP BÀI
                         </button>
                     </div>
                 </div>
@@ -646,7 +649,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH ONINPUT BLANK ANSWER FIX -->
+    <!-- JAVASCRIPT LOGIC WITH SUBMIT FEEDBACK & RETAKE SOLUTION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -850,7 +853,7 @@ can-do attitude communication skills critical thinking determination integrity s
             if (!line) return false;
             const trimmed = line.trim();
             if (!trimmed) return false;
-            if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
+            if (trimmed.startswith('##') || trimmed.startswith('#')) return true;
 
             const lower = trimmed.toLowerCase();
             if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('^(?:câu|question|q)?\\s*\\d*[\\.\\:\\)\\ /\\s]*\\b' + p + '\\b', 'i').test(lower))) {
@@ -1750,7 +1753,7 @@ can-do attitude communication skills critical thinking determination integrity s
             // Render Questions of CURRENT SECTION ONLY
             currentSec.questions.forEach((q) => {
                 const card = document.createElement('div');
-                card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
+                card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 transition duration-200";
                 card.id = `question-card-${q.id}`;
 
                 let titleHtml = marked.parseInline(q.title || '');
@@ -1808,7 +1811,7 @@ can-do attitude communication skills critical thinking determination integrity s
                 } else if (q.title.includes('___')) {
                     const currentVal = studentAnswers[`q_${q.id}_blank_0`] || '';
                     
-                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT (WITH NO RE-RENDER FOCUS LOSS)
+                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT
                     if (activeSectionIndex === 2 || !isExercise1) {
                         const inlineInputHtml = `
                             <input type="text" oninput="onInputBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="điền..." 
@@ -1898,7 +1901,44 @@ can-do attitude communication skills critical thinking determination integrity s
                     `;
                 }
 
-                html += `<div id="feedback-box-${q.id}" class="hidden space-y-3 pt-3"></div>`;
+                // SUBMITTED FEEDBACK BOX & EXPLANATIONS ON EVERY PAGE
+                if (isSubmitted) {
+                    let isCorrect = false;
+                    let userVal = (studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`] || '').trim();
+
+                    if (q.type === 'multiple_choice' || q.type === 'true_false') {
+                        if (userVal.toLowerCase() === (q.answer || '').toLowerCase()) isCorrect = true;
+                    } else if (q.type === 'matching') {
+                        if (userVal.toLowerCase().includes((q.answer || '').toLowerCase()) || (q.answer || '').toLowerCase().includes(userVal.toLowerCase())) isCorrect = true;
+                    } else if (q.type === 'short_answer') {
+                        if (userVal.toLowerCase() === (q.answer || '').toLowerCase() || (userVal.length > 2 && (q.answer || '').toLowerCase().includes(userVal.toLowerCase()))) isCorrect = true;
+                    } else {
+                        let expected = (q.inlineBlanks && q.inlineBlanks.length > 0) ? (q.inlineBlanks[0].answer || q.answer) : q.answer;
+                        if (userVal.toLowerCase() === (expected || '').toLowerCase()) isCorrect = true;
+                    }
+
+                    card.classList.add(isCorrect ? 'border-emerald-300' : 'border-rose-300', isCorrect ? 'bg-emerald-50/20' : 'bg-rose-50/20');
+                    
+                    let expectedAnswerStr = (q.inlineBlanks && q.inlineBlanks.length > 0) ? q.inlineBlanks.map(b => b.answer || q.answer).join(', ') : (q.answer || 'Đáp án mẫu');
+
+                    html += `
+                        <div class="mt-4 p-4 rounded-2xl ${isCorrect ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-rose-50 text-rose-900 border border-rose-200'} text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 font-bold text-sm">
+                                    <i class="fa-solid ${isCorrect ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600'} text-base"></i>
+                                    <span>${isCorrect ? 'Chúc mừng! Bạn đã trả lời đúng' : 'Kết quả chưa chính xác'}</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 ${isCorrect ? 'bg-emerald-600' : 'bg-rose-600'} text-white font-bold text-[10px] rounded-full uppercase">${isCorrect ? 'ĐÚNG' : 'SAI'}</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-slate-200/40">
+                                <div><b>Của bạn:</b> <span class="font-mono ${isCorrect ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}">${userVal || '(Bỏ trống)'}</span></div>
+                                <div><b>Đáp án chuẩn:</b> <span class="font-mono text-brand-700 font-bold">${expectedAnswerStr}</span></div>
+                            </div>
+                            ${q.explanation ? `<div class="text-slate-600 border-t border-slate-200/60 pt-1.5 mt-1"><i class="fa-solid fa-lightbulb text-amber-500 mr-1"></i><b>Giải thích chi tiết:</b> ${q.explanation}</div>` : ''}
+                        </div>
+                    `;
+                }
+
                 card.innerHTML = html;
                 container.appendChild(card);
             });
@@ -1938,7 +1978,6 @@ can-do attitude communication skills critical thinking determination integrity s
             } 
         }
 
-        // ONINPUT BLANK ANSWER (NO RE-RENDER TO PREVENT INPUT FOCUS LOSS WHILE TYPING FULL WORDS)
         function onInputBlankAnswer(qId, bIdx, val) {
             if (!isSubmitted) {
                 studentAnswers[`q_${qId}`] = val;
@@ -1964,7 +2003,7 @@ can-do attitude communication skills critical thinking determination integrity s
             document.getElementById('answered-progress-text').innerText = `Đã trả lời: ${count}/${appData.currentQuestions.length} câu`;
         }
 
-        // SUBMIT & SCORE FOR ALL SECTIONS
+        // SUBMIT & SCORE FOR ALL SECTIONS WITH AUTO SCROLL & FULL FEEDBACK
         function submitQuiz() {
             if (isSubmitted) return;
 
@@ -1978,10 +2017,6 @@ can-do attitude communication skills critical thinking determination integrity s
             let correctCount = 0;
 
             appData.currentQuestions.forEach(q => {
-                const card = document.getElementById(`question-card-${q.id}`);
-                const feedbackBox = document.getElementById(`feedback-box-${q.id}`);
-                const statusBadge = document.getElementById(`q-status-badge-${q.id}`);
-
                 let isCorrect = false;
                 let userVal = (studentAnswers[`q_${q.id}`] || studentAnswers[`q_${q.id}_blank_0`] || '').trim();
 
@@ -1990,39 +2025,39 @@ can-do attitude communication skills critical thinking determination integrity s
                 } else if (q.type === 'matching') {
                     if (userVal.toLowerCase().includes((q.answer || '').toLowerCase()) || (q.answer || '').toLowerCase().includes(userVal.toLowerCase())) isCorrect = true;
                 } else if (q.type === 'short_answer') {
-                    if (userVal.toLowerCase() === (q.answer || '').toLowerCase() || userVal.length > 2 && (q.answer || '').toLowerCase().includes(userVal.toLowerCase())) isCorrect = true;
+                    if (userVal.toLowerCase() === (q.answer || '').toLowerCase() || (userVal.length > 2 && (q.answer || '').toLowerCase().includes(userVal.toLowerCase()))) isCorrect = true;
                 } else {
                     let expected = (q.inlineBlanks && q.inlineBlanks.length > 0) ? (q.inlineBlanks[0].answer || q.answer) : q.answer;
-                    if (userVal.toLowerCase() === expected.toLowerCase()) isCorrect = true;
+                    if (userVal.toLowerCase() === (expected || '').toLowerCase()) isCorrect = true;
                 }
 
                 if (isCorrect) correctCount++;
-
-                if (card && feedbackBox && statusBadge) {
-                    if (isCorrect) {
-                        card.classList.add('border-emerald-300', 'bg-emerald-50/20');
-                        statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-emerald-500 text-white text-xs font-bold rounded-full">ĐÚNG</span>`;
-                    } else {
-                        card.classList.add('border-rose-300', 'bg-rose-50/20');
-                        statusBadge.innerHTML = `<span class="px-2.5 py-1 bg-rose-500 text-white text-xs font-bold rounded-full">SAI</span>`;
-                    }
-
-                    feedbackBox.classList.remove('hidden');
-                    feedbackBox.innerHTML = `
-                        <div class="p-3.5 rounded-2xl ${isCorrect ? 'bg-emerald-50 text-emerald-900 border border-emerald-200' : 'bg-rose-50 text-rose-900 border border-rose-200'} text-xs space-y-1">
-                            <div><b>Đáp án đúng:</b> ${q.answer || 'Đáp án chuẩn'}</div>
-                            ${q.explanation ? `<div><b>Giải thích:</b> ${q.explanation}</div>` : ''}
-                        </div>
-                    `;
-                }
             });
 
             const percent = Math.round((correctCount / appData.currentQuestions.length) * 100);
 
-            document.getElementById('quiz-result-banner').classList.remove('hidden');
+            const banner = document.getElementById('quiz-result-banner');
+            banner.classList.remove('hidden');
             document.getElementById('result-score-circle').innerText = `${percent}%`;
             document.getElementById('stat-correct').innerText = `${correctCount}/${appData.currentQuestions.length}`;
             document.getElementById('stat-time-taken').innerText = formatTime(timerSeconds);
+
+            const titleElem = document.getElementById('result-feedback-title');
+            const subElem = document.getElementById('result-feedback-sub');
+
+            if (percent >= 90) {
+                titleElem.innerText = "🌟 Xuất Sắc! Bạn Đạt Điểm Gần Như Tuyệt Đối!";
+                subElem.innerText = "Bạn đã hoàn thành xuất sắc tất cả 3 bài tập. Kết quả đã tự động lưu về máy giáo viên.";
+            } else if (percent >= 60) {
+                titleElem.innerText = "👍 Kết Quả Khá Tốt! Hãy Tiếp Tục Phát Huy!";
+                subElem.innerText = "Bạn có thể xem đáp án giải thích chi tiết bên dưới hoặc bấm Làm lại để đạt 100%.";
+            } else {
+                titleElem.innerText = "💪 Cố Gắng Hơn Ở Lần Sau Nhé!";
+                subElem.innerText = "Hãy đọc kỹ đáp án chuẩn và lời giải thích bên dưới để rút kinh nghiệm nhé.";
+            }
+
+            renderQuizQuestions();
+            banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
             const gradeRecord = {
                 timestamp: new Date().toLocaleString('vi-VN'),
@@ -2038,7 +2073,7 @@ can-do attitude communication skills critical thinking determination integrity s
             saveStorage();
             renderGradesTable();
 
-            if (percent === 100) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            if (percent >= 80) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         }
 
         function renderGradesTable() {
