@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-layer-group"></i> Nhận Diện 100% Chuẩn Tất Cả Các Bài Tập Đa Dạng
+                            <i class="fa-solid fa-layer-group"></i> Nhận Diện Động 100% Mọi Dạng Động Từ Chỉ Dẫn (Choose, Complete, Match...)
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tự Động Phân Tách Bài 1, Bài 2, Bài 3 Thành 3 Trang Độc Lập!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chuẩn Cả 3 Bài Tập Cho Dù Không Có Số Đầu Dòng!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Hệ thống tự động nhận diện chính xác từng phần chỉ dẫn (Ví dụ: <i>1 Complete...</i>, <i>2 Choose...</i>, <i>3 Match...</i>) để tách thành <b>3 BÀI TẬP RIÊNG BIỆT TRÊN 3 TRANG MỚI</b>!
+                            Mỗi bài tập chỉ cần có động từ chỉ dẫn (<i>Complete</i>, <i>Choose</i>, <i>Match</i>, <i>Read</i>, <i>Fill</i>...) là hệ thống tự động tách thành <b>BÀI TẬP MỚI TRÊN TRANG MỚI</b>!
                         </p>
                     </div>
                 </div>
@@ -239,21 +239,21 @@
                     <!-- Cheat Sheet Sidebar -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
-                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Nhận Diện 3 Bài Tập Độc Lập</h3>
+                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Tự Động Nhận Diện 3 Bài</h3>
                             
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Hệ thống tự động nhận diện từ các câu chỉ dẫn đề bài như <b>1 Complete...</b>, <b>2 Choose...</b>, <b>3 Match...</b> để chia làm 3 bài tập riêng biệt!
+                                Dù dòng chỉ dẫn có số hay không có số, cứ bắt đầu bằng câu lệnh chỉ dẫn là hệ thống tự tạo trang mới!
                             </p>
 
                             <div>
                                 <span class="text-xs font-bold text-brand-700 uppercase">Bài 1 (Kéo thả):</span>
-                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 Complete these comments using...
+                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">Complete these comments using...
 can-do attitude | team player
 1 He can [___/think outside the box].</pre>
                             </div>
                             <div>
                                 <span class="text-xs font-bold text-emerald-700 uppercase">Bài 2 (Trắc nghiệm):</span>
-                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">2 Choose the correct option...
+                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">Choose the correct option...
 1 Our consultants need to be [confident/independent]...
 Answer: independent</pre>
                             </div>
@@ -542,7 +542,7 @@ can-do attitude | communication skills | critical thinking | determination | int
 
 2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].
 
-2 Choose the correct option in italics.
+Choose the correct option in italics.
 
 1 Our consultants need to be [confident/independent] because they often have to work alone.
 Answer: independent
@@ -550,7 +550,7 @@ Answer: independent
 2 My manager is really [ambitious/passionate] about customer service.
 Answer: passionate
 
-3 Match the words with their meanings.
+Match the words with their meanings.
 
 1 team player <-> A works well with other candidates
 2 critical thinking <-> B evaluates options carefully`,
@@ -597,26 +597,31 @@ Answer: passionate
         let timerSeconds = 0;
         let timerRunning = false;
 
-        const secKeywords = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate', 'mark', 'check', 'underline', 'select', 'label', 'connect', 'decide', 'true/false', 'in italics', 'in the box', 'words', 'phrases', 'meanings', 'options', 'comments', 'exercise', 'part', 'bài', 'phần', 'section', 'unit', 'task'];
+        const instructionVerbs = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate', 'mark', 'check', 'underline', 'select', 'label', 'connect', 'decide', 'bài', 'phần', 'exercise', 'part', 'section', 'unit', 'task'];
 
         function isSectionHeaderLine(line) {
             if (!line) return false;
             const trimmed = line.trim();
+            if (!trimmed) return false;
             if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
-            
+
             const lower = trimmed.toLowerCase();
-            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(prefix => lower.startsWith(prefix))) return true;
-            
-            if (trimmed.match(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]/i)) {
-                if (secKeywords.some(kw => lower.includes(kw))) {
-                    if (!trimmed.includes('___') && !trimmed.includes('<->') && !lower.startsWith('answer:')) {
-                        if (trimmed.includes('[') && trimmed.includes(']') && trimmed.includes('/')) {
-                            return false;
-                        }
-                        return true;
+            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => lower.startsWith(p))) return true;
+
+            const unNumbered = trimmed.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]*/i, '').trim();
+            const unLower = unNumbered.toLowerCase();
+            if (!unLower) return false;
+
+            const firstWord = unLower.split(/\s+/)[0];
+            if (instructionVerbs.includes(firstWord) || instructionVerbs.some(v => unLower.startsWith(v))) {
+                if (!trimmed.includes('___') && !trimmed.includes('<->') && !lower.startsWith('answer:')) {
+                    if (trimmed.includes('[') && trimmed.includes(']') && trimmed.includes('/')) {
+                        return false;
                     }
+                    return true;
                 }
             }
+
             return false;
         }
 
@@ -721,7 +726,7 @@ Answer: passionate
                         
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
                         document.getElementById('quiz-count-badge').classList.remove('hidden');
-                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
+                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
                         
                         updateDeadlineCountdown();
                         updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
@@ -774,7 +779,7 @@ Answer: passionate
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
-            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
 
             updateBadges();
             updateDeadlineCountdown();
@@ -1178,7 +1183,7 @@ Answer: passionate
                             currentSec.title = cleanSecTitle;
                         }
                     } else {
-                        if (currentSec.questions.length > 0) {
+                        if (currentSec && currentSec.questions.length > 0) {
                             currentSec.wordBank = sanitizeWordBank(currentSec.wordBank);
                             sections.push(currentSec);
                             currentSec = { id: sections.length, title: cleanSecTitle || `Phần ${sections.length + 1}`, questions: [], wordBank: [] };
