@@ -126,7 +126,7 @@
                     <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                         <i class="fa-solid fa-user-graduate text-slate-500"></i>
                         <span>Góc Học Sinh</span>
-                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">8</span>
+                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">7</span>
                     </button>
                 </div>
 
@@ -165,7 +165,7 @@
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Phát Hành Đề Bài Tự Động Đến Mọi Trình Duyệt & Điện Thoại!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Học sinh trên bất kỳ thiết bị nào mở web Vercel sẽ tự động có đề bài ngay lập tức!
+                            Khi bạn bấm <b>"TẠO & PHÁT HÀNH LÊN ĐÁM MÂY"</b>, đề bài sẽ tự động gửi lên Đám mây. Khung từ kéo thả sẽ <b>TỰ TRÔI THEO MAN HÌNH (STICKY FLOATING)</b> khi học sinh cuộn trang!
                         </p>
                     </div>
                 </div>
@@ -239,7 +239,7 @@ Answer: independent</pre>
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full"><i class="fa-solid fa-cloud-check mr-1"></i>Đã Lưu Đám Mây</span>
-                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">8 câu hỏi</span>
+                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">7 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
                                 <p class="text-xs text-emerald-100 mt-1">Bất kỳ học sinh nào mở trang web Vercel trên điện thoại hoặc máy tính đều sẽ tự động thấy đề bài này.</p>
@@ -335,8 +335,8 @@ Answer: independent</pre>
                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full mb-1 inline-block">
                         <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
                     </span>
-                    <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">8 câu hỏi</span></h3>
-                    <p class="text-xs text-emerald-100">Tự động đồng bộ từ Giáo viên. Hãy điền tên hoặc bấm nút làm bài ngay bên dưới!</p>
+                    <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">7 câu hỏi</span></h3>
+                    <p class="text-xs text-emerald-100">Khung từ cho sẵn tự động trôi theo màn hình khi cuộn trang xuống bên dưới!</p>
                 </div>
 
                 <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
@@ -399,7 +399,7 @@ Answer: independent</pre>
                             <button onclick="logoutStudentSession()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline flex items-center gap-1">
                                 <i class="fa-solid fa-right-from-bracket"></i> Đổi tài khoản
                             </button>
-                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">8 câu hỏi</span>
+                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">7 câu hỏi</span>
                         </div>
                         <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-900 mt-1">Bài Tập Tương Tác Online</h2>
                     </div>
@@ -416,15 +416,15 @@ Answer: independent</pre>
                     </div>
                 </div>
 
-                <!-- Word Bank Container -->
-                <div id="word-bank-card" class="hidden bg-gradient-to-r from-brand-50 to-indigo-50 border border-brand-200 rounded-3xl p-5 shadow-sm space-y-3">
+                <!-- STICKY FLOATING WORD BANK CONTAINER -->
+                <div id="word-bank-card" class="hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border-2 border-brand-300 rounded-3xl p-5 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-hand-pointer text-brand-600"></i> Ngân Hàng Từ Cho Sẵn (Kéo hoặc Nhấp từ vào chỗ trống):
+                            <i class="fa-solid fa-hand-pointer text-brand-600"></i> Ngân Hàng Từ Cho Sẵn (Tự trôi theo màn hình):
                         </span>
                         <span class="text-[11px] text-slate-500">Mẹo: Kéo từ vào ô trống hoặc nhấp từ rồi nhấp vào ô</span>
                     </div>
-                    <div id="word-chips-container" class="flex flex-wrap gap-2.5 pt-1"></div>
+                    <div id="word-chips-container" class="flex flex-wrap gap-2.5 pt-1 max-h-36 overflow-y-auto"></div>
                 </div>
 
                 <!-- Result Summary Banner -->
@@ -480,18 +480,14 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH ZERO-CONFIG CLOUD ENGINE & INITIAL PRE-POPULATE -->
+    <!-- JAVASCRIPT LOGIC WITH STICKY WORD BANK & ACCURATE PARSER -->
     <!-- ================================================================= -->
     <script>
-        // HIGH-SPEED CORS CLOUD DB ENDPOINT (NPOINT REST ENGINE)
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
 
-        // DEFAULT INITIAL QUESTIONS (PRE-LOADED SO STUDENT VIEW NEVER STARTS EMPTY)
         const INITIAL_SAMPLE_TEXT = `## Transferable skills
 
 1 Complete these comments by interviewers using the words and phrases in the box.
-
-can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
 
 1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].
 
@@ -537,7 +533,6 @@ Answer: passionate`;
         let timerSeconds = 0;
         let timerRunning = false;
 
-        // REAL-TIME CLOUD SYNC FUNCTIONS
         async function publishQuizToCloud(questions, wordBank) {
             updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
@@ -611,7 +606,6 @@ Answer: passionate`;
                 } catch(e) {}
             }
 
-            // GUARANTEE NON-EMPTY INITIAL QUESTIONS FROM OCR SAMPLE
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
                 appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
             }
@@ -661,7 +655,6 @@ Answer: passionate`;
             renderClassesList();
             renderGradesTable();
             
-            // Auto fetch active quiz from Cloud DB
             await fetchQuizFromCloud();
         });
 
@@ -942,7 +935,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // ULTRA SMART WORKSHEET & OCR PARSER
+        // ULTRA SMART WORKSHEET & OCR PARSER WITH ACCURATE WORD BANK CLEANING
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1002,7 +995,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                             choices.forEach(c => extractedWordBank.add(c));
                             currentQ.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: currentQ.answer || choices[0] });
                         } else {
-                            if (content && content !== '___') {
+                            if (content && content !== '___' && content.length <= 35) {
                                 extractedWordBank.add(content);
                                 currentQ.answer = content;
                             }
@@ -1011,7 +1004,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                     });
                 } else if (cleanTitle.includes('___') || (currentQ.answer && !['A','B','C','D'].includes(currentQ.answer.toUpperCase()))) {
                     currentQ.type = 'fill_blank';
-                    if (currentQ.answer) extractedWordBank.add(currentQ.answer);
+                    if (currentQ.answer && currentQ.answer.length <= 35) extractedWordBank.add(currentQ.answer);
                 } else {
                     currentQ.type = currentQ.options.length > 0 ? 'multiple_choice' : 'fill_blank';
                 }
@@ -1025,11 +1018,15 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 line = line.trim();
                 if (!line) continue;
 
+                // Ignore full instruction lines from being added as a giant single word
                 if (!line.startsWith('##') && (line.includes('can-do attitude') || line.includes('communication skills') || (line.split(/\s{2,}|\|/).length >= 3 && !questionHeaderRegex.test(line)))) {
                     const words = line.split(/\s{2,}|\||\,/);
                     words.forEach(w => {
                         const trimmedW = w.replace(/^(?:1\s*Complete|using the words).*$/i, '').trim();
-                        if (trimmedW.length > 2 && !trimmedW.match(/^\d+/)) extractedWordBank.add(trimmedW);
+                        // Only add words if they are clean short phrases (under 30 chars, max 4 words)
+                        if (trimmedW.length > 2 && trimmedW.length <= 30 && trimmedW.split(' ').length <= 4 && !trimmedW.match(/^\d+/)) {
+                            extractedWordBank.add(trimmedW);
+                        }
                     });
                     continue;
                 }
@@ -1037,7 +1034,11 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
                 if (line.startsWith('##')) { saveCurrent(); continue; }
 
                 const ansM = line.match(answerRegex);
-                if (ansM && currentQ) { currentQ.answer = ansM[1].trim(); if (currentQ.answer) extractedWordBank.add(currentQ.answer); continue; }
+                if (ansM && currentQ) { 
+                    currentQ.answer = ansM[1].trim(); 
+                    if (currentQ.answer && currentQ.answer.length <= 35) extractedWordBank.add(currentQ.answer); 
+                    continue; 
+                }
 
                 const expM = line.match(expRegex);
                 if (expM && currentQ) { currentQ.explanation = expM[1].trim(); continue; }
@@ -1064,7 +1065,9 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             }
             saveCurrent();
 
-            appData.wordBank = Array.from(extractedWordBank);
+            // Filter out any accidentally concatenated giant strings
+            let cleanBank = Array.from(extractedWordBank).filter(w => w.length <= 35 && w.split(' ').length <= 4);
+            appData.wordBank = cleanBank;
             return questions;
         }
 
@@ -1152,7 +1155,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY
+        // RENDER STUDENT QUIZ WITH GUARANTEED DISPLAY & STICKY FLOATING WORD BANK
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
