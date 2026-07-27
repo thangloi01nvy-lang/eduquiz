@@ -646,7 +646,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH TEACHER PASSWORD AUTHENTICATION -->
+    <!-- JAVASCRIPT LOGIC WITH ONINPUT BLANK ANSWER FIX -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1808,10 +1808,10 @@ can-do attitude communication skills critical thinking determination integrity s
                 } else if (q.title.includes('___')) {
                     const currentVal = studentAnswers[`q_${q.id}_blank_0`] || '';
                     
-                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT (e.g. depend___)
+                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT (WITH NO RE-RENDER FOCUS LOSS)
                     if (activeSectionIndex === 2 || !isExercise1) {
                         const inlineInputHtml = `
-                            <input type="text" oninput="saveBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="điền..." 
+                            <input type="text" oninput="onInputBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="điền..." 
                                 ${isSubmitted ? 'disabled' : ''}
                                 class="inline-block mx-1.5 w-32 px-3 py-1 bg-amber-50 border-2 border-amber-300 focus:border-amber-500 rounded-xl font-bold font-mono text-xs text-amber-900 focus:bg-white focus:outline-none transition align-middle shadow-inner">
                         `;
@@ -1883,7 +1883,7 @@ can-do attitude communication skills critical thinking determination integrity s
                             <div class="flex items-center gap-3">
                                 <span class="font-bold text-brand-800 text-sm px-3 py-1.5 bg-white border border-brand-200 rounded-xl">${q.leftSide || 'Từ A'}</span>
                                 <i class="fa-solid fa-arrow-right text-slate-400"></i>
-                                <input type="text" oninput="saveBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="Nhập câu nối phù hợp..." 
+                                <input type="text" oninput="onInputBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="Nhập câu nối phù hợp..." 
                                     class="flex-1 p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
                             </div>
                         </div>
@@ -1892,7 +1892,7 @@ can-do attitude communication skills critical thinking determination integrity s
                     const currentVal = studentAnswers[`q_${q.id}`] || '';
                     html += `
                         <div class="pt-2">
-                            <input type="text" oninput="saveBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="Nhập câu trả lời của bạn..." 
+                            <input type="text" oninput="onInputBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="Nhập câu trả lời của bạn..." 
                                 class="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         </div>
                     `;
@@ -1938,10 +1938,19 @@ can-do attitude communication skills critical thinking determination integrity s
             } 
         }
 
+        // ONINPUT BLANK ANSWER (NO RE-RENDER TO PREVENT INPUT FOCUS LOSS WHILE TYPING FULL WORDS)
+        function onInputBlankAnswer(qId, bIdx, val) {
+            if (!isSubmitted) {
+                studentAnswers[`q_${qId}`] = val;
+                studentAnswers[`q_${qId}_blank_${bIdx}`] = val;
+                updateProgressText();
+            }
+        }
+
         function saveBlankAnswer(qId, bIdx, val) { 
             if (!isSubmitted) { 
-                studentAnswers[`q_${qId}`] = val.trim(); 
-                studentAnswers[`q_${qId}_blank_${bIdx}`] = val.trim(); 
+                studentAnswers[`q_${qId}`] = val; 
+                studentAnswers[`q_${qId}_blank_${bIdx}`] = val; 
                 renderQuizQuestions();
             } 
         }
