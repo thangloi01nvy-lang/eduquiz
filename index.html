@@ -117,16 +117,16 @@
                     </div>
                 </div>
 
-                <!-- Tab Switcher (Góc Giáo Viên / Góc Học Sinh) -->
+                <!-- Tab Switcher (Góc Học Sinh mặc định & Góc Giáo Viên có Mật Khẩu) -->
                 <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 flex items-center gap-1 shadow-inner">
-                    <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
-                        <i class="fa-solid fa-chalkboard-user text-brand-600"></i>
-                        <span>Góc Giáo Viên</span>
-                    </button>
-                    <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
-                        <i class="fa-solid fa-user-graduate text-slate-500"></i>
+                    <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                        <i class="fa-solid fa-user-graduate text-brand-600"></i>
                         <span>Góc Học Sinh</span>
                         <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
+                    </button>
+                    <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-amber-500"></i>
+                        <span>Góc Giáo Viên</span>
                     </button>
                 </div>
 
@@ -138,21 +138,32 @@
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- ================================================================= -->
-        <!-- TAB 1: GÓC GIÁO VIÊN (TEACHER MODE) -->
+        <!-- TAB 1: GÓC GIÁO VIÊN (TEACHER MODE - BẢO VỆ BẰNG MẬT KHẨU) -->
         <!-- ================================================================= -->
-        <div id="teacher-view" class="space-y-6">
+        <div id="teacher-view" class="hidden space-y-6">
             
             <!-- Navigation Sub-tabs inside Teacher View -->
-            <div class="flex items-center gap-2 border-b border-slate-200 pb-3">
-                <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang Đa Dạng
-                </button>
-                <button id="subtab-classes-btn" onclick="switchTeacherSubTab('classes')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học & Học Sinh (<span id="total-classes-badge">0</span>)
-                </button>
-                <button id="subtab-grades-btn" onclick="switchTeacherSubTab('grades')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm & Kết Quả (<span id="total-results-badge">0</span>)
-                </button>
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
+                <div class="flex items-center gap-2">
+                    <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang Đa Dạng
+                    </button>
+                    <button id="subtab-classes-btn" onclick="switchTeacherSubTab('classes')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học & Học Sinh (<span id="total-classes-badge">0</span>)
+                    </button>
+                    <button id="subtab-grades-btn" onclick="switchTeacherSubTab('grades')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm & Kết Quả (<span id="total-results-badge">0</span>)
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="openChangePasswordModal()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition border border-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-amber-500"></i> Đổi mật khẩu GV
+                    </button>
+                    <button onclick="lockTeacherView()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition border border-rose-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock"></i> Khóa góc Giáo Viên
+                    </button>
+                </div>
             </div>
 
             <!-- SUB-TAB 1: SOẠN BÀI TẬP (QUIZ EDITOR & PREVIEW) -->
@@ -161,11 +172,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> Giao Diện Tương Tác Nút Bấm Lựa Chọn & Ô Điền Tự Luận
+                            <i class="fa-solid fa-shield-halved text-amber-300"></i> Đã Bảo Vệ Bằng Mật Khẩu Giáo Viên
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Trải Nghiệm Học Sinh Dễ Dàng & Mượt Mà Hơn Bao Giờ Hết!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Học Sinh Không Thể Xem Được Trang Soạn Đề & Bảng Điểm!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            <b>Bài 2</b>: Nút bấm viên thuốc (Pill Toggle Buttons) chọn 1 trong 2 từ trực tiếp trong câu. <b>Bài 3</b>: Ô nhập tự luận trực tiếp nơi điền hậu tố!
+                            Mặc định khi mở web, hệ thống sẽ mở trực tiếp <b>Góc Học Sinh</b>. Mọi chỉnh sửa đề bài đều được bảo mật bằng mật khẩu Giáo Viên.
                         </p>
                     </div>
                 </div>
@@ -249,7 +260,7 @@
 
                             <div>
                                 <span class="text-xs font-bold text-brand-700 uppercase">Bài 1 (Kéo thả 8 câu):</span>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Khung ngân hàng từ nổi trôi trôi theo màn hình. Kéo từ hoặc nhấp từ vào ô trống.</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">Khung ngân hàng từ nổi. Kéo từ hoặc nhấp từ vào ô trống.</p>
                             </div>
                             <div>
                                 <span class="text-xs font-bold text-emerald-700 uppercase">Bài 2 (Chọn 1 trong 2 từ 6 câu):</span>
@@ -356,9 +367,9 @@
 
 
         <!-- ================================================================= -->
-        <!-- TAB 2: GÓC HỌC SINH (STUDENT MODE) -->
+        <!-- TAB 2: GÓC HỌC SINH (STUDENT MODE - MẶC ĐỊNH CHO HỌC SINH) -->
         <!-- ================================================================= -->
-        <div id="student-view" class="hidden space-y-6">
+        <div id="student-view" class="space-y-6">
 
             <!-- Active Cloud Quiz Banner inside Student View -->
             <div id="student-quiz-status-banner" class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-5 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
@@ -464,11 +475,11 @@
                     </button>
                 </div>
 
-                <!-- STICKY FLOATING WORD BANK CONTAINER (ONLY SHOWN ON DRAG-DROP SECTIONS) -->
+                <!-- STICKY FLOATING WORD BANK CONTAINER (DÁN NHÃN SẠCH ĐẸP BỎ CHỮ TỰ TRÔI THEO MÀN HÌNH) -->
                 <div id="word-bank-card" class="hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border-2 border-brand-300 rounded-3xl p-5 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-hand-pointer text-brand-600"></i> Ngân Hàng Từ Cho Sẵn (Tự trôi theo màn hình):
+                            <i class="fa-solid fa-hand-pointer text-brand-600"></i> Ngân Hàng Từ Cho Sẵn:
                         </span>
                         <span class="text-[11px] text-slate-500">Mẹo: Kéo từ vào ô trống hoặc nhấp từ rồi nhấp vào ô</span>
                     </div>
@@ -518,6 +529,69 @@
         </div>
 
     </main>
+
+    <!-- TEACHER PASSWORD AUTHENTICATION MODAL -->
+    <div id="teacher-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="text-center space-y-2">
+                <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border border-amber-200">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h3 class="font-heading font-bold text-xl text-slate-900">Xác Nhận Mật Khẩu Giáo Viên</h3>
+                <p class="text-xs text-slate-500">Mật khẩu mặc định là: <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-brand-700 font-bold">123456</code> (Bạn có thể đổi mật khẩu sau)</p>
+            </div>
+
+            <div class="space-y-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Mật Khẩu Giáo Viên:</label>
+                <div class="relative">
+                    <input type="password" id="teacher-password-input" onkeydown="if(event.key==='Enter') verifyTeacherPassword()" placeholder="Nhập mật khẩu..." 
+                        class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    <i class="fa-solid fa-key absolute left-3.5 top-4 text-slate-400"></i>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeTeacherAuthModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Hủy bỏ (Về Góc Học Sinh)
+                </button>
+                <button onclick="verifyTeacherPassword()" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-heading font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-unlock"></i> ĐĂNG NHẬP GIÁO VIÊN
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHANGE TEACHER PASSWORD MODAL -->
+    <div id="change-password-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-key text-amber-500"></i> Đổi Mật Khẩu Giáo Viên
+                </h3>
+                <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mật khẩu cũ:</label>
+                    <input type="password" id="old-pass-input" placeholder="Mật khẩu hiện tại..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Mật khẩu mới:</label>
+                    <input type="password" id="new-pass-input" placeholder="Nhập mật khẩu mới..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeChangePasswordModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Đóng
+                </button>
+                <button onclick="saveNewTeacherPassword()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-md">
+                    Lưu Mật Khẩu Mới
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- GEMINI AI INTEGRATION MODAL -->
     <div id="ai-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -572,7 +646,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH DYNAMIC RECONSTRUCTION SAFETY NET -->
+    <!-- JAVASCRIPT LOGIC WITH TEACHER PASSWORD AUTHENTICATION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -670,6 +744,73 @@ can-do attitude communication skills critical thinking determination integrity s
         let timerSeconds = 0;
         let timerRunning = false;
 
+        // TEACHER AUTHENTICATION STATE
+        let isTeacherAuthenticated = sessionStorage.getItem('eduquiz_teacher_auth') === 'true';
+
+        function getTeacherPassword() {
+            return localStorage.getItem('eduquiz_teacher_password') || '123456';
+        }
+
+        function openTeacherAuthModal() {
+            document.getElementById('teacher-password-input').value = '';
+            document.getElementById('teacher-auth-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('teacher-password-input').focus(), 100);
+        }
+
+        function closeTeacherAuthModal() {
+            document.getElementById('teacher-auth-modal').classList.add('hidden');
+        }
+
+        function verifyTeacherPassword() {
+            const inputPass = document.getElementById('teacher-password-input').value;
+            const actualPass = getTeacherPassword();
+
+            if (inputPass === actualPass) {
+                isTeacherAuthenticated = true;
+                sessionStorage.setItem('eduquiz_teacher_auth', 'true');
+                closeTeacherAuthModal();
+                showNotification('🔓 Đã xác minh quyền Giáo Viên thành công!', 'success');
+                switchMainTab('teacher', true);
+            } else {
+                showNotification('❌ Mật khẩu không chính xác! Vui lòng thử lại.', 'error');
+            }
+        }
+
+        function lockTeacherView() {
+            isTeacherAuthenticated = false;
+            sessionStorage.removeItem('eduquiz_teacher_auth');
+            switchMainTab('student');
+            showNotification('🔒 Đã khóa quyền truy cập Góc Giáo Viên!', 'info');
+        }
+
+        function openChangePasswordModal() {
+            document.getElementById('old-pass-input').value = '';
+            document.getElementById('new-pass-input').value = '';
+            document.getElementById('change-password-modal').classList.remove('hidden');
+        }
+
+        function closeChangePasswordModal() {
+            document.getElementById('change-password-modal').classList.add('hidden');
+        }
+
+        function saveNewTeacherPassword() {
+            const oldPass = document.getElementById('old-pass-input').value;
+            const newPass = document.getElementById('new-pass-input').value.trim();
+
+            if (oldPass !== getTeacherPassword()) {
+                showNotification('❌ Mật khẩu cũ không chính xác!', 'error');
+                return;
+            }
+            if (!newPass || newPass.length < 4) {
+                showNotification('Vui lòng nhập mật khẩu mới tối thiểu 4 ký tự!', 'error');
+                return;
+            }
+
+            localStorage.setItem('eduquiz_teacher_password', newPass);
+            closeChangePasswordModal();
+            showNotification('🔑 Đã đổi mật khẩu Giáo Viên thành công!', 'success');
+        }
+
         function openAiModal() { document.getElementById('ai-modal').classList.remove('hidden'); }
         function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); }
 
@@ -693,7 +834,6 @@ can-do attitude communication skills critical thinking determination integrity s
                         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                     });
                     if (res.ok) {
-                        const resData = await res.json();
                         showNotification('✨ AI Gemini đã phân tích thành công!', 'success');
                     }
                 } catch(e) {
@@ -946,9 +1086,17 @@ can-do attitude communication skills critical thinking determination integrity s
             renderGradesTable();
             
             await fetchQuizFromCloud();
+
+            // DEFAULT MODE IS STUDENT VIEW (PROTECTS TEACHER VIEW FROM STUDENTS)
+            switchMainTab('student');
         });
 
-        async function switchMainTab(tab) {
+        async function switchMainTab(tab, bypassAuth = false) {
+            if (tab === 'teacher' && !isTeacherAuthenticated && !bypassAuth) {
+                openTeacherAuthModal();
+                return;
+            }
+
             document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
             document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
             
@@ -1551,7 +1699,7 @@ can-do attitude communication skills critical thinking determination integrity s
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu (Đang mở Bài ${activeSectionIndex + 1}/${appData.sections.length})`;
 
-            // RENDER WORD BANK ONLY IF CURRENT SECTION HAS DRAG & DROP WORDS
+            // RENDER WORD BANK ONLY IF CURRENT SECTION IS EXERCISE 1
             const currentSecWords = sanitizeWordBank(currentSec.wordBank || []);
             const isExercise1 = activeSectionIndex === 0;
 
