@@ -126,7 +126,7 @@
                     <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                         <i class="fa-solid fa-user-graduate text-slate-500"></i>
                         <span>Góc Học Sinh</span>
-                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">7</span>
+                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
                     </button>
                 </div>
 
@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-layer-group"></i> Nhận Diện Động 100% Mọi Dạng Động Từ Chỉ Dẫn (Choose, Complete, Match...)
+                            <i class="fa-solid fa-layer-group"></i> Thuật Toán Quét Từ Ranh Giới (Word Boundary Parser)
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chuẩn Cả 3 Bài Tập Cho Dù Không Có Số Đầu Dòng!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Nhận Diện Chính Xác Cả 3 Bài Tập Cho Dùng Đề Dán Thô!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Mỗi bài tập chỉ cần có động từ chỉ dẫn (<i>Complete</i>, <i>Choose</i>, <i>Match</i>, <i>Read</i>, <i>Fill</i>...) là hệ thống tự động tách thành <b>BÀI TẬP MỚI TRÊN TRANG MỚI</b>!
+                            Mỗi bài tập sẽ ở <b>1 TRANG MỚI HẰNG HOÀN</b>. Tự động biến <i>confident/independent</i> thành nút bấm chọn tương tác và câu <i>___</i> thành ô kéo thả điền từ!
                         </p>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Mẫu có sẵn:</span>
                         <button onclick="loadPresetSample('multi_type')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold rounded-lg transition border border-indigo-200">
-                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Đề 3 Bài Tập Phân Trang
+                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Tải Đề Dữ Liệu 3 Bài Tập (20 câu)
                         </button>
                         <button onclick="loadPresetSample('ocr_json')" class="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold rounded-lg transition border border-purple-200">
                             <i class="fa-solid fa-robot text-purple-500"></i> Đề OCR AI (PaddleOCR)
@@ -242,20 +242,23 @@
                             <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Tự Động Nhận Diện 3 Bài</h3>
                             
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Dù dòng chỉ dẫn có số hay không có số, cứ bắt đầu bằng câu lệnh chỉ dẫn là hệ thống tự tạo trang mới!
+                                Đề bài của bạn gồm 3 bài tập riêng biệt sẽ được tách thành <b>3 Trang Bài Tập riêng biệt</b> hoàn toàn!
                             </p>
 
                             <div>
-                                <span class="text-xs font-bold text-brand-700 uppercase">Bài 1 (Kéo thả):</span>
-                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">Complete these comments using...
-can-do attitude | team player
-1 He can [___/think outside the box].</pre>
+                                <span class="text-xs font-bold text-brand-700 uppercase">Trang 1 (Bài Kéo Thả 8 câu):</span>
+                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 Complete these comments...
+1 His ideas were creative... ___.</pre>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-emerald-700 uppercase">Bài 2 (Trắc nghiệm):</span>
-                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">Choose the correct option...
-1 Our consultants need to be [confident/independent]...
-Answer: independent</pre>
+                                <span class="text-xs font-bold text-emerald-700 uppercase">Trang 2 (Bài Chọn Lựa 6 câu):</span>
+                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 2 Choose the correct option...
+1 Our consultants need to be confident/independent...</pre>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-amber-700 uppercase">Trang 3 (Bài Điền Hậu Tố 6 câu):</span>
+                                <pre class="bg-slate-900 text-amber-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 3 Complete the sentences...
+1 ...he is very depend___.</pre>
                             </div>
                         </div>
                     </div>
@@ -268,10 +271,10 @@ Answer: independent</pre>
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full"><i class="fa-solid fa-cloud-check mr-1"></i>Đã Lưu Đám Mây</span>
-                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">7 câu hỏi</span>
+                                    <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">20 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
-                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa các trang bài tập để làm bài rất mượt mà.</p>
+                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa 3 trang bài tập để làm bài rất mượt mà.</p>
                             </div>
                             
                             <div class="flex items-center gap-2">
@@ -367,8 +370,8 @@ Answer: independent</pre>
                         </span>
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
                     </div>
-                    <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">7 câu hỏi</span></h3>
-                    <p class="text-xs text-emerald-100">Phân trang từng phần bài tập độc lập & khung kéo thả tự động ẩn khi sang bài khác!</p>
+                    <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">20 câu hỏi (3 bài tập)</span></h3>
+                    <p class="text-xs text-emerald-100">Phân trang 3 bài tập độc lập & tự động biến slash option thành nút chọn!</p>
                 </div>
 
                 <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
@@ -431,7 +434,7 @@ Answer: independent</pre>
                             <button onclick="logoutStudentSession()" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline flex items-center gap-1">
                                 <i class="fa-solid fa-right-from-bracket"></i> Đổi tài khoản
                             </button>
-                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">7 câu hỏi</span>
+                            <span id="quiz-total-questions-tag" class="text-xs text-slate-500 font-semibold ml-2">20 câu hỏi</span>
                         </div>
                         <h2 class="font-heading font-bold text-xl sm:text-2xl text-slate-900 mt-1">Bài Tập Tương Tác Online</h2>
                     </div>
@@ -526,7 +529,7 @@ Answer: independent</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH UNIVERSAL SECTION HEADER RECOGNITION -->
+    <!-- JAVASCRIPT LOGIC WITH PERFECTED SECTION PARSER & AUTO CHOICE CONVERSION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
@@ -536,24 +539,51 @@ Answer: independent</pre>
 
 1 Complete these comments by interviewers using the words and phrases in the box.
 
-can-do attitude | communication skills | critical thinking | determination | integrity | set goals | team player | think outside the box
+can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
 
-1 His ideas were creative and really innovative so he can obviously ___ [think outside the box].
+1 His ideas were creative and really innovative so he can obviously ___.
 
-2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].
+2 I liked the way she worked with the other candidates so she is clearly a(n) ___.
 
-Choose the correct option in italics.
+3 He has excellent ___. The presentation was first class and he answered the questions really clearly.
 
-1 Our consultants need to be [confident/independent] because they often have to work alone.
-Answer: independent
+4 She used ___ brilliantly. I thought she evaluated the three options in the case study carefully before deciding which one to choose.
 
-2 My manager is really [ambitious/passionate] about customer service.
-Answer: passionate
+5 She has a lot of ___. This is the third time she's applied for a position in Marketing so she hasn't stopped trying.
 
-Match the words with their meanings.
+6 I like the way she has monthly objectives for herself which shows she can _____.
 
-1 team player <-> A works well with other candidates
-2 critical thinking <-> B evaluates options carefully`,
+7 I don't think he will complain about work. He seems prepared to try anything. He has a real ___.
+
+8 They all seemed to have ___. They answered the interview questions on attitudes towards work very well.
+
+## 2 Choose the correct option in italics.
+
+1 Our consultants need to be confident/independent because they often have to work alone.
+
+2 My manager is really ambitious / passionate about customer service.
+
+3 In an interview you need to show adaptability/confidence in your abilities.
+
+4 After four years in the job her motivation / passion was quite low and she started to look for a new one.
+
+5 Our budgets are not high so we need to be very resourceful / ambitious when planning travel.
+
+6 We get lots of different projects in our company so staff have to show great adaptability/authenticity.
+
+## 3 Complete the sentences using the correct word ending.
+
+1 Juan can deal with most people and all the managers trust him - he is very depend___.
+
+2 Things change so often in our industry. We have to be very flex___.
+
+3 Anna really enjoys working on her own from home. She shows great independ___.
+
+4 Henri loves his job and is really keen. It's good to see such enthus____.
+
+5 My manager is always really hon____ with me. He always tells me what he thinks.
+
+6 Maria wants to become a manager in the next two years – she has a lot of amb___.`,
 
             ocr_json: `{
   "layoutParsingResults": [
@@ -597,8 +627,6 @@ Match the words with their meanings.
         let timerSeconds = 0;
         let timerRunning = false;
 
-        const instructionVerbs = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate', 'mark', 'check', 'underline', 'select', 'label', 'connect', 'decide', 'bài', 'phần', 'exercise', 'part', 'section', 'unit', 'task'];
-
         function isSectionHeaderLine(line) {
             if (!line) return false;
             const trimmed = line.trim();
@@ -606,14 +634,17 @@ Match the words with their meanings.
             if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
 
             const lower = trimmed.toLowerCase();
-            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => lower.startsWith(p))) return true;
+            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('\\b' + p + '\\b', 'i').test(lower))) return true;
 
             const unNumbered = trimmed.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]*/i, '').trim();
             const unLower = unNumbered.toLowerCase();
             if (!unLower) return false;
 
-            const firstWord = unLower.split(/\s+/)[0];
-            if (instructionVerbs.includes(firstWord) || instructionVerbs.some(v => unLower.startsWith(v))) {
+            const words = unLower.match(/\w+/g) || [];
+            const firstWord = words[0] || '';
+            const keyInstructionVerbs = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate'];
+
+            if (keyInstructionVerbs.includes(firstWord) || keyInstructionVerbs.some(v => new RegExp('\\b' + v + '\\b', 'i').test(unLower))) {
                 if (!trimmed.includes('___') && !trimmed.includes('<->') && !lower.startsWith('answer:')) {
                     if (trimmed.includes('[') && trimmed.includes(']') && trimmed.includes('/')) {
                         return false;
@@ -779,7 +810,7 @@ Match the words with their meanings.
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
-            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
 
             updateBadges();
             updateDeadlineCountdown();
@@ -1074,7 +1105,7 @@ Match the words with their meanings.
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // UNIVERSAL SECTION PARSER ACCURATELY DETECTING ALL SECTIONS
+        // UNIVERSAL SECTION PARSER WITH EXACT WORD BOUNDARY MATCHING
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1119,6 +1150,11 @@ Match the words with their meanings.
                 
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
                 cleanTitle = cleanTitle.replace(/^##\s*/, '');
+
+                // Auto convert inline slash choices like "confident/independent" into "[confident/independent]"
+                if (!cleanTitle.includes('[') && !cleanTitle.includes('___') && cleanTitle.includes('/')) {
+                    cleanTitle = cleanTitle.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                }
 
                 const bracketRegex = /\[(.*?)\]/g;
                 const matches = [...cleanTitle.matchAll(bracketRegex)];
@@ -1171,7 +1207,7 @@ Match the words with their meanings.
                 line = line.trim();
                 if (!line) continue;
 
-                // 1. Detect Section Header Line -> START NEW SECTION ACCURATELY
+                // 1. Detect Section Header Line ACCURATELY WITH WORD BOUNDARY
                 if (isSectionHeaderLine(line)) {
                     saveCurrentQuestion();
                     let cleanSecTitle = line.replace(/^(?:##|#|\d+[\.\:\)\s]*)/, '').trim();
