@@ -329,6 +329,21 @@ Answer: independent</pre>
         <!-- ================================================================= -->
         <div id="student-view" class="hidden space-y-6">
 
+            <!-- Active Cloud Quiz Banner inside Student View -->
+            <div id="student-quiz-status-banner" class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-5 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full mb-1 inline-block">
+                        <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
+                    </span>
+                    <h3 class="font-heading font-bold text-xl">Đề Bài Hiện Có Trên Đám Mây: <span id="student-banner-q-count">0 câu hỏi</span></h3>
+                    <p class="text-xs text-emerald-100">Tự động tải về từ máy Giáo viên. Nhập tên hoặc bấm "LÀM BÀI NGAY" bên dưới!</p>
+                </div>
+
+                <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500"></i> LÀM BÀI NGAY (DÙNG THỬ)
+                </button>
+            </div>
+
             <!-- Streamlined Student Login Box -->
             <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-6">
                 <div class="text-center space-y-2">
@@ -336,7 +351,7 @@ Answer: independent</pre>
                         <i class="fa-solid fa-user-check"></i>
                     </div>
                     <h3 class="font-heading font-bold text-2xl text-slate-900">Đăng Nhập Làm Bài</h3>
-                    <p class="text-slate-500 text-xs">Điền Họ tên và Mã học viên để bắt đầu</p>
+                    <p class="text-slate-500 text-xs">Điền Họ tên và Mã học viên để bắt đầu tính điểm vào danh sách</p>
                 </div>
 
                 <div class="space-y-4">
@@ -362,9 +377,14 @@ Answer: independent</pre>
                     </div>
                 </div>
 
-                <button onclick="startStudentQuizSession()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI
-                </button>
+                <div class="space-y-2">
+                    <button onclick="startStudentQuizSession()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI (TÍNH ĐIỂM)
+                    </button>
+                    <button onclick="startTestDriveSession()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
+                        ⚡ Bắt đầu nhanh (Không cần nhập tên)
+                    </button>
+                </div>
             </div>
 
             <!-- Quiz Active Interface -->
@@ -525,8 +545,11 @@ Answer: independent</pre>
                         appData.currentQuestions = data.questions;
                         appData.wordBank = data.wordBank || [];
                         saveStorage();
+                        
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
                         document.getElementById('quiz-count-badge').classList.remove('hidden');
+                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
+                        
                         updateCloudStatus('Đã tải đề từ Đám mây', 'success');
                         return true;
                     }
@@ -597,6 +620,7 @@ Answer: independent</pre>
                         appData.currentQuestions = parsed;
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
                         document.getElementById('quiz-count-badge').classList.remove('hidden');
+                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
                     }
                 } catch(e) {}
             }
@@ -662,7 +686,6 @@ Answer: independent</pre>
                     restoreStudentSessionUI();
                 } else {
                     document.getElementById('student-login-box').classList.remove('hidden');
-                    document.getElementById('student-quiz-active').classList.add('hidden');
                 }
             } else if (tab === 'teacher') {
                 fetchCloudGrades();
@@ -850,6 +873,14 @@ Answer: independent</pre>
             activeStudentInfo.studentName = stName;
             if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
 
+            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
+            restoreStudentSessionUI();
+        }
+
+        function startTestDriveSession() {
+            activeStudentInfo.studentId = 'TEST01';
+            activeStudentInfo.studentName = 'Học sinh dùng thử';
+            activeStudentInfo.className = 'Lớp trải nghiệm';
             localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
             restoreStudentSessionUI();
         }
@@ -1061,6 +1092,7 @@ Explanation: Chủ ngữ số ít 'She' sử dụng động từ to-be là 'is'.
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
 
             renderTeacherPreview();
 
