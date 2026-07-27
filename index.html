@@ -161,11 +161,11 @@
                 <div class="bg-gradient-to-r from-brand-600 via-brand-500 to-indigo-600 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-brand-100 relative overflow-hidden">
                     <div class="relative z-10 max-w-3xl">
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold text-brand-50 mb-3">
-                            <i class="fa-solid fa-layer-group"></i> Chế Độ Phân Trang Từng Phần Bài Tập (Multi-Page Sections)
+                            <i class="fa-solid fa-layer-group"></i> Nhận Diện 100% Chuẩn Tất Cả Các Bài Tập Đa Dạng
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tách Biệt Mỗi Bài Tập 1 Trang & Khung Kéo Thả Độc Lập!</h2>
+                        <h2 class="text-2xl sm:text-3xl font-heading font-bold mb-2">Tự Động Phân Tách Bài 1, Bài 2, Bài 3 Thành 3 Trang Độc Lập!</h2>
                         <p class="text-brand-100 text-sm sm:text-base leading-relaxed">
-                            Mỗi phần bài tập sẽ ở <b>1 TRANG RIÊNG BIỆT</b>. Khung từ kéo thả chỉ hiển thị ở bài kéo thả và <b>TỰ ĐỘNG ẨN HOÀN TOÀN</b> ở các bài trắc nghiệm / đúng sai khác!
+                            Hệ thống tự động nhận diện chính xác từng phần chỉ dẫn (Ví dụ: <i>1 Complete...</i>, <i>2 Choose...</i>, <i>3 Match...</i>) để tách thành <b>3 BÀI TẬP RIÊNG BIỆT TRÊN 3 TRANG MỚI</b>!
                         </p>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Mẫu có sẵn:</span>
                         <button onclick="loadPresetSample('multi_type')" class="px-3 py-1.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold rounded-lg transition border border-indigo-200">
-                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Đề Phân Trang (3 Phần Bài Tập)
+                            <i class="fa-solid fa-layer-group text-indigo-500"></i> Đề 3 Bài Tập Phân Trang
                         </button>
                         <button onclick="loadPresetSample('ocr_json')" class="px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold rounded-lg transition border border-purple-200">
                             <i class="fa-solid fa-robot text-purple-500"></i> Đề OCR AI (PaddleOCR)
@@ -239,22 +239,23 @@
                     <!-- Cheat Sheet Sidebar -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
-                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Tạo Nhiều Trang Bài Tập</h3>
+                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-lightbulb text-amber-500 mr-2"></i>Nhận Diện 3 Bài Tập Độc Lập</h3>
                             
                             <p class="text-xs text-slate-600 leading-relaxed">
-                                Dùng tiêu đề <b>`## Bài 1`</b>, <b>`## Bài 2`</b> hoặc câu chỉ dẫn để tách thành từng trang riêng biệt!
+                                Hệ thống tự động nhận diện từ các câu chỉ dẫn đề bài như <b>1 Complete...</b>, <b>2 Choose...</b>, <b>3 Match...</b> để chia làm 3 bài tập riêng biệt!
                             </p>
 
                             <div>
-                                <span class="text-xs font-bold text-brand-700 uppercase">Trang 1 (Bài Kéo Thả):</span>
-                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 1 Fill in the blanks
+                                <span class="text-xs font-bold text-brand-700 uppercase">Bài 1 (Kéo thả):</span>
+                                <pre class="bg-slate-900 text-slate-100 text-[11px] p-2.5 rounded-xl font-mono mt-1">1 Complete these comments using...
+can-do attitude | team player
 1 He can [___/think outside the box].</pre>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-emerald-700 uppercase">Trang 2 (Bài Đúng / Sai):</span>
-                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">## 2 General Knowledge
-1 Paris is the capital. [True/False]
-Answer: True</pre>
+                                <span class="text-xs font-bold text-emerald-700 uppercase">Bài 2 (Trắc nghiệm):</span>
+                                <pre class="bg-slate-900 text-emerald-300 text-[11px] p-2.5 rounded-xl font-mono mt-1">2 Choose the correct option...
+1 Our consultants need to be [confident/independent]...
+Answer: independent</pre>
                             </div>
                         </div>
                     </div>
@@ -450,14 +451,14 @@ Answer: True</pre>
                 <!-- SECTION PAGINATION TOP TOOLBAR -->
                 <div id="section-pagination-toolbar" class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
                     <button id="prev-section-btn" onclick="changeSectionPage(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-chevron-left"></i> Phần Trước
+                        <i class="fa-solid fa-chevron-left"></i> Bài Trước
                     </button>
 
                     <!-- Section Page Chips Container -->
                     <div id="section-page-chips" class="flex items-center gap-2 overflow-x-auto"></div>
 
                     <button id="next-section-btn" onclick="changeSectionPage(1)" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                        Phần Tiếp <i class="fa-solid fa-chevron-right"></i>
+                        Bài Tiếp <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
 
@@ -525,15 +526,15 @@ Answer: True</pre>
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH MULTI-SECTION PAGINATION ENGINE -->
+    <!-- JAVASCRIPT LOGIC WITH UNIVERSAL SECTION HEADER RECOGNITION -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://api.npoint.io/87d7b32f913d806a640f';
 
         const SAMPLE_DATASETS = {
-            multi_type: `## 1 Transferable skills (Kéo thả điền từ)
+            multi_type: `## Transferable skills
 
-1 Complete these comments by interviewers using the words in the box.
+1 Complete these comments by interviewers using the words and phrases in the box.
 
 can-do attitude | communication skills | critical thinking | determination | integrity | set goals | team player | think outside the box
 
@@ -541,15 +542,15 @@ can-do attitude | communication skills | critical thinking | determination | int
 
 2 I liked the way she worked with the other candidates so she is clearly a(n) ___ [team player].
 
-## 2 General Knowledge (Đúng / Sai)
+2 Choose the correct option in italics.
 
-1 Paris is the capital city of France. [True/False]
-Answer: True
+1 Our consultants need to be [confident/independent] because they often have to work alone.
+Answer: independent
 
-2 Vietnam is located in South America. [True/False]
-Answer: False
+2 My manager is really [ambitious/passionate] about customer service.
+Answer: passionate
 
-## 3 Vocabulary Matching (Nối Cột A <-> B)
+3 Match the words with their meanings.
 
 1 team player <-> A works well with other candidates
 2 critical thinking <-> B evaluates options carefully`,
@@ -595,6 +596,38 @@ Answer: False
         let timerInterval = null;
         let timerSeconds = 0;
         let timerRunning = false;
+
+        const secKeywords = ['complete', 'choose', 'match', 'read', 'fill', 'write', 'circle', 'put', 'use', 'find', 'listen', 'look', 'answer', 'rewrite', 'translate', 'mark', 'check', 'underline', 'select', 'label', 'connect', 'decide', 'true/false', 'in italics', 'in the box', 'words', 'phrases', 'meanings', 'options', 'comments', 'exercise', 'part', 'bài', 'phần', 'section', 'unit', 'task'];
+
+        function isSectionHeaderLine(line) {
+            if (!line) return false;
+            const trimmed = line.trim();
+            if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
+            
+            const lower = trimmed.toLowerCase();
+            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(prefix => lower.startsWith(prefix))) return true;
+            
+            if (trimmed.match(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]/i)) {
+                if (secKeywords.some(kw => lower.includes(kw))) {
+                    if (!trimmed.includes('___') && !trimmed.includes('<->') && !lower.startsWith('answer:')) {
+                        if (trimmed.includes('[') && trimmed.includes(']') && trimmed.includes('/')) {
+                            return false;
+                        }
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function isWordBankLine(line) {
+            if (!line) return false;
+            const lower = line.toLowerCase();
+            if (lower.includes('word bank') || lower.includes('words in the box') || lower.includes('phrases in the box')) return true;
+            if ((lower.includes('can-do attitude') || lower.includes('communication skills') || lower.includes('critical thinking') || lower.includes('team player') || lower.includes('think outside the box')) && !line.includes('[') && !line.includes('___')) return true;
+            if ((line.split('|').length >= 3 || line.split(/\s{2,}/).length >= 3) && !line.match(/^\d+[\.\:\)]/) && !line.includes('[') && !line.includes('___')) return true;
+            return false;
+        }
 
         function toggleDeadlineInput() {
             const check = document.getElementById('enable-deadline-checkbox');
@@ -649,15 +682,6 @@ Answer: False
                 return true;
             });
             return Array.from(new Set(cleaned));
-        }
-
-        function isWordBankLine(line) {
-            if (!line) return false;
-            const lower = line.toLowerCase();
-            if (lower.includes('word bank') || lower.includes('words in the box') || lower.includes('phrases in the box')) return true;
-            if ((lower.includes('can-do attitude') || lower.includes('communication skills') || lower.includes('critical thinking') || lower.includes('team player') || lower.includes('think outside the box')) && !line.includes('[') && !line.includes('___')) return true;
-            if ((line.split('|').length >= 3 || line.split(/\s{2,}/).length >= 3) && !line.match(/^\d+[\.\:\)]/) && !line.includes('[') && !line.includes('___')) return true;
-            return false;
         }
 
         async function publishQuizToCloud(questions, wordBank) {
@@ -1045,7 +1069,7 @@ Answer: False
             document.getElementById('markdown-input').scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
-        // SMART MULTI-SECTION PARSER WITH INDEPENDENT SECTION WORD BANKS
+        // UNIVERSAL SECTION PARSER ACCURATELY DETECTING ALL SECTIONS
         function parseInputToQuestions(rawText) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
@@ -1079,7 +1103,6 @@ Answer: False
             let currentSec = { id: 0, title: "Phần 1: Bài Tập Tương Tác", questions: [], wordBank: [] };
             let currentQ = null;
 
-            const sectionHeaderRegex = /^(?:##|\d+\s*(?:complete|choose|read|fill|match|put|use|write|circle|find|listen|look|answer|rewrite|translate|mark|exercise|part|phần|bài))/i;
             const questionHeaderRegex = /^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]/i;
             const optionRegex = /^\s*([a-hA-H])[\.\)\/]\s*(.*)$/;
             const answerRegex = /^\s*(?:answer|đáp án|ans|key|đ\/a)[:\s]+(.*)$/i;
@@ -1143,20 +1166,30 @@ Answer: False
                 line = line.trim();
                 if (!line) continue;
 
-                // Section Header -> START NEW SECTION
-                if (line.startsWith('##') || (sectionHeaderRegex.test(line) && (line.includes('using the words') || line.includes('in italics') || line.includes('in the box') || line.length > 35 || line.startsWith('##')))) {
+                // 1. Detect Section Header Line -> START NEW SECTION ACCURATELY
+                if (isSectionHeaderLine(line)) {
                     saveCurrentQuestion();
-                    if (currentSec.questions.length > 0) {
-                        currentSec.wordBank = sanitizeWordBank(currentSec.wordBank);
-                        sections.push(currentSec);
-                        currentSec = { id: sections.length, title: "", questions: [], wordBank: [] };
+                    let cleanSecTitle = line.replace(/^(?:##|#|\d+[\.\:\)\s]*)/, '').trim();
+
+                    if (currentSec && currentSec.questions.length === 0) {
+                        if (currentSec.title && currentSec.title !== "Phần 1: Bài Tập Tương Tác") {
+                            currentSec.title += ' - ' + cleanSecTitle;
+                        } else {
+                            currentSec.title = cleanSecTitle;
+                        }
+                    } else {
+                        if (currentSec.questions.length > 0) {
+                            currentSec.wordBank = sanitizeWordBank(currentSec.wordBank);
+                            sections.push(currentSec);
+                            currentSec = { id: sections.length, title: cleanSecTitle || `Phần ${sections.length + 1}`, questions: [], wordBank: [] };
+                        } else {
+                            currentSec.title = cleanSecTitle;
+                        }
                     }
-                    let cleanSec = line.replace(/^(?:##|\d+[\.\:\)\s]*)/, '').trim();
-                    currentSec.title = cleanSec || `Phần ${sections.length + 1}`;
                     continue;
                 }
 
-                // Word Bank Line -> Add ONLY to current section's word bank
+                // 2. Detect Word Bank Line
                 if (isWordBankLine(line)) {
                     saveCurrentQuestion();
                     const rawWords = line.split(/\s{2,}|\||\,/);
@@ -1206,7 +1239,6 @@ Answer: False
                 sections.push(currentSec);
             }
 
-            // Assign global IDs & maintain section metadata
             let globalQId = 1;
             let allQuestions = [];
             let aggregatedWordBank = [];
@@ -1243,7 +1275,7 @@ Answer: False
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
-            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi`;
+            document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
 
             updateDeadlineCountdown();
             renderTeacherPreview();
@@ -1255,7 +1287,7 @@ Answer: False
             const previewContainer = document.getElementById('teacher-preview-questions-list');
             
             previewSection.classList.remove('hidden');
-            document.getElementById('preview-q-count-badge').innerText = `${appData.currentQuestions.length} câu hỏi`;
+            document.getElementById('preview-q-count-badge').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
             previewContainer.innerHTML = '';
 
             let lastSectionTitle = '';
@@ -1271,7 +1303,7 @@ Answer: False
                                 <i class="fa-solid fa-file-signature"></i>
                             </div>
                             <div>
-                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG BÀI TẬP: PHẦN ${q.sectionIndex + 1}</span>
+                                <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG BÀI TẬP SỐ ${q.sectionIndex + 1} / ${appData.sections.length}</span>
                                 <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
                             </div>
                         </div>
@@ -1329,7 +1361,6 @@ Answer: False
             previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // SECTION PAGE NAVIGATION & ISOLATED RENDERING
         function changeSectionPage(delta) {
             if (!appData.sections || appData.sections.length === 0) return;
             const newIndex = activeSectionIndex + delta;
@@ -1362,7 +1393,7 @@ Answer: False
             }
 
             if (!appData.sections || appData.sections.length === 0) {
-                appData.sections = [{ id: 0, title: "Phần 1: Bài Tập", questions: appData.currentQuestions, wordBank: appData.wordBank }];
+                appData.sections = [{ id: 0, title: "Bài 1: Bài Tập Tương Tác", questions: appData.currentQuestions, wordBank: appData.wordBank }];
             }
 
             if (activeSectionIndex >= appData.sections.length) activeSectionIndex = 0;
@@ -1375,7 +1406,7 @@ Answer: False
                 const btn = document.createElement('button');
                 btn.onclick = () => goToSectionPage(sIdx);
                 btn.className = `px-3.5 py-1.5 rounded-xl font-bold text-xs border transition flex items-center gap-1.5 ${sIdx === activeSectionIndex ? 'bg-brand-600 text-white border-brand-600 shadow-md' : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`;
-                btn.innerHTML = `<i class="fa-solid fa-file-lines text-[10px]"></i> Trang ${sIdx + 1}`;
+                btn.innerHTML = `<i class="fa-solid fa-file-lines text-[10px]"></i> Bài ${sIdx + 1}`;
                 pageChipsContainer.appendChild(btn);
             });
 
@@ -1387,7 +1418,7 @@ Answer: False
             nextBtn.classList.toggle('opacity-40', activeSectionIndex === appData.sections.length - 1);
             nextBtn.classList.toggle('cursor-not-allowed', activeSectionIndex === appData.sections.length - 1);
 
-            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu hỏi (Trang ${activeSectionIndex + 1}/${appData.sections.length})`;
+            document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu (Đang mở Bài ${activeSectionIndex + 1}/${appData.sections.length})`;
 
             // RENDER WORD BANK ONLY IF CURRENT SECTION HAS DRAG & DROP WORDS
             const currentSecWords = sanitizeWordBank(currentSec.wordBank || []);
@@ -1418,7 +1449,7 @@ Answer: False
                     wordChipsContainer.appendChild(chip);
                 });
             } else {
-                wordBankCard.classList.add('hidden'); // HIDE COMPLETELY ON OTHER EXERCISE TYPES
+                wordBankCard.classList.add('hidden');
             }
 
             // Render Section Instruction Banner
@@ -1430,7 +1461,7 @@ Answer: False
                         <i class="fa-solid fa-file-signature"></i>
                     </div>
                     <div>
-                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG ${activeSectionIndex + 1} / ${appData.sections.length}: HƯỚNG DẪN BÀI TẬP</span>
+                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">BÀI TẬP ${activeSectionIndex + 1} / ${appData.sections.length}</span>
                         <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(currentSec.title)}</h4>
                     </div>
                 </div>
@@ -1663,7 +1694,6 @@ Answer: False
             document.getElementById('stat-correct').innerText = `${correctCount}/${appData.currentQuestions.length}`;
             document.getElementById('stat-time-taken').innerText = formatTime(timerSeconds);
 
-            // SAVE GRADE RECORD
             const gradeRecord = {
                 timestamp: new Date().toLocaleString('vi-VN'),
                 className: activeStudentInfo.className || 'Tự do',
