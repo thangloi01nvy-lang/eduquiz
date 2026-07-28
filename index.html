@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Bài Tập Đã Giao & Theo Dõi Học Sinh Nộp Bài</title>
+    <title>EduQuiz Pro - Quản Lý Bài Tập Đã Giao & Phân Quyền Lớp Học 100% Tuyệt Đối</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -438,7 +438,7 @@
                         <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <input type="text" id="new-class-name" placeholder="Tên lớp (VD: Lớp 10A1, Tiếng Anh K64)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <input type="text" id="new-class-name" placeholder="Tên lớp (VD: Teen 4 - 03, Toeic Sáng T2,4,6)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <input type="text" id="new-class-desc" placeholder="Ghi chú (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <button onclick="createNewClass()" class="py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2">
                             <i class="fa-solid fa-folder-plus"></i> Tạo Lớp
@@ -624,17 +624,27 @@
         <!-- ================================================================= -->
         <div id="student-view" class="space-y-6">
 
-            <!-- Streamlined Student Login Box -->
+            <!-- Streamlined Student Login Box with Class Selector -->
             <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-6">
                 <div class="text-center space-y-2">
                     <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border border-brand-100">
                         <i class="fa-solid fa-user-check"></i>
                     </div>
                     <h3 class="font-heading font-bold text-2xl text-slate-900">Đăng Nhập Làm Bài</h3>
-                    <p class="text-slate-500 text-xs">Điền Họ tên và Mã học viên để bắt đầu tính điểm vào danh sách</p>
+                    <p class="text-slate-500 text-xs">Điền Mã học viên, Họ tên và chọn Lớp của bạn để bắt đầu tính điểm</p>
                 </div>
 
                 <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Lớp Học Của Bạn:</label>
+                        <div class="relative">
+                            <select id="student-login-class-select" class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                <option value="Tự do">🎒 Học sinh tự do / Chưa xếp lớp</option>
+                            </select>
+                            <i class="fa-solid fa-users-rectangle absolute left-3.5 top-4 text-slate-400"></i>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mã Học Viên (Student ID):</label>
                         <div class="relative">
@@ -691,6 +701,7 @@
                         </button>
                     </div>
                 </div>
+
                 <!-- Header Info Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div>
@@ -760,7 +771,7 @@
                 <div id="questions-list-container" class="space-y-6"></div>
 
                 <!-- BOTTOM NAVIGATION TOOLBAR & CONDITIONAL ACTION BAR -->
-                <div class="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-lg sticky bottom-6 z-30 flex flex-wrap items-center justify-between gap-4">
+                <div id="student-bottom-toolbar" class="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-lg sticky bottom-6 z-30 flex flex-wrap items-center justify-between gap-4">
                     
                     <div class="flex items-center gap-3">
                         <button id="bottom-prev-sec-btn" onclick="changeSectionPage(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-800 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-slate-200">
@@ -976,7 +987,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH CLASS ASSIGNMENT MANAGEMENT & SUBMISSION TRACKER -->
+    <!-- JAVASCRIPT LOGIC WITH AIRTIGHT CLASS ASSIGNMENT PERMISSION CHECK -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1220,6 +1231,22 @@ Bài 3:
                         { id: 'HS02', name: 'Trần Thị Bình' },
                         { id: 'HS03', name: 'Lê Hoàng Cường' }
                     ]
+                },
+                {
+                    id: 'class_teen4',
+                    name: 'Teen 4 - 03',
+                    desc: 'Lớp Tiếng Anh Teen',
+                    students: [
+                        { id: 'HS04', name: 'Thư' }
+                    ]
+                },
+                {
+                    id: 'class_toeic',
+                    name: 'Toeic Sáng T2,4,6',
+                    desc: 'Lớp Luyện Thi TOEIC',
+                    students: [
+                        { id: 'HV01', name: 'Phạm Minh Đức' }
+                    ]
                 }
             ],
             grades: [],
@@ -1271,13 +1298,16 @@ Bài 3:
             const select = document.getElementById('quiz-target-class-select');
             const quickSelect = document.getElementById('quick-reassign-class-select');
             const trackerSelect = document.getElementById('tracker-class-select');
+            const loginClassSelect = document.getElementById('student-login-class-select');
 
             const optionsHtml = '<option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>';
             let dynamicHtml = optionsHtml;
+            let studentOptionsHtml = '<option value="Tự do">🎒 Học sinh tự do / Chưa xếp lớp</option>';
 
             if (appData.classes && appData.classes.length > 0) {
                 appData.classes.forEach(c => {
                     dynamicHtml += `<option value="${c.name}">🏫 ${c.name} (${c.students ? c.students.length : 0} học sinh)</option>`;
+                    studentOptionsHtml += `<option value="${c.name}">🏫 ${c.name}</option>`;
                 });
             }
 
@@ -1291,6 +1321,14 @@ Bài 3:
                 const curVal = quickSelect.value;
                 quickSelect.innerHTML = dynamicHtml;
                 quickSelect.value = (curVal && Array.from(quickSelect.options).some(o => o.value === curVal)) ? curVal : (appData.quizTargetClass || 'all');
+            }
+
+            if (loginClassSelect) {
+                const curVal = loginClassSelect.value;
+                loginClassSelect.innerHTML = studentOptionsHtml;
+                if (curVal && Array.from(loginClassSelect.options).some(o => o.value === curVal)) {
+                    loginClassSelect.value = curVal;
+                }
             }
 
             if (trackerSelect) {
@@ -1403,26 +1441,15 @@ Bài 3:
             showNotification('📝 Đã nạp lại nội dung đề bài hiện tại vào khung soạn thảo!', 'info');
         }
 
+        // AIRTIGHT CLASS ACCESS PERMISSION CHECK (CASE-INSENSITIVE & EXACT NORMALIZATION)
         function checkStudentClassAccessPermission() {
-            const mismatchBanner = document.getElementById('student-class-mismatch-banner');
-            const targetClass = appData.quizTargetClass || 'all';
+            const targetClass = (appData.quizTargetClass || 'all').trim();
+            if (targetClass.toLowerCase() === 'all') return true;
 
-            if (!mismatchBanner) return true;
+            const studentClass = (activeStudentInfo.className || '').trim();
+            if (!studentClass || studentClass.toLowerCase() === 'tự do') return false;
 
-            if (targetClass === 'all') {
-                mismatchBanner.classList.add('hidden');
-                return true;
-            }
-
-            const studentClass = activeStudentInfo.className || 'Tự do';
-            if (studentClass === targetClass) {
-                mismatchBanner.classList.add('hidden');
-                return true;
-            } else {
-                mismatchBanner.classList.remove('hidden');
-                document.getElementById('mismatch-target-class-name').innerText = targetClass;
-                return false;
-            }
+            return studentClass.toLowerCase() === targetClass.toLowerCase();
         }
 
         function saveCurrentQuizToLibrary() {
@@ -1958,6 +1985,7 @@ Bài 3:
                     sections: appData.sections,
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
+                    classes: appData.classes || [],
                     grades: appData.grades || [],
                     feedbacks: appData.feedbacks || [],
                     updatedAt: new Date().toLocaleString('vi-VN')
@@ -1991,6 +2019,10 @@ Bài 3:
                         if (data.quizLevel) appData.quizLevel = data.quizLevel;
                         if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
                         if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
+                        if (data.classes && data.classes.length > 0) {
+                            appData.classes = data.classes;
+                            renderClassesList();
+                        }
                         if (data.feedbacks) appData.feedbacks = data.feedbacks;
                         if (data.grades) {
                             appData.grades = data.grades;
@@ -2003,6 +2035,7 @@ Bài 3:
                         document.getElementById('quiz-count-badge').classList.remove('hidden');
                         document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
                         
+                        updateTargetClassSelectOptions();
                         updateQuizMetadataUI();
                         updateDeadlineCountdown();
                         renderFeedbacksList();
@@ -2138,11 +2171,11 @@ Bài 3:
             if (tab === 'student') {
                 await fetchQuizFromCloud();
                 activeSectionIndex = 0;
-                renderQuizQuestions();
                 if (activeStudentInfo && activeStudentInfo.studentId) {
                     restoreStudentSessionUI();
                 } else {
                     document.getElementById('student-login-box').classList.remove('hidden');
+                    document.getElementById('student-quiz-active').classList.add('hidden');
                 }
             } else if (tab === 'teacher') {
                 renderClassSubmissionTracker();
@@ -2189,6 +2222,7 @@ Bài 3:
             renderClassesList();
             updateTargetClassSelectOptions();
             renderClassSubmissionTracker();
+            publishQuizToCloud(appData.currentQuestions, appData.wordBank);
 
             nameInput.value = '';
             descInput.value = '';
@@ -2269,6 +2303,7 @@ Bài 3:
                 saveStorage();
                 renderClassesList();
                 renderClassSubmissionTracker();
+                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
                 showNotification(`Đã thêm học sinh ${stName} vào ${cls.name}!`, 'success');
             }
         }
@@ -2280,6 +2315,7 @@ Bài 3:
                 saveStorage();
                 renderClassesList();
                 renderClassSubmissionTracker();
+                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             }
         }
 
@@ -2290,6 +2326,7 @@ Bài 3:
                 renderClassesList();
                 updateTargetClassSelectOptions();
                 renderClassSubmissionTracker();
+                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             }
         }
 
@@ -2419,6 +2456,7 @@ Bài 3:
         function autoLookupStudent() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const nameInput = document.getElementById('student-name-input');
+            const loginClassSelect = document.getElementById('student-login-class-select');
             const classInfoBox = document.getElementById('class-detected-info');
             const classNameTag = document.getElementById('class-detected-name');
 
@@ -2444,24 +2482,27 @@ Bài 3:
                 classNameTag.innerText = `Đã tìm thấy: ${foundStudent.name} (${foundClassName})`;
                 classInfoBox.classList.remove('hidden');
                 activeStudentInfo.className = foundClassName;
+                if (loginClassSelect) loginClassSelect.value = foundClassName;
             } else {
                 classInfoBox.classList.add('hidden');
-                activeStudentInfo.className = 'Tự do';
             }
         }
 
         function startStudentQuizSession() {
             const stId = document.getElementById('student-id-input').value.trim().toUpperCase();
             const stName = document.getElementById('student-name-input').value.trim();
+            const loginClassSelect = document.getElementById('student-login-class-select');
 
             if (!stId || !stName) {
                 showNotification('Vui lòng điền Mã Học Viên và Họ Tên!', 'error');
                 return;
             }
 
+            const selectedClassName = loginClassSelect ? loginClassSelect.value : 'Tự do';
+
             activeStudentInfo.studentId = stId;
             activeStudentInfo.studentName = stName;
-            if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
+            activeStudentInfo.className = selectedClassName || 'Tự do';
 
             localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
             restoreStudentSessionUI();
@@ -2473,22 +2514,34 @@ Bài 3:
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
+            const statusBanner = document.getElementById('student-quiz-status-banner');
+            const bottomToolbar = document.getElementById('student-bottom-toolbar');
+            const wordBankCard = document.getElementById('word-bank-card');
             const hasPermission = checkStudentClassAccessPermission();
+
             if (hasPermission) {
+                if (statusBanner) statusBanner.classList.remove('hidden');
+                if (bottomToolbar) bottomToolbar.classList.remove('hidden');
                 resetQuiz(false);
                 activeSectionIndex = 0;
                 renderQuizQuestions();
                 startTimer();
             } else {
+                if (statusBanner) statusBanner.classList.add('hidden');
+                if (wordBankCard) wordBankCard.classList.add('hidden');
+                if (bottomToolbar) bottomToolbar.classList.add('hidden');
+
                 document.getElementById('questions-list-container').innerHTML = `
-                    <div class="bg-white rounded-3xl border border-amber-200 p-8 text-center space-y-3 shadow-sm">
-                        <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center text-3xl mx-auto">
-                            <i class="fa-solid fa-user-slash"></i>
+                    <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-6">
+                        <div class="w-20 h-20 bg-slate-100 text-slate-400 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner">
+                            <i class="fa-solid fa-folder-open"></i>
                         </div>
-                        <h3 class="font-heading font-bold text-xl text-slate-900">Bạn Không Thuộc Lớp Được Giao Đề Bài Này</h3>
-                        <p class="text-xs text-slate-500 max-w-md mx-auto">
-                            Hệ thống ghi nhận bạn thuộc <b>${activeStudentInfo.className}</b>, trong khi đề bài này được Giáo viên giao riêng cho <b>${appData.quizTargetClass}</b>.
-                        </p>
+                        <div class="space-y-1">
+                            <h3 class="font-heading font-bold text-2xl text-slate-800">Lớp Của Bạn Hiện Chưa Có Bài Tập Mới</h3>
+                            <p class="text-xs text-slate-500 max-w-md mx-auto">
+                                Giáo viên chưa phát hành bài tập mới cho <b class="text-brand-700 font-bold">${activeStudentInfo.className}</b>. Hãy quay lại sau nhé!
+                            </p>
+                        </div>
                     </div>
                 `;
             }
@@ -2502,7 +2555,6 @@ Bài 3:
             document.getElementById('student-id-input').value = '';
             document.getElementById('student-name-input').value = '';
             document.getElementById('class-detected-info').classList.add('hidden');
-            document.getElementById('student-class-mismatch-banner').classList.add('hidden');
 
             document.getElementById('student-quiz-active').classList.add('hidden');
             document.getElementById('student-login-box').classList.remove('hidden');
