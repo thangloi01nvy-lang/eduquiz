@@ -1248,33 +1248,39 @@ Bài 3:
                 tip: "Dấu hiệu 'lots of different projects' đòi hỏi sự thích ứng."
             },
             15: {
+                fullWord: "dependable",
                 trans: "Juan có thể làm việc với hầu hết mọi người và tất cả các quản lý đều tin tưởng anh ấy - anh ấy rất đáng tin cậy.",
-                grammar: "Động từ 'depend' + hậu tố '-able' -> tính từ 'dependable' (đáng tin cậy). Học sinh có thể điền 'able' hoặc 'dependable'.",
+                grammar: "Động từ 'depend' + hậu tố '-able' ➔ tính từ 'dependable' (đáng tin cậy). Học sinh có thể điền đuôi 'able' hoặc gõ cả từ 'dependable'.",
                 tip: "Sau 'very' là một tính từ bổ nghĩa cho chủ ngữ Juan."
             },
             16: {
+                fullWord: "flexible",
                 trans: "Mọi thứ thay đổi rất thường xuyên trong ngành của chúng tôi. Chúng tôi phải rất linh hoạt.",
-                grammar: "Từ gốc 'flex' + hậu tố '-ible' -> tính từ 'flexible' (linh hoạt). Học sinh có thể điền 'ible' hoặc 'flexible'.",
+                grammar: "Từ gốc 'flex' + hậu tố '-ible' ➔ tính từ 'flexible' (linh hoạt). Học sinh có thể điền đuôi 'ible' hoặc gõ cả từ 'flexible'.",
                 tip: "Sau 'be very' cần tính từ."
             },
             17: {
+                fullWord: "independence",
                 trans: "Anna thực sự thích làm việc một mình tại nhà. Cô ấy thể hiện sự độc lập tuyệt vời.",
-                grammar: "Từ gốc 'independent' chuyển sang danh từ 'independence' (sự độc lập). Học sinh có thể điền 'ence' hoặc 'independence'.",
+                grammar: "Từ gốc 'independent' chuyển sang danh từ 'independence' (sự độc lập). Học sinh có thể điền đuôi 'ence' hoặc gõ cả từ 'independence'.",
                 tip: "Sau tính từ 'great' cần danh từ."
             },
             18: {
+                fullWord: "enthusiasm",
                 trans: "Henri yêu công việc của mình và rất hăng hái. Thật tốt khi thấy sự nhiệt tình như vậy.",
-                grammar: "Danh từ chỉ sự nhiệt tình là 'enthusiasm'. Học sinh có thể điền 'iasm', 'iastic' hoặc 'enthusiasm'.",
+                grammar: "Danh từ chỉ sự nhiệt tình là 'enthusiasm' (đuôi '-iasm'). Học sinh có thể điền đuôi 'iasm' hoặc gõ cả từ 'enthusiasm'.",
                 tip: "Sau 'such' là một danh từ."
             },
             19: {
+                fullWord: "honest",
                 trans: "Quản lý của tôi luôn thực sự trung thực với tôi. Anh ấy luôn nói cho tôi biết anh ấy nghĩ gì.",
-                grammar: "Từ gốc 'hon' + hậu tố '-est' -> tính từ 'honest' (trung thực). Học sinh có thể điền 'est' hoặc 'honest'.",
+                grammar: "Từ gốc 'hon' + hậu tố '-est' ➔ tính từ 'honest' (trung thực). Học sinh có thể điền đuôi 'est' hoặc gõ cả từ 'honest'.",
                 tip: "Cấu trúc 'honest with someone'."
             },
             20: {
+                fullWord: "ambition",
                 trans: "Maria muốn trở thành quản lý trong 2 năm tới – cô ấy có nhiều hoài bão/tham vọng.",
-                grammar: "Danh từ chỉ hoài bão là 'ambition'. Học sinh có thể điền 'ition' hoặc 'ambition'.",
+                grammar: "Danh từ chỉ hoài bão là 'ambition' (đuôi '-ition'). Học sinh có thể điền đuôi 'ition' hoặc gõ cả từ 'ambition'.",
                 tip: "Sau 'a lot of' cần một danh từ."
             }
         };
@@ -3444,13 +3450,16 @@ Bài 3:
 
                     card.classList.add(isCorrect ? 'border-emerald-300' : 'border-rose-300', isCorrect ? 'bg-emerald-50/20' : 'bg-rose-50/20');
                     
-                    let expectedAnswerStr = (q.inlineBlanks && q.inlineBlanks.length > 0) ? q.inlineBlanks.map(b => b.answer || q.answer).join(', ') : (q.answer || 'Đáp án mẫu');
-                    
                     const aiInfo = AI_EXPLANATION_DICTIONARY[q.id] || {
                         trans: "Cấu trúc ngữ pháp tiếng Anh nâng cao.",
                         grammar: q.explanation || "Đối chiếu với đáp án chuẩn của giáo viên.",
                         tip: "Hãy chú ý từ khóa trong câu."
                     };
+
+                    let expectedAnswerStr = (q.inlineBlanks && q.inlineBlanks.length > 0) ? q.inlineBlanks.map(b => b.answer || q.answer).join(', ') : (q.answer || 'Đáp án mẫu');
+                    if (aiInfo && aiInfo.fullWord) {
+                        expectedAnswerStr = `${q.answer} hoặc ${aiInfo.fullWord} (Từ đầy đủ: "${aiInfo.fullWord}")`;
+                    }
 
                     html += `
                         <div class="mt-4 p-4 rounded-2xl ${isCorrect ? 'bg-emerald-50/80 text-emerald-900 border border-emerald-200' : 'bg-rose-50/80 text-rose-900 border border-rose-200'} text-xs space-y-3">
