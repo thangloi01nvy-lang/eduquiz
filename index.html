@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Giao Đề Bài Cho Từng Lớp Theo Yêu Cầu</title>
+    <title>EduQuiz Pro - Quản Lý Bài Tập Đã Giao & Theo Dõi Học Sinh Nộp Bài</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -162,7 +162,7 @@
                         <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học (<span id="total-classes-badge">0</span>)
                     </button>
                     <button id="subtab-grades-btn" onclick="switchTeacherSubTab('grades')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm (<span id="total-results-badge">0</span>)
+                        <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm & Nộp Bài (<span id="total-results-badge">0</span>)
                     </button>
                     <button id="subtab-feedbacks-btn" onclick="switchTeacherSubTab('feedbacks')" class="sub-tab-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
                         <i class="fa-solid fa-comments text-purple-600"></i> Hòm Thư Góp Ý (<span id="total-feedbacks-badge">0</span>)
@@ -187,6 +187,45 @@
             <!-- SUB-TAB 1: SOẠN BÀI TẬP (QUIZ EDITOR & PREVIEW) -->
             <div id="teacher-subtab-editor" class="space-y-6">
                 
+                <!-- FEATURE 1: ACTIVE QUIZ MANAGEMENT & RE-ASSIGNMENT BANNER CARD -->
+                <div id="active-quiz-management-card" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-brand-950 rounded-3xl p-6 text-white shadow-xl space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 font-bold text-xs rounded-full border border-emerald-500/30">
+                                    <i class="fa-solid fa-signal mr-1"></i> BÀI TẬP ĐANG PHÁT HÀNH TRÊN CLOUD
+                                </span>
+                                <span id="active-card-level-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 font-bold text-xs rounded-full">🎯 B1</span>
+                                <span id="active-card-date-badge" class="px-2.5 py-0.5 bg-white/10 text-slate-200 font-semibold text-xs rounded-full">📅 28/07/2026</span>
+                            </div>
+                            <h3 id="active-card-title-display" class="font-heading font-bold text-2xl text-white">Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)</h3>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button onclick="loadActiveQuizToEditor()" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square text-amber-300"></i> Nạp Lại Đề Để Sửa Nội Dung
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 items-center">
+                        <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+                            <span class="text-xs font-bold text-purple-300 flex items-center gap-1">
+                                <i class="fa-solid fa-users-rectangle text-purple-400"></i> Đổi Trực Tiếp Lớp Được Giao:
+                            </span>
+                            <select id="quick-reassign-class-select" class="p-2.5 bg-white/10 text-white font-bold text-xs rounded-xl border border-white/20 focus:bg-slate-900 focus:outline-none min-w-[220px]">
+                                <option value="all" class="bg-slate-900 text-white">🌐 Tất Cả Các Lớp / Toàn Trường</option>
+                            </select>
+                            <button onclick="applyQuickClassReassign()" class="px-4 py-2.5 bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-check"></i> Cập Nhật Lớp Giao Bài
+                            </button>
+                        </div>
+                        <div class="text-right text-xs text-slate-300 font-medium">
+                            Trạng thái hiện tại: <span id="active-card-target-text" class="font-bold text-amber-300">Giao cho tất cả các lớp</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- QUIZ METADATA FORM CARD WITH TARGET CLASS SELECTOR -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -379,7 +418,7 @@
                             <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
                                 <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Thư Viện Đề Bài Đã Lưu Lại
                             </h3>
-                            <p class="text-xs text-slate-500">Giáo viên có thể chọn từng Lớp học cụ thể và bấm giao đề cho đúng lớp đó!</p>
+                            <p class="text-xs text-slate-500">Giáo viên có thể chỉnh sửa lại lớp được giao bất cứ lúc nào!</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="saveCurrentQuizToLibrary()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
@@ -409,13 +448,117 @@
                 <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- SUB-TAB 4: BẢNG ĐIỂM & KẾT QUẢ -->
+            <!-- SUB-TAB 4: BẢNG ĐIỂM & THEO DÕI NỘP BÀI CỦA HỌC SINH -->
             <div id="teacher-subtab-grades" class="hidden space-y-6">
+                
+                <!-- FEATURE 2: CLASS SUBMISSION TRACKER (COMPLETED VS PENDING STUDENTS) -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-brand-600"></i> Theo Dõi Nộp Bài Theo Lớp (Đã Làm vs Chưa Làm)
+                            </h3>
+                            <p class="text-xs text-slate-500">Giúp giáo viên biết chính xác học sinh nào đã làm bài, học sinh nào chưa nộp bài để nhắc nhở</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <label class="text-xs font-bold text-slate-700">Chọn lớp cần xem:</label>
+                            <select id="tracker-class-select" onchange="renderClassSubmissionTracker()" class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                <!-- Dynamic Options -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Metrics Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-slate-400 font-bold uppercase">Sĩ Số Lớp</div>
+                                <div id="metric-class-total" class="font-bold text-slate-900 text-lg">0 học sinh</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-user-check"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-emerald-600 font-bold uppercase">Đã Nộp Bài</div>
+                                <div id="metric-class-completed" class="font-bold text-emerald-800 text-lg">0/0 (0%)</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center text-lg font-bold">
+                                <i class="fa-solid fa-user-xmark"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] text-rose-600 font-bold uppercase">Chưa Nộp Bài</div>
+                                <div id="metric-class-pending" class="font-bold text-rose-800 text-lg">0/0 (0%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Two Detailed Lists: Completed vs Pending -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- List 1: Students Completed -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <h4 class="font-heading font-bold text-sm text-emerald-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-600"></i> 🟢 Học Sinh ĐÃ NỘP BÀI (<span id="tracker-submitted-count">0</span>)
+                                </h4>
+                            </div>
+                            <div class="max-h-72 overflow-y-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-[10px] text-slate-400 uppercase border-b border-slate-200">
+                                            <th class="py-2">Mã HV</th>
+                                            <th class="py-2">Họ tên</th>
+                                            <th class="py-2 text-center">Điểm số</th>
+                                            <th class="py-2 text-right">Thời gian nộp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tracker-submitted-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- List 2: Students Pending -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                <h4 class="font-heading font-bold text-sm text-rose-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-xmark text-rose-600"></i> 🔴 Học Sinh CHƯA NỘP BÀI (<span id="tracker-pending-count">0</span>)
+                                </h4>
+                                <button onclick="copyPendingStudentsList()" class="px-3 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px] rounded-lg transition border border-rose-200 flex items-center gap-1">
+                                    <i class="fa-solid fa-copy"></i> Sao chép danh sách
+                                </button>
+                            </div>
+                            <div class="max-h-72 overflow-y-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-[10px] text-slate-400 uppercase border-b border-slate-200">
+                                            <th class="py-2">STT</th>
+                                            <th class="py-2">Mã HV</th>
+                                            <th class="py-2">Họ tên</th>
+                                            <th class="py-2 text-right">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tracker-pending-tbody" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GLOBAL GRADES TABLE -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
                         <div>
                             <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
-                                <i class="fa-solid fa-award text-amber-500"></i> Bảng Điểm Lớp Học (Tự Động Đồng Bộ Cloud)
+                                <i class="fa-solid fa-award text-amber-500"></i> Lịch Sử Nộp Bài Tất Cả Học Sinh
                             </h3>
                             <p class="text-xs text-slate-500">Kết quả từ tất cả thiết bị của học sinh được tự động thu thập về đây</p>
                         </div>
@@ -449,6 +592,7 @@
                         </table>
                     </div>
                 </div>
+
             </div>
 
             <!-- SUB-TAB 5: HÒM THƯ GÓP Ý & BÁO LỖI -->
@@ -847,7 +991,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH TARGET CLASS QUIZ ASSIGNMENT & SCOPING -->
+    <!-- JAVASCRIPT LOGIC WITH CLASS ASSIGNMENT MANAGEMENT & SUBMISSION TRACKER -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1140,24 +1284,44 @@ Bài 3:
 
         function updateTargetClassSelectOptions() {
             const select = document.getElementById('quiz-target-class-select');
-            if (!select) return;
+            const quickSelect = document.getElementById('quick-reassign-class-select');
+            const trackerSelect = document.getElementById('tracker-class-select');
 
-            const currentVal = select.value;
-            select.innerHTML = '<option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>';
+            const optionsHtml = '<option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>';
+            let dynamicHtml = optionsHtml;
 
             if (appData.classes && appData.classes.length > 0) {
                 appData.classes.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.name;
-                    opt.innerText = `🏫 ${c.name} (${c.students ? c.students.length : 0} học sinh)`;
-                    select.appendChild(opt);
+                    dynamicHtml += `<option value="${c.name}">🏫 ${c.name} (${c.students ? c.students.length : 0} học sinh)</option>`;
                 });
             }
 
-            if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
-                select.value = currentVal;
-            } else {
-                select.value = appData.quizTargetClass || 'all';
+            if (select) {
+                const curVal = select.value;
+                select.innerHTML = dynamicHtml;
+                select.value = (curVal && Array.from(select.options).some(o => o.value === curVal)) ? curVal : (appData.quizTargetClass || 'all');
+            }
+
+            if (quickSelect) {
+                const curVal = quickSelect.value;
+                quickSelect.innerHTML = dynamicHtml;
+                quickSelect.value = (curVal && Array.from(quickSelect.options).some(o => o.value === curVal)) ? curVal : (appData.quizTargetClass || 'all');
+            }
+
+            if (trackerSelect) {
+                const curVal = trackerSelect.value;
+                let trackerHtml = '';
+                if (appData.classes && appData.classes.length > 0) {
+                    appData.classes.forEach(c => {
+                        trackerHtml += `<option value="${c.name}">🏫 ${c.name} (${c.students ? c.students.length : 0} học sinh)</option>`;
+                    });
+                } else {
+                    trackerHtml = '<option value="">Chưa tạo lớp học nào</option>';
+                }
+                trackerSelect.innerHTML = trackerHtml;
+                if (curVal && Array.from(trackerSelect.options).some(o => o.value === curVal)) {
+                    trackerSelect.value = curVal;
+                }
             }
         }
 
@@ -1168,6 +1332,12 @@ Bài 3:
             const classBadge = document.getElementById('student-target-class-badge');
             const activeTitleTag = document.getElementById('active-quiz-title-display');
             const previewClassBadge = document.getElementById('preview-target-class-badge');
+
+            // Active Management Card Elements
+            const activeCardTitle = document.getElementById('active-card-title-display');
+            const activeCardLevel = document.getElementById('active-card-level-badge');
+            const activeCardDate = document.getElementById('active-card-date-badge');
+            const activeCardTarget = document.getElementById('active-card-target-text');
 
             const titleVal = appData.quizTitle || 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)';
             const levelVal = appData.quizLevel || 'B1 - Intermediate (Trung cấp)';
@@ -1183,16 +1353,69 @@ Bài 3:
             if (classBadge) classBadge.innerText = `🏫 Giao cho: ${classLabelStr}`;
             if (previewClassBadge) previewClassBadge.innerText = `Giao cho: ${classLabelStr}`;
 
+            if (activeCardTitle) activeCardTitle.innerText = titleVal;
+            if (activeCardLevel) activeCardLevel.innerText = `🎯 ${levelVal}`;
+            if (activeCardDate) activeCardDate.innerText = `📅 ${formattedDate}`;
+            if (activeCardTarget) activeCardTarget.innerText = classLabelStr;
+
             // Sync Teacher Editor Inputs
             const titleInput = document.getElementById('quiz-title-input');
             const levelSelect = document.getElementById('quiz-level-select');
             const targetClassSelect = document.getElementById('quiz-target-class-select');
+            const quickReassignSelect = document.getElementById('quick-reassign-class-select');
             const dateInput = document.getElementById('quiz-created-date-input');
 
             if (titleInput && !titleInput.value) titleInput.value = titleVal;
             if (levelSelect && !levelSelect.value) levelSelect.value = levelVal;
             if (dateInput && !dateInput.value) dateInput.value = appData.quizCreatedDate || new Date().toISOString().slice(0, 10);
             if (targetClassSelect) targetClassSelect.value = targetClassVal;
+            if (quickReassignSelect) quickReassignSelect.value = targetClassVal;
+        }
+
+        async function applyQuickClassReassign() {
+            const select = document.getElementById('quick-reassign-class-select');
+            if (!select) return;
+
+            const selectedClass = select.value;
+            appData.quizTargetClass = selectedClass;
+            saveStorage();
+            updateQuizMetadataUI();
+
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            showNotification(`⚡ Đã chuyển bài tập giao cho: ${selectedClass === 'all' ? 'Tất cả các lớp' : selectedClass}!`, 'success');
+        }
+
+        function loadActiveQuizToEditor() {
+            document.getElementById('quiz-title-input').value = appData.quizTitle || '';
+            document.getElementById('quiz-level-select').value = appData.quizLevel || 'B1 - Intermediate (Trung cấp)';
+            document.getElementById('quiz-target-class-select').value = appData.quizTargetClass || 'all';
+            document.getElementById('quiz-created-date-input').value = appData.quizCreatedDate || new Date().toISOString().slice(0, 10);
+
+            let rawText = '';
+            if (appData.sections && appData.sections.length > 0) {
+                appData.sections.forEach(sec => {
+                    rawText += `## ${sec.title}\n\n`;
+                    if (sec.wordBank && sec.wordBank.length > 0) {
+                        rawText += sec.wordBank.join('  ') + '\n\n';
+                    }
+                    sec.questions.forEach((q, idx) => {
+                        rawText += `${idx + 1}. ${q.title}\n`;
+                        if (q.options && q.options.length > 0) {
+                            q.options.forEach(opt => { rawText += `${opt.key}. ${opt.text}\n`; });
+                        }
+                        if (q.answer) rawText += `Answer: ${q.answer}\n`;
+                        if (q.explanation) rawText += `Explanation: ${q.explanation}\n`;
+                        rawText += '\n';
+                    });
+                });
+            } else {
+                rawText = INITIAL_SAMPLE_TEXT;
+            }
+
+            document.getElementById('markdown-input').value = rawText;
+            updateInputStats();
+            scrollToEditor();
+            showNotification('📝 Đã nạp lại nội dung đề bài hiện tại vào khung soạn thảo!', 'info');
         }
 
         function checkStudentClassAccessPermission() {
@@ -1750,6 +1973,7 @@ Bài 3:
                     sections: appData.sections,
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
+                    grades: appData.grades || [],
                     feedbacks: appData.feedbacks || [],
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
@@ -1783,6 +2007,11 @@ Bài 3:
                         if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
                         if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
                         if (data.feedbacks) appData.feedbacks = data.feedbacks;
+                        if (data.grades) {
+                            appData.grades = data.grades;
+                            renderGradesTable();
+                            renderClassSubmissionTracker();
+                        }
                         saveStorage();
                         
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
@@ -1857,6 +2086,7 @@ Bài 3:
             updateBadges();
             renderFeedbacksList();
             renderQuizLibrary();
+            renderClassSubmissionTracker();
             updateDeadlineCountdown();
             setInterval(updateDeadlineCountdown, 60000);
 
@@ -1900,6 +2130,7 @@ Bài 3:
             renderGradesTable();
             renderFeedbacksList();
             renderQuizLibrary();
+            renderClassSubmissionTracker();
             
             await fetchQuizFromCloud();
 
@@ -1928,6 +2159,8 @@ Bài 3:
                 } else {
                     document.getElementById('student-login-box').classList.remove('hidden');
                 }
+            } else if (tab === 'teacher') {
+                renderClassSubmissionTracker();
             }
         }
 
@@ -1946,6 +2179,7 @@ Bài 3:
 
             if (sub === 'feedbacks') renderFeedbacksList();
             if (sub === 'library') renderQuizLibrary();
+            if (sub === 'grades') renderClassSubmissionTracker();
         }
 
         function createNewClass() {
@@ -1969,6 +2203,7 @@ Bài 3:
             saveStorage();
             renderClassesList();
             updateTargetClassSelectOptions();
+            renderClassSubmissionTracker();
 
             nameInput.value = '';
             descInput.value = '';
@@ -2048,6 +2283,7 @@ Bài 3:
                 cls.students.push({ id: stId, name: stName });
                 saveStorage();
                 renderClassesList();
+                renderClassSubmissionTracker();
                 showNotification(`Đã thêm học sinh ${stName} vào ${cls.name}!`, 'success');
             }
         }
@@ -2058,6 +2294,7 @@ Bài 3:
                 cls.students = cls.students.filter(s => s.id !== studentId);
                 saveStorage();
                 renderClassesList();
+                renderClassSubmissionTracker();
             }
         }
 
@@ -2067,7 +2304,131 @@ Bài 3:
                 saveStorage();
                 renderClassesList();
                 updateTargetClassSelectOptions();
+                renderClassSubmissionTracker();
             }
+        }
+
+        // FEATURE 2: SUBMISSION TRACKER FOR COMPLETED VS PENDING STUDENTS BY CLASS
+        let currentTrackerPendingList = [];
+
+        function renderClassSubmissionTracker() {
+            const trackerSelect = document.getElementById('tracker-class-select');
+            const totalMetric = document.getElementById('metric-class-total');
+            const completedMetric = document.getElementById('metric-class-completed');
+            const pendingMetric = document.getElementById('metric-class-pending');
+            const submittedTbody = document.getElementById('tracker-submitted-tbody');
+            const pendingTbody = document.getElementById('tracker-pending-tbody');
+            const submittedCountTag = document.getElementById('tracker-submitted-count');
+            const pendingCountTag = document.getElementById('tracker-pending-count');
+
+            if (!trackerSelect) return;
+
+            const selectedClassName = trackerSelect.value;
+            if (!selectedClassName) {
+                totalMetric.innerText = '0 học sinh';
+                completedMetric.innerText = '0/0 (0%)';
+                pendingMetric.innerText = '0/0 (0%)';
+                submittedTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Vui lòng tạo lớp học trước</td></tr>`;
+                pendingTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Vui lòng tạo lớp học trước</td></tr>`;
+                return;
+            }
+
+            const cls = appData.classes.find(c => c.name === selectedClassName);
+            if (!cls || !cls.students || cls.students.length === 0) {
+                totalMetric.innerText = '0 học sinh';
+                completedMetric.innerText = '0/0 (0%)';
+                pendingMetric.innerText = '0/0 (0%)';
+                submittedTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Lớp này chưa có danh sách học sinh</td></tr>`;
+                pendingTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Lớp này chưa có danh sách học sinh</td></tr>`;
+                return;
+            }
+
+            const totalStudentsCount = cls.students.length;
+            const submittedList = [];
+            const pendingList = [];
+
+            cls.students.forEach((st, idx) => {
+                // Find student submission in grades history
+                const gradeRecord = (appData.grades || []).find(g => 
+                    (g.studentId && g.studentId.toUpperCase() === st.id.toUpperCase()) || 
+                    (g.studentName && g.studentName.toLowerCase() === st.name.toLowerCase() && g.className === cls.name)
+                );
+
+                if (gradeRecord) {
+                    submittedList.push({ student: st, record: gradeRecord });
+                } else {
+                    pendingList.push({ student: st, index: idx + 1 });
+                }
+            });
+
+            currentTrackerPendingList = pendingList.map(p => `${p.student.id} - ${p.student.name}`);
+
+            const completedCount = submittedList.length;
+            const pendingCount = pendingList.length;
+            const completedPercent = Math.round((completedCount / totalStudentsCount) * 100);
+            const pendingPercent = 100 - completedPercent;
+
+            totalMetric.innerText = `${totalStudentsCount} học sinh`;
+            completedMetric.innerText = `${completedCount}/${totalStudentsCount} (${completedPercent}%)`;
+            pendingMetric.innerText = `${pendingCount}/${totalStudentsCount} (${pendingPercent}%)`;
+
+            submittedCountTag.innerText = completedCount;
+            pendingCountTag.innerText = pendingCount;
+
+            // Render Submitted Students Table
+            submittedTbody.innerHTML = '';
+            if (submittedList.length === 0) {
+                submittedTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Chưa có học sinh nào nộp bài</td></tr>`;
+            } else {
+                submittedList.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-emerald-50/50 text-slate-700";
+                    tr.innerHTML = `
+                        <td class="py-2.5 font-mono font-bold text-brand-700">${item.student.id}</td>
+                        <td class="py-2.5 font-semibold text-slate-900">${item.student.name}</td>
+                        <td class="py-2.5 text-center font-bold text-emerald-600">${item.record.scoreText} (${item.record.percent}%)</td>
+                        <td class="py-2.5 text-right text-[11px] text-slate-400">${item.record.timestamp}</td>
+                    `;
+                    submittedTbody.appendChild(tr);
+                });
+            }
+
+            // Render Pending Students Table
+            pendingTbody.innerHTML = '';
+            if (pendingList.length === 0) {
+                pendingTbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-emerald-600 font-bold"><i class="fa-solid fa-circle-check mr-1"></i> 🎉 Tất cả học sinh đã hoàn thành nộp bài!</td></tr>`;
+            } else {
+                pendingList.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-rose-50/50 text-slate-700";
+                    tr.innerHTML = `
+                        <td class="py-2.5 text-slate-400 font-mono text-[11px]">${item.index}</td>
+                        <td class="py-2.5 font-mono font-bold text-slate-800">${item.student.id}</td>
+                        <td class="py-2.5 font-semibold text-rose-900">${item.student.name}</td>
+                        <td class="py-2.5 text-right font-bold text-rose-600 text-[11px]"><i class="fa-solid fa-clock mr-1"></i> Chưa nộp</td>
+                    `;
+                    pendingTbody.appendChild(tr);
+                });
+            }
+        }
+
+        function copyPendingStudentsList() {
+            const trackerSelect = document.getElementById('tracker-class-select');
+            const className = trackerSelect ? trackerSelect.value : 'Lớp';
+
+            if (!currentTrackerPendingList || currentTrackerPendingList.length === 0) {
+                showNotification('Tất cả học sinh đã nộp bài, không có học sinh chưa nộp!', 'success');
+                return;
+            }
+
+            const header = `📢 THÔNG BÁO NHẮC NỘP BÀI TẬP (${className}):\nCác bạn học sinh sau đây chưa nộp bài tập:\n\n`;
+            const listStr = currentTrackerPendingList.map((st, idx) => `${idx + 1}. ${st}`).join('\n');
+            const footer = `\n\n👉 Vui lòng đăng nhập EduQuiz Pro để nộp bài nhé!`;
+
+            const fullText = header + listStr + footer;
+            navigator.clipboard.writeText(fullText).then(() => {
+                showNotification('📋 Đã sao chép danh sách học sinh chưa nộp bài vào bộ nhớ đệm (Clipboard)!', 'success');
+            });
         }
 
         function autoLookupStudent() {
@@ -2977,7 +3338,7 @@ Bài 3:
         }
 
         // SUBMIT & SCORE FOR ALL SECTIONS WITH STRICT NULL CHECK
-        function submitQuiz() {
+        async function submitQuiz() {
             if (isSubmitted) return;
 
             if (appData.quizDeadline && new Date().getTime() > new Date(appData.quizDeadline).getTime()) {
@@ -3029,18 +3390,36 @@ Bài 3:
                 timeSpent: formatTime(timerSeconds)
             };
 
+            if (!appData.grades) appData.grades = [];
             appData.grades.unshift(gradeRecord);
             saveStorage();
             renderGradesTable();
+            renderClassSubmissionTracker();
+
+            // Sync student grades to Cloud Real-Time
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
 
             if (percent >= 80) confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
         }
 
+        async function fetchCloudGrades() {
+            updateCloudStatus('Đang tải kết quả từ Cloud...', 'warning');
+            const success = await fetchQuizFromCloud();
+            if (success) {
+                renderGradesTable();
+                renderClassSubmissionTracker();
+                showNotification('🔄 Đã cập nhật bảng điểm mới nhất từ Cloud thành công!', 'success');
+            } else {
+                showNotification('Không thể kết nối Cloud!', 'error');
+            }
+        }
+
         function renderGradesTable() {
             const tbody = document.getElementById('grades-table-body');
+            if (!tbody) return;
             tbody.innerHTML = '';
 
-            if (appData.grades.length === 0) {
+            if (!appData.grades || appData.grades.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 text-xs">Chưa có kết quả làm bài nào</td></tr>`;
                 return;
             }
@@ -3062,7 +3441,7 @@ Bài 3:
         }
 
         function exportGradesToCSV() {
-            if (appData.grades.length === 0) {
+            if (!appData.grades || appData.grades.length === 0) {
                 showNotification('Chưa có dữ liệu điểm để xuất!', 'error');
                 return;
             }
@@ -3084,6 +3463,7 @@ Bài 3:
                 appData.grades = [];
                 saveStorage();
                 renderGradesTable();
+                renderClassSubmissionTracker();
             }
         }
 
