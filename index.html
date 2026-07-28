@@ -1537,20 +1537,45 @@ Bài 3:
         }
 
         function getAssignedQuizForClass(studentClassName) {
-            if (!appData.classAssignments || !studentClassName) return null;
+            if (!appData.classAssignments) appData.classAssignments = {};
             
-            const rawName = studentClassName.trim();
-            if (appData.classAssignments[rawName]) {
+            const rawName = (studentClassName || '').trim();
+
+            // Level 1: Exact match in classAssignments map
+            if (rawName && appData.classAssignments[rawName] && appData.classAssignments[rawName].questions && appData.classAssignments[rawName].questions.length > 0) {
                 return appData.classAssignments[rawName];
             }
 
-            const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
-            for (let key in appData.classAssignments) {
-                const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
-                if (normKey === normStudent && appData.classAssignments[key]) {
-                    return appData.classAssignments[key];
+            // Level 2: Normalized match (lowercase & single-space trimmed)
+            if (rawName) {
+                const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+                for (let key in appData.classAssignments) {
+                    const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
+                    if (normKey === normStudent && appData.classAssignments[key] && appData.classAssignments[key].questions && appData.classAssignments[key].questions.length > 0) {
+                        return appData.classAssignments[key];
+                    }
                 }
             }
+
+            // Level 3: Check root appData.currentQuestions safety net
+            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                return {
+                    quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Tương Tác',
+                    quizLevel: appData.quizLevel || 'B1',
+                    questions: appData.currentQuestions,
+                    sections: appData.sections || [],
+                    wordBank: appData.wordBank || []
+                };
+            }
+
+            // Level 4: Fallback to any active assigned quiz in classAssignments
+            const assignedKeys = Object.keys(appData.classAssignments);
+            for (let k of assignedKeys) {
+                if (appData.classAssignments[k] && appData.classAssignments[k].questions && appData.classAssignments[k].questions.length > 0) {
+                    return appData.classAssignments[k];
+                }
+            }
+
             return null;
         }
 
