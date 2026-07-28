@@ -624,33 +624,6 @@
         <!-- ================================================================= -->
         <div id="student-view" class="space-y-6">
 
-            <!-- Active Cloud Quiz Banner inside Student View -->
-            <div id="student-quiz-status-banner" class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-6 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
-                <div class="space-y-1 max-w-2xl">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                        <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">
-                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
-                        </span>
-                        <span id="student-target-class-badge" class="px-2.5 py-0.5 bg-purple-900/80 text-purple-100 font-bold text-xs rounded-full border border-purple-400">🏫 Giao cho: Tất cả các lớp</span>
-                        <span id="student-quiz-level-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 font-bold text-xs rounded-full">🎯 Trình độ: B1</span>
-                        <span id="student-quiz-date-badge" class="px-2.5 py-0.5 bg-teal-800/60 text-teal-100 font-semibold text-xs rounded-full">📅 Ngày tạo: 28/07/2026</span>
-                        <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
-                    </div>
-                    <h3 id="student-banner-title" class="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)</h3>
-                    <p class="text-xs text-emerald-100 flex items-center gap-2">
-                        <span id="student-banner-q-count"><i class="fa-solid fa-list-check"></i> 20 câu hỏi (3 bài tập)</span> • Đăng nhập bên dưới để bắt đầu tính điểm!
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
-                        <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
-                    </button>
-                </div>
-            </div>
-
-
-
             <!-- Streamlined Student Login Box -->
             <div id="student-login-box" class="bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-md space-y-6 my-6">
                 <div class="text-center space-y-2">
@@ -693,6 +666,31 @@
 
             <!-- Quiz Active Interface -->
             <div id="student-quiz-active" class="hidden space-y-6">
+                
+                <!-- Active Cloud Quiz Banner inside Student View -->
+                <div id="student-quiz-status-banner" class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-6 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
+                    <div class="space-y-1 max-w-2xl">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">
+                                <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
+                            </span>
+                            <span id="student-target-class-badge" class="px-2.5 py-0.5 bg-purple-900/80 text-purple-100 font-bold text-xs rounded-full border border-purple-400">🏫 Giao cho: Tất cả các lớp</span>
+                            <span id="student-quiz-level-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 font-bold text-xs rounded-full">🎯 Trình độ: B1</span>
+                            <span id="student-quiz-date-badge" class="px-2.5 py-0.5 bg-teal-800/60 text-teal-100 font-semibold text-xs rounded-full">📅 Ngày tạo: 28/07/2026</span>
+                            <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
+                        </div>
+                        <h3 id="student-banner-title" class="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)</h3>
+                        <p class="text-xs text-emerald-100 flex items-center gap-2">
+                            <span id="student-banner-q-count"><i class="fa-solid fa-list-check"></i> 20 câu hỏi (3 bài tập)</span>
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
+                            <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
+                        </button>
+                    </div>
+                </div>
                 <!-- Header Info Bar -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
                     <div>
