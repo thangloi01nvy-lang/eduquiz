@@ -241,7 +241,7 @@
 
                         <div>
                             <label class="block text-xs font-bold text-purple-700 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-users-rectangle mr-1"></i>Giao Cho Lớp Học Nào?</label>
-                            <select id="quiz-target-class-select" class="w-full p-3 bg-purple-50 border-2 border-purple-200 rounded-xl text-sm font-bold text-purple-900 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            <select id="quiz-target-class-select" onchange="handleTargetClassChange(this.value)" class="w-full p-3 bg-purple-50 border-2 border-purple-200 rounded-xl text-sm font-bold text-purple-900 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
                                 <option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>
                             </select>
                         </div>
@@ -1516,7 +1516,7 @@ Bài 3:
             showNotification('📝 Đã nạp lại nội dung đề bài hiện tại vào khung soạn thảo!', 'info');
         }
 
-        // AIRTIGHT CLASS ACCESS PERMISSION CHECK (CASE-INSENSITIVE & EXACT NORMALIZATION)
+        // AIRTIGHT CLASS ACCESS PERMISSION CHECK (CASE-INSENSITIVE & EXACT SPACE NORMALIZATION)
         function checkStudentClassAccessPermission() {
             const targetClass = (appData.quizTargetClass || 'all').trim();
             if (targetClass.toLowerCase() === 'all') return true;
@@ -1524,7 +1524,29 @@ Bài 3:
             const studentClass = (activeStudentInfo.className || '').trim();
             if (!studentClass || studentClass.toLowerCase() === 'tự do') return false;
 
-            return studentClass.toLowerCase() === targetClass.toLowerCase();
+            const normTarget = targetClass.toLowerCase().replace(/\s+/g, ' ');
+            const normStudent = studentClass.toLowerCase().replace(/\s+/g, ' ');
+
+            return normStudent === normTarget;
+        }
+
+        async function quickReassignTargetClassAndReload(newTargetClass) {
+            appData.quizTargetClass = newTargetClass;
+            saveStorage();
+            updateQuizMetadataUI();
+            updateTargetClassSelectOptions();
+
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            restoreStudentSessionUI();
+            showNotification(`🚀 Đã chuyển bài tập giao cho: ${newTargetClass === 'all' ? 'Tất cả các lớp' : newTargetClass}!`, 'success');
+        }
+
+        async function handleTargetClassChange(val) {
+            appData.quizTargetClass = val || 'all';
+            saveStorage();
+            updateQuizMetadataUI();
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            showNotification(`🏫 Đã phát hành cập nhật giao bài cho: ${val === 'all' ? 'Tất cả các lớp' : val}!`, 'success');
         }
 
         function saveCurrentQuizToLibrary() {
@@ -2669,16 +2691,30 @@ Bài 3:
 
                 stopTimer();
 
+                const currentTargetClass = appData.quizTargetClass || 'all';
+
                 document.getElementById('questions-list-container').innerHTML = `
-                    <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-6">
-                        <div class="w-20 h-20 bg-slate-100 text-slate-400 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner">
-                            <i class="fa-solid fa-folder-open"></i>
+                    <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-5 shadow-sm my-6 max-w-xl mx-auto">
+                        <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-inner border border-amber-100">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
                         </div>
-                        <div class="space-y-1">
-                            <h3 class="font-heading font-bold text-2xl text-slate-800">Lớp Của Bạn Hiện Chưa Có Bài Tập Mới</h3>
-                            <p class="text-xs text-slate-500 max-w-md mx-auto">
-                                Giáo viên chưa phát hành bài tập mới cho <b class="text-brand-700 font-bold">${activeStudentInfo.className}</b>. Hãy quay lại sau nhé!
+                        <div class="space-y-2">
+                            <h3 class="font-heading font-bold text-xl text-slate-800">Lớp Của Bạn (${activeStudentInfo.className}) Chưa Được Giao Bài Tập Này</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Đề bài hiện tại <b>"${appData.quizTitle || 'Bài Tập Online'}"</b> đang được phát hành cho lớp: <span class="px-2.5 py-0.5 bg-purple-100 text-purple-900 font-bold rounded-full border border-purple-200">${currentTargetClass === 'all' ? 'Tất cả các lớp' : currentTargetClass}</span>.
                             </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-3">
+                            <div class="font-bold text-slate-800 text-center"><i class="fa-solid fa-wand-magic-sparkles text-brand-600 mr-1"></i> Nút Chuyển Lớp Nhanh (Dành Cho Giáo Viên Thử Nghiệm):</div>
+                            <div class="flex flex-wrap items-center justify-center gap-2">
+                                <button onclick="quickReassignTargetClassAndReload('${activeStudentInfo.className}')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check-double"></i> Giao Bài Này Cho Lớp ${activeStudentInfo.className} Ngay
+                                </button>
+                                <button onclick="quickReassignTargetClassAndReload('all')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-globe"></i> Giao Bài Cho Tất Cả Các Lớp
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
