@@ -1536,6 +1536,24 @@ Bài 3:
             showNotification('📝 Đã nạp lại nội dung đề bài hiện tại vào khung soạn thảo!', 'info');
         }
 
+        function getAssignedQuizForClass(studentClassName) {
+            if (!appData.classAssignments || !studentClassName) return null;
+            
+            const rawName = studentClassName.trim();
+            if (appData.classAssignments[rawName]) {
+                return appData.classAssignments[rawName];
+            }
+
+            const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+            for (let key in appData.classAssignments) {
+                const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
+                if (normKey === normStudent && appData.classAssignments[key]) {
+                    return appData.classAssignments[key];
+                }
+            }
+            return null;
+        }
+
         // AIRTIGHT CLASS ACCESS PERMISSION CHECK (CASE-INSENSITIVE & EXACT SPACE NORMALIZATION)
         function checkStudentClassAccessPermission() {
             const targetClass = (appData.quizTargetClass || 'all').trim();
@@ -1794,13 +1812,17 @@ Bài 3:
             appData.quizLevel = item.level;
             appData.quizTargetClass = selectedClass;
             appData.quizCreatedDate = item.createdDate;
-
             item.targetClass = selectedClass;
-            saveStorage();
 
-            generateQuiz();
+            appData.currentQuestions = parseInputToQuestions(item.rawText);
+            assignQuizToClassTarget(selectedClass);
+
+            saveStorage();
+            renderClassAssignmentsPanel();
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
+
             switchTeacherSubTab('editor');
-            showNotification(`🚀 Đã giao bài tập "${item.title}" cho ${selectedClass === 'all' ? 'tất cả các lớp' : selectedClass}!`, 'success');
+            showNotification(`🚀 Đã giao bài tập "${item.title}" cho ${selectedClass === 'all' ? 'Tất cả các lớp' : selectedClass}!`, 'success');
         }
 
         function deleteQuizFromLibrary(itemId) {
@@ -2835,11 +2857,9 @@ Bài 3:
             const timerContainer = document.getElementById('quiz-timer-container');
 
             const studentClass = (activeStudentInfo.className || '').trim();
-            let assignedQuiz = null;
+            let assignedQuiz = getAssignedQuizForClass(studentClass);
 
-            if (appData.classAssignments && appData.classAssignments[studentClass] && appData.classAssignments[studentClass].questions && appData.classAssignments[studentClass].questions.length > 0) {
-                assignedQuiz = appData.classAssignments[studentClass];
-            } else if ((!studentClass || studentClass.toLowerCase() === 'tự do') && appData.quizTargetClass === 'all') {
+            if (!assignedQuiz && (!studentClass || studentClass.toLowerCase() === 'tự do') && appData.quizTargetClass === 'all') {
                 if (appData.currentQuestions && appData.currentQuestions.length > 0) {
                     assignedQuiz = {
                         quizTitle: appData.quizTitle,
