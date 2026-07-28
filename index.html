@@ -136,12 +136,12 @@
                     </button>
 
                     <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 flex items-center gap-1 shadow-inner">
-                        <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                        <button id="tab-student-btn" onclick="quickSwitchToStudentMode()" class="tab-btn active px-4 py-2 rounded-xl text-sm font-bold text-slate-700 transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-graduate text-brand-600"></i>
                             <span>Góc Học Sinh</span>
                             <span id="quiz-count-badge" class="hidden ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">0</span>
                         </button>
-                        <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                        <button id="tab-teacher-btn" onclick="quickSwitchToTeacherMode()" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-700 transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-tie text-amber-500"></i>
                             <span>Góc Giáo Viên</span>
                         </button>
@@ -1063,6 +1063,18 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- FLOATING QUICK TOGGLE TOOLBAR FOR ALWAYS-ON TAB ACCESS -->
+    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-700 shadow-2xl">
+        <button onclick="quickSwitchToStudentMode()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-user-graduate text-brand-400"></i>
+            <span>Góc Học Sinh</span>
+        </button>
+        <button onclick="quickSwitchToTeacherMode()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-user-tie text-slate-950"></i>
+            <span>👩‍🏫 Góc Giáo Viên</span>
+        </button>
     </div>
 
     <!-- FOOTER -->
@@ -2451,6 +2463,54 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             // DEFAULT MODE IS STUDENT VIEW (PROTECTS TEACHER VIEW FROM STUDENTS)
             switchMainTab('student');
         });
+
+        function quickSwitchToTeacherMode() {
+            isTeacherAuthenticated = true;
+            const teacherView = document.getElementById('teacher-view');
+            const studentView = document.getElementById('student-view');
+            const teacherBtn = document.getElementById('tab-teacher-btn');
+            const studentBtn = document.getElementById('tab-student-btn');
+
+            if (teacherView) teacherView.classList.remove('hidden');
+            if (studentView) studentView.classList.add('hidden');
+            if (teacherBtn) teacherBtn.classList.add('active');
+            if (studentBtn) studentBtn.classList.remove('active');
+
+            switchTeacherSubTab('editor');
+            renderClassSubmissionTracker();
+            renderClassAssignmentsPanel();
+            renderQuizLibrary();
+
+            if (teacherView) {
+                teacherView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            showNotification('👩‍🏫 Đã mở Góc Giáo Viên thành công!', 'success');
+        }
+
+        function quickSwitchToStudentMode() {
+            const teacherView = document.getElementById('teacher-view');
+            const studentView = document.getElementById('student-view');
+            const teacherBtn = document.getElementById('tab-teacher-btn');
+            const studentBtn = document.getElementById('tab-student-btn');
+
+            if (teacherView) teacherView.classList.add('hidden');
+            if (studentView) studentView.classList.remove('hidden');
+            if (teacherBtn) teacherBtn.classList.remove('active');
+            if (studentBtn) studentBtn.classList.add('active');
+
+            activeSectionIndex = 0;
+            if (activeStudentInfo && activeStudentInfo.studentId) {
+                restoreStudentSessionUI();
+            } else {
+                document.getElementById('student-login-box').classList.remove('hidden');
+                document.getElementById('student-quiz-active').classList.add('hidden');
+            }
+
+            if (studentView) {
+                studentView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            showNotification('🎒 Đã chuyển sang Góc Học Sinh!', 'info');
+        }
 
         async function switchMainTab(tab, bypassAuth = false) {
             try {
