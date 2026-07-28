@@ -718,7 +718,7 @@
                     </div>
 
                     <!-- Timer Box -->
-                    <div class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-inner">
+                    <div id="quiz-timer-container" class="bg-slate-50 border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-inner">
                         <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-sm">
                             <i class="fa-solid fa-stopwatch"></i>
                         </div>
@@ -2517,11 +2517,22 @@ Bài 3:
             const statusBanner = document.getElementById('student-quiz-status-banner');
             const bottomToolbar = document.getElementById('student-bottom-toolbar');
             const wordBankCard = document.getElementById('word-bank-card');
+            const quizTitleDisplay = document.getElementById('active-quiz-title-display');
+            const totalQuestionsTag = document.getElementById('quiz-total-questions-tag');
+            const timerContainer = document.getElementById('quiz-timer-container');
+
             const hasPermission = checkStudentClassAccessPermission();
 
             if (hasPermission) {
                 if (statusBanner) statusBanner.classList.remove('hidden');
                 if (bottomToolbar) bottomToolbar.classList.remove('hidden');
+                if (quizTitleDisplay) {
+                    quizTitleDisplay.innerText = appData.quizTitle || 'Bài Tập Tương Tác Online';
+                    quizTitleDisplay.classList.remove('hidden');
+                }
+                if (totalQuestionsTag) totalQuestionsTag.classList.remove('hidden');
+                if (timerContainer) timerContainer.classList.remove('hidden');
+
                 resetQuiz(false);
                 activeSectionIndex = 0;
                 renderQuizQuestions();
@@ -2530,6 +2541,11 @@ Bài 3:
                 if (statusBanner) statusBanner.classList.add('hidden');
                 if (wordBankCard) wordBankCard.classList.add('hidden');
                 if (bottomToolbar) bottomToolbar.classList.add('hidden');
+                if (quizTitleDisplay) quizTitleDisplay.classList.add('hidden');
+                if (totalQuestionsTag) totalQuestionsTag.classList.add('hidden');
+                if (timerContainer) timerContainer.classList.add('hidden');
+
+                stopTimer();
 
                 document.getElementById('questions-list-container').innerHTML = `
                     <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-6">
@@ -2548,9 +2564,11 @@ Bài 3:
         }
 
         function logoutStudentSession() {
+            stopTimer();
             localStorage.removeItem('eduquiz_active_student');
             activeStudentInfo = { classId: '', className: '', studentId: '', studentName: '' };
-            stopTimer();
+            studentAnswers = {};
+            isSubmitted = false;
 
             document.getElementById('student-id-input').value = '';
             document.getElementById('student-name-input').value = '';
@@ -2558,6 +2576,13 @@ Bài 3:
 
             document.getElementById('student-quiz-active').classList.add('hidden');
             document.getElementById('student-login-box').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'instant' });
+
+            setTimeout(() => {
+                const idInput = document.getElementById('student-id-input');
+                if (idInput) idInput.focus();
+            }, 50);
 
             showNotification('Đã đăng xuất tài khoản học sinh!', 'info');
         }
