@@ -128,7 +128,7 @@
                         <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-graduate text-brand-600"></i>
                             <span>Góc Học Sinh</span>
-                            <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
+                            <span id="quiz-count-badge" class="hidden ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">0</span>
                         </button>
                         <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-tie text-amber-500"></i>
@@ -2031,8 +2031,7 @@ Bài 3:
                         }
                         saveStorage();
                         
-                        document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
-                        document.getElementById('quiz-count-badge').classList.remove('hidden');
+                        updateStudentTabBadge();
                         document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
                         
                         updateTargetClassSelectOptions();
@@ -2059,6 +2058,35 @@ Bài 3:
             } else if (state === 'warning') {
                 badge.className = "inline-flex items-center gap-1 text-amber-600 font-semibold bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-xs";
                 badge.innerHTML = `<i class="fa-solid fa-rotate text-xs animate-spin"></i> ${msg}`;
+            }
+        }
+
+        function updateStudentTabBadge() {
+            const badge = document.getElementById('quiz-count-badge');
+            if (!badge) return;
+
+            if (activeStudentInfo && activeStudentInfo.studentId) {
+                const hasPermission = checkStudentClassAccessPermission();
+                if (hasPermission) {
+                    const count = appData.currentQuestions ? appData.currentQuestions.length : 0;
+                    badge.innerText = count;
+                    if (count > 0) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                } else {
+                    badge.innerText = '0';
+                    badge.classList.add('hidden');
+                }
+            } else {
+                const targetClass = (appData.quizTargetClass || 'all').trim().toLowerCase();
+                if (targetClass === 'all') {
+                    const count = appData.currentQuestions ? appData.currentQuestions.length : 0;
+                    badge.innerText = count;
+                    if (count > 0) badge.classList.remove('hidden');
+                    else badge.classList.add('hidden');
+                } else {
+                    badge.innerText = '0';
+                    badge.classList.add('hidden');
+                }
             }
         }
 
@@ -2094,8 +2122,7 @@ Bài 3:
             if (!appData.quizTargetClass) appData.quizTargetClass = 'all';
             if (!appData.quizCreatedDate) appData.quizCreatedDate = new Date().toISOString().slice(0, 10);
 
-            document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
-            document.getElementById('quiz-count-badge').classList.remove('hidden');
+            updateStudentTabBadge();
             document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
 
             updateTeacherBadgeUI();
@@ -2561,6 +2588,7 @@ Bài 3:
                     </div>
                 `;
             }
+            updateStudentTabBadge();
         }
 
         function logoutStudentSession() {
@@ -2577,6 +2605,7 @@ Bài 3:
             document.getElementById('student-quiz-active').classList.add('hidden');
             document.getElementById('student-login-box').classList.remove('hidden');
 
+            updateStudentTabBadge();
             window.scrollTo({ top: 0, behavior: 'instant' });
 
             setTimeout(() => {
