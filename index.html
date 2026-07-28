@@ -2298,7 +2298,7 @@ Bài 3:
                         updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
 
                         if (activeStudentInfo && activeStudentInfo.studentId) {
-                            renderQuizQuestions();
+                            restoreStudentSessionUI();
                         }
 
                         return true;
@@ -2440,6 +2440,10 @@ Bài 3:
             renderClassSubmissionTracker();
             
             await fetchQuizFromCloud();
+
+            if (activeStudentInfo && activeStudentInfo.studentId) {
+                restoreStudentSessionUI();
+            }
 
             // DEFAULT MODE IS STUDENT VIEW (PROTECTS TEACHER VIEW FROM STUDENTS)
             switchMainTab('student');
