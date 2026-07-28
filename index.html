@@ -117,17 +117,24 @@
                     </div>
                 </div>
 
-                <!-- Tab Switcher (Góc Học Sinh mặc định & Góc Giáo Viên có Mật Khẩu + Tên GV) -->
-                <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 flex items-center gap-1 shadow-inner">
-                    <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
-                        <i class="fa-solid fa-user-graduate text-brand-600"></i>
-                        <span>Góc Học Sinh</span>
-                        <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
+                <!-- Tab Switcher & Feedback Trigger Button -->
+                <div class="flex items-center gap-3">
+                    <button onclick="openStudentFeedbackModal()" class="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold rounded-2xl border border-purple-200 shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-comment-dots text-purple-600 text-sm"></i>
+                        <span class="hidden sm:inline">Góp Ý & Báo Lỗi</span>
                     </button>
-                    <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
-                        <i class="fa-solid fa-user-tie text-amber-500"></i>
-                        <span>Góc Giáo Viên</span>
-                    </button>
+
+                    <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 flex items-center gap-1 shadow-inner">
+                        <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                            <i class="fa-solid fa-user-graduate text-brand-600"></i>
+                            <span>Góc Học Sinh</span>
+                            <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
+                        </button>
+                        <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
+                            <i class="fa-solid fa-user-tie text-amber-500"></i>
+                            <span>Góc Giáo Viên</span>
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -144,15 +151,18 @@
             
             <!-- Navigation Sub-tabs inside Teacher View -->
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang Đa Dạng
+                        <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang
                     </button>
                     <button id="subtab-classes-btn" onclick="switchTeacherSubTab('classes')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học & Học Sinh (<span id="total-classes-badge">0</span>)
+                        <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học (<span id="total-classes-badge">0</span>)
                     </button>
                     <button id="subtab-grades-btn" onclick="switchTeacherSubTab('grades')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm & Kết Quả (<span id="total-results-badge">0</span>)
+                        <i class="fa-solid fa-square-poll-vertical"></i> Bảng Điểm (<span id="total-results-badge">0</span>)
+                    </button>
+                    <button id="subtab-feedbacks-btn" onclick="switchTeacherSubTab('feedbacks')" class="sub-tab-btn bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-comments text-purple-600"></i> Hòm Thư Góp Ý (<span id="total-feedbacks-badge">0</span>)
                     </button>
                 </div>
 
@@ -369,6 +379,27 @@
                 </div>
             </div>
 
+            <!-- SUB-TAB 4: HÒM THƯ GÓP Ý & BÁO LỖI -->
+            <div id="teacher-subtab-feedbacks" class="hidden space-y-6">
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-comments text-purple-600"></i> Hòm Thư Góp Ý & Báo Lỗi Từ Học Sinh
+                            </h3>
+                            <p class="text-xs text-slate-500">Giúp Giáo viên lắng nghe phản hồi về câu hỏi hoặc đóng góp ý kiến phát triển website</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="clearAllFeedbacks()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200">
+                                <i class="fa-solid fa-trash"></i> Xóa tất cả góp ý
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="feedbacks-list-container" class="space-y-4"></div>
+                </div>
+            </div>
+
         </div>
 
 
@@ -390,9 +421,14 @@
                     <p class="text-xs text-emerald-100">Phân trang 3 bài tập độc lập & tự động biến slash option thành nút chọn!</p>
                 </div>
 
-                <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-amber-500"></i> LÀM BÀI NGAY (DÙNG THỬ)
-                </button>
+                <div class="flex items-center gap-3">
+                    <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
+                        <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
+                    </button>
+                    <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-amber-500"></i> LÀM BÀI NGAY (DÙNG THỬ)
+                    </button>
+                </div>
             </div>
 
             <!-- Streamlined Student Login Box -->
@@ -539,6 +575,61 @@
 
     </main>
 
+    <!-- STUDENT FEEDBACK & ERROR REPORT MODAL -->
+    <div id="student-feedback-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg shadow-inner">
+                        <i class="fa-solid fa-comment-dots"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-bold text-lg text-slate-900">Góp Ý & Báo Lỗi Cho Giáo Viên</h3>
+                        <p class="text-xs text-slate-500">Ý kiến của bạn sẽ giúp giáo viên cải thiện đề bài & website tốt hơn</p>
+                    </div>
+                </div>
+                <button onclick="closeStudentFeedbackModal()" class="text-slate-400 hover:text-slate-600 text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Mã HV / Tên của bạn:</label>
+                        <input type="text" id="fb-student-name" placeholder="Ví dụ: HS01 - Nguyễn Văn An" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Phân loại góp ý:</label>
+                        <select id="fb-type-select" onchange="toggleFbQuestionSelect()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                            <option value="report_error">🐞 Báo lỗi câu hỏi / đáp án</option>
+                            <option value="suggest_feature">💡 Đóng góp ý kiến phát triển website</option>
+                            <option value="grammar_question">❓ Thắc mắc ngữ pháp / Lời giải</option>
+                            <option value="other">💬 Ý kiến đóng góp khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="fb-question-select-box">
+                    <label class="block font-bold text-slate-700 mb-1">Chọn câu hỏi phát hiện lỗi (nếu có):</label>
+                    <select id="fb-question-select" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none"></select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nội dung chi tiết góp ý / báo lỗi:</label>
+                    <textarea id="fb-content-input" rows="4" placeholder="Nhập chi tiết góp ý hoặc miêu tả lỗi câu hỏi..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="closeStudentFeedbackModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Đóng
+                </button>
+                <button onclick="submitStudentFeedback()" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-heading font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> GỬI GÓP Ý NGAY
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- TEACHER LOGIN MODAL (WITH TEACHER NAME & PASSWORD) -->
     <div id="teacher-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
@@ -670,7 +761,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH TEACHER LOGIN (NAME & PASSWORD) -->
+    <!-- JAVASCRIPT LOGIC WITH STUDENT FEEDBACK & ERROR REPORTING -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -917,6 +1008,7 @@ Bài 3:
                 }
             ],
             grades: [],
+            feedbacks: [],
             currentQuestions: [],
             sections: [],
             wordBank: [],
@@ -1034,6 +1126,133 @@ Bài 3:
             }
 
             closeChangePasswordModal();
+        }
+
+        // STUDENT FEEDBACK & ERROR REPORT FUNCTIONS
+        function openStudentFeedbackModal() {
+            const stNameInput = document.getElementById('fb-student-name');
+            if (activeStudentInfo && activeStudentInfo.studentId && activeStudentInfo.studentName) {
+                stNameInput.value = `${activeStudentInfo.studentId} - ${activeStudentInfo.studentName} (${activeStudentInfo.className || 'Tự do'})`;
+            } else {
+                stNameInput.value = '';
+            }
+
+            const qSelect = document.getElementById('fb-question-select');
+            qSelect.innerHTML = '<option value="all">Toàn bộ đề bài / Không chọn câu cụ thể</option>';
+            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                appData.currentQuestions.forEach(q => {
+                    const opt = document.createElement('option');
+                    opt.value = q.id;
+                    opt.innerText = `Câu ${q.id}: ${q.title ? q.title.substring(0, 45) : 'Câu hỏi'}...`;
+                    qSelect.appendChild(opt);
+                });
+            }
+
+            document.getElementById('fb-content-input').value = '';
+            document.getElementById('student-feedback-modal').classList.remove('hidden');
+        }
+
+        function closeStudentFeedbackModal() {
+            document.getElementById('student-feedback-modal').classList.add('hidden');
+        }
+
+        function toggleFbQuestionSelect() {
+            const type = document.getElementById('fb-type-select').value;
+            const box = document.getElementById('fb-question-select-box');
+            box.style.display = (type === 'report_error' || type === 'grammar_question') ? 'block' : 'none';
+        }
+
+        async function submitStudentFeedback() {
+            const stName = document.getElementById('fb-student-name').value.trim();
+            const type = document.getElementById('fb-type-select').value;
+            const qId = document.getElementById('fb-question-select').value;
+            const content = document.getElementById('fb-content-input').value.trim();
+
+            if (!content) {
+                showNotification('Vui lòng nhập nội dung góp ý hoặc mô tả lỗi!', 'error');
+                return;
+            }
+
+            let typeLabel = '🐞 Báo lỗi câu hỏi';
+            if (type === 'suggest_feature') typeLabel = '💡 Góp ý phát triển web';
+            else if (type === 'grammar_question') typeLabel = '❓ Thắc mắc ngữ pháp';
+            else if (type === 'other') typeLabel = '💬 Góp ý khác';
+
+            const feedbackRecord = {
+                id: 'fb_' + Date.now(),
+                timestamp: new Date().toLocaleString('vi-VN'),
+                studentInfo: stName || (activeStudentInfo.studentName ? `${activeStudentInfo.studentId} - ${activeStudentInfo.studentName}` : 'Học sinh ẩn danh'),
+                type: type,
+                typeLabel: typeLabel,
+                questionId: (qId && qId !== 'all') ? `Câu ${qId}` : 'Chung',
+                content: content,
+                status: 'unread'
+            };
+
+            if (!appData.feedbacks) appData.feedbacks = [];
+            appData.feedbacks.unshift(feedbackRecord);
+            saveStorage();
+            renderFeedbacksList();
+
+            closeStudentFeedbackModal();
+            showNotification('💌 Cảm ơn bạn! Góp ý đã được gửi đến Giáo viên thành công.', 'success');
+
+            // Sync to Cloud
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+        }
+
+        function renderFeedbacksList() {
+            const container = document.getElementById('feedbacks-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!appData.feedbacks || appData.feedbacks.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-inbox text-4xl text-slate-300"></i>
+                        <p class="text-xs">Chưa có góp ý hoặc báo lỗi nào từ học sinh</p>
+                    </div>
+                `;
+                return;
+            }
+
+            appData.feedbacks.forEach((fb, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 hover:bg-white transition shadow-sm";
+                card.innerHTML = `
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 bg-purple-100 text-purple-800 text-[11px] font-bold rounded-full border border-purple-200">${fb.typeLabel}</span>
+                            <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-user-graduate text-slate-400 mr-1"></i> ${fb.studentInfo}</span>
+                            ${fb.questionId !== 'Chung' ? `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-full">${fb.questionId}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-slate-400">
+                            <span>${fb.timestamp}</span>
+                            <button onclick="deleteFeedback('${fb.id}')" class="text-rose-500 hover:text-rose-700 font-bold text-xs"><i class="fa-solid fa-trash"></i> Xóa</button>
+                        </div>
+                    </div>
+                    <div class="text-slate-800 text-xs sm:text-sm leading-relaxed font-medium pl-1">
+                        "${fb.content}"
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function deleteFeedback(fbId) {
+            if (confirm('Bạn có chắc muốn xóa góp ý này?')) {
+                appData.feedbacks = appData.feedbacks.filter(f => f.id !== fbId);
+                saveStorage();
+                renderFeedbacksList();
+            }
+        }
+
+        function clearAllFeedbacks() {
+            if (confirm('Bạn có chắc muốn xóa tất cả góp ý?')) {
+                appData.feedbacks = [];
+                saveStorage();
+                renderFeedbacksList();
+            }
         }
 
         function openAiModal() { document.getElementById('ai-modal').classList.remove('hidden'); }
@@ -1186,6 +1405,7 @@ Bài 3:
                     sections: appData.sections,
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
+                    feedbacks: appData.feedbacks || [],
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
                 await fetch(CLOUD_QUIZ_URL, {
@@ -1213,6 +1433,7 @@ Bài 3:
                         appData.sections = data.sections || [];
                         appData.wordBank = sanitizeWordBank(data.wordBank || []);
                         appData.quizDeadline = data.quizDeadline || null;
+                        if (data.feedbacks) appData.feedbacks = data.feedbacks;
                         saveStorage();
                         
                         document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
@@ -1220,6 +1441,7 @@ Bài 3:
                         document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
                         
                         updateDeadlineCountdown();
+                        renderFeedbacksList();
                         updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
                         return true;
                     }
@@ -1267,6 +1489,7 @@ Bài 3:
                 try { appData.wordBank = sanitizeWordBank(JSON.parse(savedWordBank)); } catch(e) {}
             }
             appData.wordBank = sanitizeWordBank(appData.wordBank);
+            if (!appData.feedbacks) appData.feedbacks = [];
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
@@ -1274,6 +1497,7 @@ Bài 3:
 
             updateTeacherBadgeUI();
             updateBadges();
+            renderFeedbacksList();
             updateDeadlineCountdown();
             setInterval(updateDeadlineCountdown, 60000);
 
@@ -1303,6 +1527,8 @@ Bài 3:
         function updateBadges() {
             document.getElementById('total-classes-badge').innerText = appData.classes ? appData.classes.length : 0;
             document.getElementById('total-results-badge').innerText = appData.grades ? appData.grades.length : 0;
+            const fbBadge = document.getElementById('total-feedbacks-badge');
+            if (fbBadge) fbBadge.innerText = appData.feedbacks ? appData.feedbacks.length : 0;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1311,6 +1537,7 @@ Bài 3:
             loadSampleData();
             renderClassesList();
             renderGradesTable();
+            renderFeedbacksList();
             
             await fetchQuizFromCloud();
 
@@ -1346,10 +1573,14 @@ Bài 3:
             document.getElementById('teacher-subtab-editor').classList.toggle('hidden', sub !== 'editor');
             document.getElementById('teacher-subtab-classes').classList.toggle('hidden', sub !== 'classes');
             document.getElementById('teacher-subtab-grades').classList.toggle('hidden', sub !== 'grades');
+            document.getElementById('teacher-subtab-feedbacks').classList.toggle('hidden', sub !== 'feedbacks');
 
             document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
             document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
+            document.getElementById('subtab-feedbacks-btn').classList.toggle('active', sub === 'feedbacks');
+
+            if (sub === 'feedbacks') renderFeedbacksList();
         }
 
         function createNewClass() {
@@ -2191,7 +2422,7 @@ Bài 3:
                             <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${q.id}</span>
                             <span class="font-heading font-bold text-sm text-slate-700">Câu ${q.id} / ${appData.currentQuestions.length}</span>
                         </div>
-                        <div id="q-status-badge-${q.id}"><span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">${badgeText}</span></div>
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-full">${badgeText}</span>
                     </div>
                     <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
                 `;
