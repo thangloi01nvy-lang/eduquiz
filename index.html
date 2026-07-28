@@ -704,6 +704,9 @@
                     <button onclick="startStudentQuizSession()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI (TÍNH ĐIỂM)
                     </button>
+                    <button onclick="quickTestActiveQuizSession()" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-bolt text-amber-600"></i> ⚡ Thử Đề Ngay (Tự Động Đăng Nhập Đúng Lớp)
+                    </button>
                 </div>
             </div>
 
@@ -1385,8 +1388,12 @@ Bài 3:
             if (loginClassSelect) {
                 const curVal = loginClassSelect.value;
                 loginClassSelect.innerHTML = studentOptionsHtml;
-                if (curVal && Array.from(loginClassSelect.options).some(o => o.value === curVal)) {
+                const targetClass = appData.quizTargetClass || 'all';
+
+                if (curVal && curVal !== 'Tự do' && Array.from(loginClassSelect.options).some(o => o.value === curVal)) {
                     loginClassSelect.value = curVal;
+                } else if (targetClass !== 'all' && Array.from(loginClassSelect.options).some(o => o.value === targetClass)) {
+                    loginClassSelect.value = targetClass;
                 }
             }
 
@@ -2601,6 +2608,26 @@ Bài 3:
 
             localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
             restoreStudentSessionUI();
+        }
+
+        function quickTestActiveQuizSession() {
+            const targetClass = appData.quizTargetClass || 'all';
+            
+            activeStudentInfo.studentId = 'TEST01';
+            activeStudentInfo.studentName = 'Giáo Viên Thử Đề';
+            activeStudentInfo.className = (targetClass === 'all') ? 'Tự do' : targetClass;
+
+            const idInput = document.getElementById('student-id-input');
+            const nameInput = document.getElementById('student-name-input');
+            const loginClassSelect = document.getElementById('student-login-class-select');
+
+            if (idInput) idInput.value = 'TEST01';
+            if (nameInput) nameInput.value = 'Giáo Viên Thử Đề';
+            if (loginClassSelect) loginClassSelect.value = activeStudentInfo.className;
+
+            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
+            restoreStudentSessionUI();
+            showNotification(`⚡ Đã tự động kích hoạt chế độ thử đề cho lớp: ${targetClass === 'all' ? 'Tất cả các lớp' : targetClass}!`, 'success');
         }
 
         function restoreStudentSessionUI() {
