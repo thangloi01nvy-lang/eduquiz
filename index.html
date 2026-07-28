@@ -418,15 +418,12 @@
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
                     </div>
                     <h3 class="font-heading font-bold text-xl">Đề Bài Sẵn Sàng: <span id="student-banner-q-count">20 câu hỏi (3 bài tập)</span></h3>
-                    <p class="text-xs text-emerald-100">Phân trang 3 bài tập độc lập & tự động biến slash option thành nút chọn!</p>
+                    <p class="text-xs text-emerald-100">Học sinh đăng nhập Mã HV & Họ tên bên dưới để làm bài và tính điểm chính xác!</p>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
                         <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
-                    </button>
-                    <button onclick="startTestDriveSession()" class="px-6 py-3 bg-white text-emerald-800 hover:bg-emerald-50 font-heading font-bold text-sm rounded-xl transition shadow-md flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-amber-500"></i> LÀM BÀI NGAY (DÙNG THỬ)
                     </button>
                 </div>
             </div>
@@ -467,9 +464,6 @@
                 <div class="space-y-2">
                     <button onclick="startStudentQuizSession()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI (TÍNH ĐIỂM)
-                    </button>
-                    <button onclick="startTestDriveSession()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
-                        ⚡ Bắt đầu nhanh (Không cần nhập tên)
                     </button>
                 </div>
             </div>
@@ -761,7 +755,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH STUDENT FEEDBACK & ERROR REPORTING -->
+    <!-- JAVASCRIPT LOGIC WITHOUT DEMO TEST DRIVE BUTTONS -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1750,14 +1744,6 @@ Bài 3:
             activeStudentInfo.studentName = stName;
             if (!activeStudentInfo.className) activeStudentInfo.className = 'Tự do';
 
-            localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
-            restoreStudentSessionUI();
-        }
-
-        function startTestDriveSession() {
-            activeStudentInfo.studentId = 'TEST01';
-            activeStudentInfo.studentName = 'Học sinh dùng thử';
-            activeStudentInfo.className = 'Lớp trải nghiệm';
             localStorage.setItem('eduquiz_active_student', JSON.stringify(activeStudentInfo));
             restoreStudentSessionUI();
         }
