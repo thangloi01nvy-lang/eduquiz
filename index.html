@@ -1272,7 +1272,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         let timerRunning = false;
 
         // TEACHER AUTHENTICATION & PROFILE STATE
-        let isTeacherAuthenticated = sessionStorage.getItem('eduquiz_teacher_auth') === 'true';
+        let isTeacherAuthenticated = true;
         let activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
 
         function formatDateVN(dateStr) {
@@ -2442,11 +2442,6 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         });
 
         async function switchMainTab(tab, bypassAuth = false) {
-            if (tab === 'teacher' && !isTeacherAuthenticated && !bypassAuth) {
-                openTeacherAuthModal();
-                return;
-            }
-
             document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
             document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
             
@@ -2464,6 +2459,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 }
             } else if (tab === 'teacher') {
                 renderClassSubmissionTracker();
+                renderClassAssignmentsPanel();
+                renderQuizLibrary();
             }
         }
 
