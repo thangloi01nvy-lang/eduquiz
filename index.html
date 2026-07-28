@@ -553,6 +553,26 @@
                     </div>
                 </div>
 
+                <!-- FEATURE 3: STUDENT PROGRESS ANALYTICS CARD -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-line text-indigo-600"></i> Theo Dõi Sự Tiến Bộ Của Học Sinh Qua Các Lần Làm Bài
+                            </h3>
+                            <p class="text-xs text-slate-500">Phân tích mức độ cải thiện điểm số và xem chi tiết câu đúng / sai từng lần làm bài</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <label class="text-xs font-bold text-slate-700">Chọn học sinh:</label>
+                            <select id="progress-student-select" onchange="renderStudentProgressAnalytics()" class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none min-w-[240px]">
+                                <!-- Dynamic Student Options -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="student-progress-analytics-container"></div>
+                </div>
+
                 <!-- GLOBAL GRADES TABLE -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -586,6 +606,7 @@
                                     <th class="py-3.5 px-4 font-bold text-center">Số câu đúng</th>
                                     <th class="py-3.5 px-4 font-bold text-center">Tỷ lệ %</th>
                                     <th class="py-3.5 px-4 font-bold text-center">Thời gian làm</th>
+                                    <th class="py-3.5 px-4 font-bold text-right">Chi tiết câu đúng/sai</th>
                                 </tr>
                             </thead>
                             <tbody id="grades-table-body" class="divide-y divide-slate-100"></tbody>
@@ -973,6 +994,32 @@
                 </button>
                 <button onclick="runGeminiAiParsing()" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-heading font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5">
                     <i class="fa-solid fa-bolt text-amber-300"></i> CHẠY AI PHÂN LOẠI NGAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMISSION DETAIL BREAKDOWN MODAL -->
+    <div id="submission-detail-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-2xl w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <div id="modal-detail-avatar" class="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-square-poll-vertical"></i>
+                    </div>
+                    <div>
+                        <h3 id="modal-detail-title" class="font-heading font-bold text-lg text-slate-900">Chi Tiết Bài Làm Của Học Sinh</h3>
+                        <p id="modal-detail-subtitle" class="text-xs text-slate-500">Xem lại đúng / sai từng câu và giải thích ngữ pháp</p>
+                    </div>
+                </div>
+                <button onclick="closeSubmissionDetailModal()" class="text-slate-400 hover:text-slate-600 text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="modal-detail-content" class="flex-1 overflow-y-auto space-y-4 pr-1"></div>
+
+            <div class="flex items-center justify-end pt-3 border-t border-slate-100">
+                <button onclick="closeSubmissionDetailModal()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Đóng
                 </button>
             </div>
         </div>
@@ -3471,14 +3518,42 @@ Bài 3:
             renderQuizQuestions();
             banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+            const questionDetails = appData.currentQuestions.map(q => {
+                const gradeRes = gradeSingleQuestion(q, studentAnswers);
+                let expected = (q.inlineBlanks && q.inlineBlanks.length > 0 && q.inlineBlanks[0].answer) 
+                    ? q.inlineBlanks[0].answer 
+                    : (q.answer || '');
+
+                const aiInfo = AI_EXPLANATION_DICTIONARY[q.id] || {
+                    trans: "Cấu trúc ngữ pháp tiếng Anh nâng cao.",
+                    grammar: q.explanation || "Đối chiếu với đáp án chuẩn của giáo viên.",
+                    tip: "Hãy chú ý từ khóa trong câu."
+                };
+
+                return {
+                    id: q.id,
+                    sectionTitle: q.sectionTitle || '',
+                    title: q.title || '',
+                    userVal: gradeRes.userVal || '',
+                    expected: expected,
+                    isCorrect: gradeRes.isCorrect,
+                    explanation: aiInfo.grammar,
+                    trans: aiInfo.trans,
+                    tip: aiInfo.tip
+                };
+            });
+
             const gradeRecord = {
+                id: 'grade_' + Date.now(),
                 timestamp: new Date().toLocaleString('vi-VN'),
                 className: activeStudentInfo.className || 'Tự do',
                 studentId: activeStudentInfo.studentId || 'N/A',
                 studentName: activeStudentInfo.studentName || 'N/A',
+                quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh',
                 scoreText: `${correctCount}/${appData.currentQuestions.length}`,
                 percent: percent,
-                timeSpent: formatTime(timerSeconds)
+                timeSpent: formatTime(timerSeconds),
+                details: questionDetails
             };
 
             if (!appData.grades) appData.grades = [];
@@ -3511,11 +3586,14 @@ Bài 3:
             tbody.innerHTML = '';
 
             if (!appData.grades || appData.grades.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400 text-xs">Chưa có kết quả làm bài nào</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-slate-400 text-xs">Chưa có kết quả làm bài nào</td></tr>`;
+                updateProgressStudentSelectOptions();
+                renderStudentProgressAnalytics();
                 return;
             }
 
-            appData.grades.forEach(g => {
+            appData.grades.forEach((g, idx) => {
+                const gradeId = g.id || `grade_idx_${idx}`;
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50 text-xs text-slate-700 font-medium";
                 tr.innerHTML = `
@@ -3526,9 +3604,238 @@ Bài 3:
                     <td class="py-3 px-4 text-center font-bold">${g.scoreText}</td>
                     <td class="py-3 px-4 text-center"><span class="px-2 py-0.5 rounded-full font-bold ${g.percent >= 70 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${g.percent}%</span></td>
                     <td class="py-3 px-4 text-center font-mono">${g.timeSpent}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="openSubmissionDetailModal('${gradeId}', ${idx})" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] rounded-lg transition border border-indigo-200 inline-flex items-center gap-1">
+                            <i class="fa-solid fa-magnifying-glass"></i> Chi tiết
+                        </button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            updateProgressStudentSelectOptions();
+            renderStudentProgressAnalytics();
+        }
+
+        function updateProgressStudentSelectOptions() {
+            const select = document.getElementById('progress-student-select');
+            if (!select) return;
+
+            const curVal = select.value;
+            let optionsHtml = '<option value="all">👥 Tất Cả Học Sinh Trong Bảng Điểm</option>';
+            const seenStudents = new Set();
+
+            if (appData.grades && appData.grades.length > 0) {
+                appData.grades.forEach(g => {
+                    const key = `${g.studentId} - ${g.studentName}`;
+                    if (!seenStudents.has(key)) {
+                        seenStudents.add(key);
+                        optionsHtml += `<option value="${key}">🎓 ${g.studentName} (${g.studentId} - ${g.className})</option>`;
+                    }
+                });
+            }
+
+            select.innerHTML = optionsHtml;
+            if (curVal && Array.from(select.options).some(o => o.value === curVal)) {
+                select.value = curVal;
+            }
+        }
+
+        function renderStudentProgressAnalytics() {
+            const container = document.getElementById('student-progress-analytics-container');
+            const select = document.getElementById('progress-student-select');
+            if (!container || !select) return;
+
+            container.innerHTML = '';
+
+            if (!appData.grades || appData.grades.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs">
+                        <i class="fa-solid fa-chart-line text-3xl text-slate-300 mb-2"></i>
+                        <p>Chưa có dữ liệu làm bài để phân tích sự tiến bộ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const selectedKey = select.value;
+            let filteredGrades = appData.grades;
+
+            if (selectedKey !== 'all') {
+                filteredGrades = appData.grades.filter(g => `${g.studentId} - ${g.studentName}` === selectedKey);
+            }
+
+            if (filteredGrades.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Không tìm thấy dữ liệu cho học sinh này</div>`;
+                return;
+            }
+
+            const chronologicalGrades = [...filteredGrades].reverse();
+            const attemptsCount = chronologicalGrades.length;
+            const scores = chronologicalGrades.map(g => g.percent);
+            const bestScore = Math.max(...scores);
+            const firstScore = scores[0];
+            const latestScore = scores[scores.length - 1];
+            const deltaPercent = latestScore - firstScore;
+
+            let deltaBadgeHtml = '';
+            if (attemptsCount > 1) {
+                if (deltaPercent > 0) {
+                    deltaBadgeHtml = `<span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full border border-emerald-300">📈 Tiến bộ +${deltaPercent}%</span>`;
+                } else if (deltaPercent < 0) {
+                    deltaBadgeHtml = `<span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-xs rounded-full border border-rose-300">📉 Giảm ${deltaPercent}%</span>`;
+                } else {
+                    deltaBadgeHtml = `<span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-full border border-slate-300">➖ Giữ nguyên ${latestScore}%</span>`;
+                }
+            } else {
+                deltaBadgeHtml = `<span class="px-2.5 py-0.5 bg-indigo-100 text-indigo-800 font-bold text-xs rounded-full border border-indigo-200">Làm lần đầu</span>`;
+            }
+
+            let html = `
+                <!-- Metrics Header -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-indigo-50/60 border border-indigo-200 p-4 rounded-2xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-list-ol"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-indigo-600 font-bold uppercase">Số Lần Làm Bài</div>
+                            <div class="font-bold text-indigo-950 text-lg">${attemptsCount} lần</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-50/60 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-emerald-600 font-bold uppercase">Điểm Cao Nhất</div>
+                            <div class="font-bold text-emerald-950 text-lg">${bestScore}%</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-2xl flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-bold">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-amber-800 font-bold uppercase">Mức Độ Tiến Bộ</div>
+                            <div class="mt-0.5">${deltaBadgeHtml}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attempts History Timeline Cards -->
+                <div class="space-y-3">
+                    <h4 class="font-heading font-bold text-sm text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Lịch Sử Chi Tiết Qua Các Lần Làm:
+                    </h4>
+                    <div class="space-y-3">
+            `;
+
+            chronologicalGrades.forEach((g, idx) => {
+                const attemptNum = idx + 1;
+                const origIndex = appData.grades.indexOf(g);
+                const gradeId = g.id || `grade_idx_${origIndex}`;
+
+                html += `
+                    <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 hover:bg-white transition shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-slate-900 text-white font-heading font-bold text-xs flex items-center justify-center">
+                                Lần ${attemptNum}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-900 text-sm">${g.studentName} (${g.studentId})</span>
+                                    <span class="px-2 py-0.5 bg-slate-200 text-slate-700 font-bold text-[10px] rounded-full">${g.className}</span>
+                                </div>
+                                <div class="text-xs text-slate-400">📅 ${g.timestamp} • Thời gian làm: ${g.timeSpent}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <div class="font-heading font-extrabold text-lg ${g.percent >= 70 ? 'text-emerald-600' : 'text-rose-600'}">${g.scoreText} (${g.percent}%)</div>
+                            </div>
+                            <button onclick="openSubmissionDetailModal('${gradeId}', ${origIndex})" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-magnifying-glass"></i> Xem Câu Đúng/Sai
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function openSubmissionDetailModal(gradeId, index) {
+            let gradeRecord = (appData.grades || []).find(g => g.id === gradeId);
+            if (!gradeRecord && index !== undefined && appData.grades[index]) {
+                gradeRecord = appData.grades[index];
+            }
+            if (!gradeRecord) return;
+
+            const modal = document.getElementById('submission-detail-modal');
+            const titleElem = document.getElementById('modal-detail-title');
+            const subtitleElem = document.getElementById('modal-detail-subtitle');
+            const contentElem = document.getElementById('modal-detail-content');
+
+            titleElem.innerText = `Chi Tiết Bài Làm - ${gradeRecord.studentName} (${gradeRecord.studentId})`;
+            subtitleElem.innerText = `Lớp ${gradeRecord.className} • Ngày: ${gradeRecord.timestamp} • Điểm: ${gradeRecord.scoreText} (${gradeRecord.percent}%)`;
+
+            contentElem.innerHTML = '';
+
+            let detailsList = gradeRecord.details;
+            if (!detailsList || !Array.isArray(detailsList) || detailsList.length === 0) {
+                detailsList = (appData.currentQuestions || []).map(q => ({
+                    id: q.id,
+                    sectionTitle: q.sectionTitle || '',
+                    title: q.title || '',
+                    userVal: 'Đã hoàn thành',
+                    expected: q.answer || '',
+                    isCorrect: true,
+                    explanation: q.explanation || (AI_EXPLANATION_DICTIONARY[q.id] ? AI_EXPLANATION_DICTIONARY[q.id].grammar : ''),
+                    trans: AI_EXPLANATION_DICTIONARY[q.id] ? AI_EXPLANATION_DICTIONARY[q.id].trans : ''
+                }));
+            }
+
+            detailsList.forEach((item, idx) => {
+                const card = document.createElement('div');
+                const isOk = item.isCorrect;
+                card.className = `p-4 rounded-2xl border ${isOk ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'} space-y-2 text-xs`;
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                        <div class="flex items-center gap-2 font-bold text-slate-800">
+                            <span class="w-6 h-6 rounded-lg ${isOk ? 'bg-emerald-600' : 'bg-rose-600'} text-white flex items-center justify-center text-[11px]">${idx + 1}</span>
+                            <span>${item.title || `Câu hỏi ${idx + 1}`}</span>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full font-bold text-[10px] ${isOk ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'} uppercase">
+                            ${isOk ? '🟢 Đúng' : '🔴 Sai'}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-medium">
+                        <div><b>Học sinh trả lời:</b> <span class="font-mono ${isOk ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}">${item.userVal || '<i class="text-rose-400 font-normal">(Bỏ trống - Tính sai)</i>'}</span></div>
+                        <div><b>Đáp án chuẩn:</b> <span class="font-mono text-brand-700 font-bold">${item.expected || 'Đáp án mẫu'}</span></div>
+                    </div>
+
+                    ${item.explanation ? `
+                        <div class="p-2.5 bg-white/90 rounded-xl border border-slate-200 text-[11px] text-slate-700 space-y-1">
+                            ${item.trans ? `<div><b>🇻🇳 Dịch:</b> ${item.trans}</div>` : ''}
+                            <div><b>📘 Giải thích:</b> ${item.explanation}</div>
+                        </div>
+                    ` : ''}
+                `;
+                contentElem.appendChild(card);
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeSubmissionDetailModal() {
+            document.getElementById('submission-detail-modal').classList.add('hidden');
         }
 
         function exportGradesToCSV() {
