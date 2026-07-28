@@ -117,7 +117,7 @@
                     </div>
                 </div>
 
-                <!-- Tab Switcher (Góc Học Sinh mặc định & Góc Giáo Viên có Mật Khẩu) -->
+                <!-- Tab Switcher (Góc Học Sinh mặc định & Góc Giáo Viên có Mật Khẩu + Tên GV) -->
                 <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 flex items-center gap-1 shadow-inner">
                     <button id="tab-student-btn" onclick="switchMainTab('student')" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
                         <i class="fa-solid fa-user-graduate text-brand-600"></i>
@@ -125,7 +125,7 @@
                         <span id="quiz-count-badge" class="ml-1 px-2 py-0.5 text-xs font-bold bg-brand-500 text-white rounded-full">20</span>
                     </button>
                     <button id="tab-teacher-btn" onclick="switchMainTab('teacher')" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 transition-all duration-200 flex items-center gap-2">
-                        <i class="fa-solid fa-lock text-amber-500"></i>
+                        <i class="fa-solid fa-user-tie text-amber-500"></i>
                         <span>Góc Giáo Viên</span>
                     </button>
                 </div>
@@ -138,7 +138,7 @@
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         <!-- ================================================================= -->
-        <!-- TAB 1: GÓC GIÁO VIÊN (TEACHER MODE - BẢO VỆ BẰNG MẬT KHẨU) -->
+        <!-- TAB 1: GÓC GIÁO VIÊN (TEACHER MODE - BẢO VỆ BẰNG TÊN & MẬT KHẨU) -->
         <!-- ================================================================= -->
         <div id="teacher-view" class="hidden space-y-6">
             
@@ -157,11 +157,16 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    <!-- Active Teacher Name Badge -->
+                    <span id="active-teacher-badge" class="px-3.5 py-1.5 bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-user-tie text-amber-600"></i> GV: <span id="active-teacher-name-tag">Giáo Viên</span>
+                    </span>
+
                     <button onclick="openChangePasswordModal()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition border border-slate-200 flex items-center gap-1.5">
-                        <i class="fa-solid fa-key text-amber-500"></i> Đổi mật khẩu GV
+                        <i class="fa-solid fa-pen-to-square text-amber-500"></i> Đổi Tên / Mật Khẩu
                     </button>
                     <button onclick="lockTeacherView()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition border border-rose-200 flex items-center gap-1.5">
-                        <i class="fa-solid fa-lock"></i> Khóa góc Giáo Viên
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất GV
                     </button>
                 </div>
             </div>
@@ -534,23 +539,34 @@
 
     </main>
 
-    <!-- TEACHER PASSWORD AUTHENTICATION MODAL -->
+    <!-- TEACHER LOGIN MODAL (WITH TEACHER NAME & PASSWORD) -->
     <div id="teacher-auth-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div class="text-center space-y-2">
                 <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner border border-amber-200">
                     <i class="fa-solid fa-user-lock"></i>
                 </div>
-                <h3 class="font-heading font-bold text-xl text-slate-900">Xác Nhận Mật Khẩu Giáo Viên</h3>
-                <p class="text-xs text-slate-500">Mật khẩu mặc định là: <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-brand-700 font-bold">123456</code> (Bạn có thể đổi mật khẩu sau)</p>
+                <h3 class="font-heading font-bold text-xl text-slate-900">Đăng Nhập Góc Giáo Viên</h3>
+                <p class="text-xs text-slate-500">Mật khẩu mặc định là: <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-brand-700 font-bold">123456</code></p>
             </div>
 
-            <div class="space-y-3">
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Mật Khẩu Giáo Viên:</label>
-                <div class="relative">
-                    <input type="password" id="teacher-password-input" onkeydown="if(event.key==='Enter') verifyTeacherPassword()" placeholder="Nhập mật khẩu..." 
-                        class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
-                    <i class="fa-solid fa-key absolute left-3.5 top-4 text-slate-400"></i>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Họ và Tên Giáo Viên:</label>
+                    <div class="relative">
+                        <input type="text" id="teacher-name-input" placeholder="Ví dụ: Thầy Thắng Lợi, Cô Lan..." 
+                            class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <i class="fa-solid fa-user-tie absolute left-3.5 top-4 text-slate-400"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Mật Khẩu Giáo Viên:</label>
+                    <div class="relative">
+                        <input type="password" id="teacher-password-input" onkeydown="if(event.key==='Enter') verifyTeacherPassword()" placeholder="Nhập mật khẩu..." 
+                            class="w-full p-3.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                        <i class="fa-solid fa-key absolute left-3.5 top-4 text-slate-400"></i>
+                    </div>
                 </div>
             </div>
 
@@ -565,23 +581,27 @@
         </div>
     </div>
 
-    <!-- CHANGE TEACHER PASSWORD MODAL -->
+    <!-- CHANGE TEACHER NAME & PASSWORD MODAL -->
     <div id="change-password-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
-                    <i class="fa-solid fa-key text-amber-500"></i> Đổi Mật Khẩu Giáo Viên
+                    <i class="fa-solid fa-pen-to-square text-amber-500"></i> Đổi Tên & Mật Khẩu Giáo Viên
                 </h3>
                 <button onclick="closeChangePasswordModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="space-y-4 text-xs">
                 <div>
+                    <label class="block font-bold text-slate-700 mb-1">Họ và Tên Giáo Viên mới:</label>
+                    <input type="text" id="teacher-name-edit-input" placeholder="Tên Giáo Viên..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
                     <label class="block font-bold text-slate-700 mb-1">Mật khẩu cũ:</label>
                     <input type="password" id="old-pass-input" placeholder="Mật khẩu hiện tại..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block font-bold text-slate-700 mb-1">Mật khẩu mới:</label>
+                    <label class="block font-bold text-slate-700 mb-1">Mật khẩu mới (Nếu không đổi mật khẩu thì giữ nguyên):</label>
                     <input type="password" id="new-pass-input" placeholder="Nhập mật khẩu mới..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                 </div>
             </div>
@@ -591,7 +611,7 @@
                     Đóng
                 </button>
                 <button onclick="saveNewTeacherPassword()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-md">
-                    Lưu Mật Khẩu Mới
+                    Lưu Thay Đổi
                 </button>
             </div>
         </div>
@@ -650,7 +670,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH BOTTOM NAVIGATION & CONDITIONAL SUBMIT -->
+    <!-- JAVASCRIPT LOGIC WITH TEACHER LOGIN (NAME & PASSWORD) -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -779,7 +799,7 @@ Bài 3:
 
         const INITIAL_SAMPLE_TEXT = SAMPLE_DATASETS.multi_type;
 
-        // EMBEDDED AI PEDAGOGICAL KNOWLEDGE DICTIONARY FOR EXPLANATIONS
+        // EMBEDDED PEDAGOGICAL KNOWLEDGE DICTIONARY FOR EXPLANATIONS
         const AI_EXPLANATION_DICTIONARY = {
             1: {
                 trans: "Ý tưởng của anh ấy rất sáng tạo và đổi mới nên anh ấy rõ ràng có thể suy luận đột phá.",
@@ -912,17 +932,30 @@ Bài 3:
         let timerSeconds = 0;
         let timerRunning = false;
 
-        // TEACHER AUTHENTICATION STATE
+        // TEACHER AUTHENTICATION & PROFILE STATE
         let isTeacherAuthenticated = sessionStorage.getItem('eduquiz_teacher_auth') === 'true';
+        let activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
 
         function getTeacherPassword() {
             return localStorage.getItem('eduquiz_teacher_password') || '123456';
         }
 
+        function updateTeacherBadgeUI() {
+            const tag = document.getElementById('active-teacher-name-tag');
+            if (tag) tag.innerText = activeTeacherName || 'Giáo Viên';
+        }
+
         function openTeacherAuthModal() {
+            document.getElementById('teacher-name-input').value = activeTeacherName || '';
             document.getElementById('teacher-password-input').value = '';
             document.getElementById('teacher-auth-modal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('teacher-password-input').focus(), 100);
+            setTimeout(() => {
+                if (!document.getElementById('teacher-name-input').value) {
+                    document.getElementById('teacher-name-input').focus();
+                } else {
+                    document.getElementById('teacher-password-input').focus();
+                }
+            }, 100);
         }
 
         function closeTeacherAuthModal() {
@@ -930,14 +963,25 @@ Bài 3:
         }
 
         function verifyTeacherPassword() {
+            const tName = document.getElementById('teacher-name-input').value.trim();
             const inputPass = document.getElementById('teacher-password-input').value;
             const actualPass = getTeacherPassword();
 
+            if (!tName) {
+                showNotification('Vui lòng nhập Họ và Tên Giáo Viên!', 'error');
+                return;
+            }
+
             if (inputPass === actualPass) {
                 isTeacherAuthenticated = true;
+                activeTeacherName = tName;
                 sessionStorage.setItem('eduquiz_teacher_auth', 'true');
+                sessionStorage.setItem('eduquiz_teacher_name', tName);
+                localStorage.setItem('eduquiz_teacher_name', tName);
+
                 closeTeacherAuthModal();
-                showNotification('🔓 Đã xác minh quyền Giáo Viên thành công!', 'success');
+                updateTeacherBadgeUI();
+                showNotification(`🔓 Xin chào ${tName}! Đăng nhập thành công.`, 'success');
                 switchMainTab('teacher', true);
             } else {
                 showNotification('❌ Mật khẩu không chính xác! Vui lòng thử lại.', 'error');
@@ -948,10 +992,11 @@ Bài 3:
             isTeacherAuthenticated = false;
             sessionStorage.removeItem('eduquiz_teacher_auth');
             switchMainTab('student');
-            showNotification('🔒 Đã khóa quyền truy cập Góc Giáo Viên!', 'info');
+            showNotification('🔒 Đã đăng xuất khỏi Góc Giáo Viên!', 'info');
         }
 
         function openChangePasswordModal() {
+            document.getElementById('teacher-name-edit-input').value = activeTeacherName || '';
             document.getElementById('old-pass-input').value = '';
             document.getElementById('new-pass-input').value = '';
             document.getElementById('change-password-modal').classList.remove('hidden');
@@ -962,21 +1007,33 @@ Bài 3:
         }
 
         function saveNewTeacherPassword() {
+            const newName = document.getElementById('teacher-name-edit-input').value.trim();
             const oldPass = document.getElementById('old-pass-input').value;
             const newPass = document.getElementById('new-pass-input').value.trim();
+
+            if (!newName) {
+                showNotification('Vui lòng nhập Tên Giáo Viên!', 'error');
+                return;
+            }
 
             if (oldPass !== getTeacherPassword()) {
                 showNotification('❌ Mật khẩu cũ không chính xác!', 'error');
                 return;
             }
-            if (!newPass || newPass.length < 4) {
-                showNotification('Vui lòng nhập mật khẩu mới tối thiểu 4 ký tự!', 'error');
-                return;
+
+            activeTeacherName = newName;
+            sessionStorage.setItem('eduquiz_teacher_name', newName);
+            localStorage.setItem('eduquiz_teacher_name', newName);
+            updateTeacherBadgeUI();
+
+            if (newPass && newPass.length >= 4) {
+                localStorage.setItem('eduquiz_teacher_password', newPass);
+                showNotification('🔑 Đã đổi Tên & Mật khẩu Giáo Viên thành công!', 'success');
+            } else {
+                showNotification('👤 Đã cập nhật Tên Giáo Viên thành công!', 'success');
             }
 
-            localStorage.setItem('eduquiz_teacher_password', newPass);
             closeChangePasswordModal();
-            showNotification('🔑 Đã đổi mật khẩu Giáo Viên thành công!', 'success');
         }
 
         function openAiModal() { document.getElementById('ai-modal').classList.remove('hidden'); }
@@ -1215,6 +1272,7 @@ Bài 3:
             document.getElementById('quiz-count-badge').classList.remove('hidden');
             document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
 
+            updateTeacherBadgeUI();
             updateBadges();
             updateDeadlineCountdown();
             setInterval(updateDeadlineCountdown, 60000);
@@ -1898,7 +1956,7 @@ Bài 3:
             }
         }
 
-        // ACCURATE & AI-ENHANCED GRADING ENGINE
+        // ACCURATE & PEDAGOGICAL GRADING ENGINE
         function gradeSingleQuestion(q, studentAnswersMap) {
             const rawUserVal = studentAnswersMap[`q_${q.id}`] || studentAnswersMap[`q_${q.id}_blank_0`] || '';
             const userVal = rawUserVal.trim();
@@ -2187,7 +2245,7 @@ Bài 3:
                     `;
                 }
 
-                // PEDAGOGICAL EXPLANATION & ACCURATE SUBMITTED FEEDBACK BOX (REMOVED 'AI' LABEL)
+                // PEDAGOGICAL EXPLANATION & ACCURATE SUBMITTED FEEDBACK BOX
                 if (isSubmitted) {
                     const gradeRes = gradeSingleQuestion(q, studentAnswers);
                     const isCorrect = gradeRes.isCorrect;
@@ -2217,7 +2275,7 @@ Bài 3:
                                 <div><b>Đáp án chuẩn:</b> <span class="font-mono text-brand-700 font-bold">${expectedAnswerStr}</span></div>
                             </div>
                             
-                            <!-- RICH PEDAGOGICAL EXPLANATION BADGE (REMOVED 'AI' TEXT) -->
+                            <!-- RICH PEDAGOGICAL EXPLANATION BADGE -->
                             <div class="p-3 bg-white/90 rounded-xl border border-slate-200 space-y-1.5 shadow-sm text-slate-700">
                                 <div class="font-bold text-purple-700 flex items-center gap-1.5 text-xs border-b border-slate-100 pb-1">
                                     <i class="fa-solid fa-book-open text-purple-500"></i> ✨ Giải Thích Ngữ Pháp & Dịch Nghĩa:
