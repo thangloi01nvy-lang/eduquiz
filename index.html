@@ -54,10 +54,21 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .tab-btn.active {
-            background-color: #ffffff;
-            color: #026fc7;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        .tab-btn {
+            cursor: pointer !important;
+            user-select: none;
+        }
+
+        .tab-btn.active#tab-student-btn {
+            background-color: #026fc7 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(2, 111, 199, 0.2);
+        }
+
+        .tab-btn.active#tab-teacher-btn {
+            background-color: #f59e0b !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2);
         }
 
         .sub-tab-btn.active {
@@ -2443,13 +2454,29 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         async function switchMainTab(tab, bypassAuth = false) {
             try {
-                document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
-                document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
-                
-                document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
-                document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
+                const teacherView = document.getElementById('teacher-view');
+                const studentView = document.getElementById('student-view');
+                const teacherBtn = document.getElementById('tab-teacher-btn');
+                const studentBtn = document.getElementById('tab-student-btn');
 
-                if (tab === 'student') {
+                if (tab === 'teacher') {
+                    if (teacherView) teacherView.classList.remove('hidden');
+                    if (studentView) studentView.classList.add('hidden');
+                    if (teacherBtn) teacherBtn.classList.add('active');
+                    if (studentBtn) studentBtn.classList.remove('active');
+
+                    switchTeacherSubTab('editor');
+                    renderClassSubmissionTracker();
+                    renderClassAssignmentsPanel();
+                    renderQuizLibrary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    showNotification('⚡ Đã chuyển sang Góc Giáo Viên (Chế độ Soạn bài & Quản lý)', 'info');
+                } else {
+                    if (teacherView) teacherView.classList.add('hidden');
+                    if (studentView) studentView.classList.remove('hidden');
+                    if (teacherBtn) teacherBtn.classList.remove('active');
+                    if (studentBtn) studentBtn.classList.add('active');
+
                     activeSectionIndex = 0;
                     if (activeStudentInfo && activeStudentInfo.studentId) {
                         restoreStudentSessionUI();
@@ -2457,12 +2484,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         document.getElementById('student-login-box').classList.remove('hidden');
                         document.getElementById('student-quiz-active').classList.add('hidden');
                     }
-                    await fetchQuizFromCloud();
-                } else if (tab === 'teacher') {
-                    switchTeacherSubTab('editor');
-                    renderClassSubmissionTracker();
-                    renderClassAssignmentsPanel();
-                    renderQuizLibrary();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             } catch(err) {
                 console.error("Error switching tab:", err);
