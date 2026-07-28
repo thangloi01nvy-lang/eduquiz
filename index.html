@@ -2848,8 +2848,18 @@ Bài 3:
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
                 cleanTitle = cleanTitle.replace(/^##\s*/, '');
 
-                if (!cleanTitle.includes('[') && !cleanTitle.includes('___') && cleanTitle.includes('/')) {
-                    cleanTitle = cleanTitle.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                if (!cleanTitle.includes('[') && !cleanTitle.includes('___')) {
+                    cleanTitle = cleanTitle.replace(/\((ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\)/gi, '[$1]');
+                    cleanTitle = cleanTitle.replace(/\b(ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\b/gi, '[$1]');
+                    if (cleanTitle.includes('/')) {
+                        cleanTitle = cleanTitle.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                    }
+                }
+
+                if (currentQ.answer && ['ID', 'DP'].includes(currentQ.answer.toUpperCase().trim())) {
+                    if (!cleanTitle.includes('[')) {
+                        cleanTitle += ' [ID/DP]';
+                    }
                 }
 
                 const bracketRegex = /\[(.*?)\]/g;
@@ -3299,10 +3309,14 @@ Bài 3:
 
                 let titleHtml = marked.parseInline(q.title || '');
 
-                // DYNAMIC RECONSTRUCTION SAFETY NET FOR INLINE BLANKS & SLASH OPTIONS
+                // DYNAMIC RECONSTRUCTION SAFETY NET FOR INLINE BLANKS & SLASH OPTIONS (E.G. ID/DP)
                 if ((!q.inlineBlanks || q.inlineBlanks.length === 0) && q.title) {
-                    if (!q.title.includes('[') && !q.title.includes('___') && q.title.includes('/')) {
-                        q.title = q.title.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                    if (!q.title.includes('[') && !q.title.includes('___')) {
+                        q.title = q.title.replace(/\((ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\)/gi, '[$1]');
+                        q.title = q.title.replace(/\b(ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\b/gi, '[$1]');
+                        if (q.title.includes('/')) {
+                            q.title = q.title.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
+                        }
                         titleHtml = marked.parseInline(q.title);
                     }
                     const matches = [...q.title.matchAll(/\[(.*?)\]/g)];
@@ -3312,9 +3326,22 @@ Bài 3:
                             const content = m[1].trim();
                             if (content.includes('/')) {
                                 const choices = content.split('/').map(c => c.trim());
-                                q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: choices[0] });
+                                q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: q.answer || choices[0] });
                             }
                         });
+                    }
+                }
+
+                if ((!q.inlineBlanks || q.inlineBlanks.length === 0) && q.answer && ['ID', 'DP'].includes(q.answer.toUpperCase().trim())) {
+                    const ansUpper = q.answer.toUpperCase().trim();
+                    q.inlineBlanks = [{
+                        placeholder: '[ID/DP]',
+                        choices: ['ID', 'DP'],
+                        answer: ansUpper
+                    }];
+                    if (!q.title.includes('[ID/DP]') && !q.title.includes('[ID / DP]')) {
+                        q.title += ' [ID/DP]';
+                        titleHtml = marked.parseInline(q.title);
                     }
                 }
 
