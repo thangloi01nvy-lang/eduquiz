@@ -456,6 +456,9 @@
                             </h3>
                             <p class="text-xs text-slate-500">Xem chính xác lớp nào đang giao bài gì. Đảm bảo biệt lập 100% không bị lẫn lộn giữa các lớp.</p>
                         </div>
+                        <button onclick="removeAllClassAssignments()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-xl transition border border-rose-200 flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-trash-can"></i> Hủy giao bài tất cả các lớp
+                        </button>
                     </div>
 
                     <div id="class-assignments-list-container" class="space-y-3"></div>
@@ -1661,13 +1664,22 @@ Bài 3:
 
         async function removeQuizFromClass(className) {
             if (confirm(`Bạn có chắc muốn hủy giao bài tập cho lớp ${className}?`)) {
-                if (appData.classAssignments) {
-                    delete appData.classAssignments[className];
-                }
+                if (!appData.classAssignments) appData.classAssignments = {};
+                delete appData.classAssignments[className];
                 saveStorage();
                 renderClassAssignmentsPanel();
-                await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
-                showNotification(`🗑️ Đã hủy bài tập giao cho lớp ${className}!`, 'info');
+                await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
+                showNotification(`🗑️ Đã hủy bài tập giao cho lớp ${className} thành công!`, 'info');
+            }
+        }
+
+        async function removeAllClassAssignments() {
+            if (confirm('Bạn có chắc muốn HỦY GIAO BÀI TẬP cho TẤT CẢ CÁC LỚP? Học sinh các lớp sẽ không thấy bài tập nữa.')) {
+                appData.classAssignments = {};
+                saveStorage();
+                renderClassAssignmentsPanel();
+                await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
+                showNotification('🗑️ Đã hủy tất cả bài tập đã giao cho mọi lớp thành công!', 'info');
             }
         }
 
@@ -2180,12 +2192,14 @@ Bài 3:
             return Array.from(new Set(cleaned));
         }
 
-        async function publishQuizToCloud(questions, wordBank) {
+        async function publishQuizToCloud(questions, wordBank, autoAssign = true) {
             updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
-                assignQuizToClassTarget(appData.quizTargetClass || 'all');
+                if (autoAssign) {
+                    assignQuizToClassTarget(appData.quizTargetClass || 'all');
+                }
 
-                const compactQuestions = questions.map(q => ({
+                const compactQuestions = (questions || []).map(q => ({
                     id: q.id,
                     sectionIndex: q.sectionIndex,
                     sectionTitle: q.sectionTitle,
@@ -2218,7 +2232,6 @@ Bài 3:
                     body: JSON.stringify(payload)
                 });
                 updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
-                showNotification(`🚀 Bài tập đã giao cho ${appData.quizTargetClass === 'all' ? 'Tất cả các lớp' : appData.quizTargetClass}!`, 'success');
             } catch(e) {
                 console.warn('Cloud publish fallback to local:', e);
                 updateCloudStatus('Đã lưu nội bộ', 'success');
