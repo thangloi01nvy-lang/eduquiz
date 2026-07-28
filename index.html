@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Thư Viện Đề Bài Tự Động Đồng Bộ Cloud</title>
+    <title>EduQuiz Pro - Quản Lý Lớp Học & Giao Đề Bài Cho Từng Lớp Theo Yêu Cầu</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -153,7 +153,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div class="flex flex-wrap items-center gap-2">
                     <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
-                        <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang
+                        <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Giao Bài
                     </button>
                     <button id="subtab-library-btn" onclick="switchTeacherSubTab('library')" class="sub-tab-btn bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
                         <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Thư Viện Đề Bài (<span id="total-library-badge">0</span>)
@@ -187,17 +187,24 @@
             <!-- SUB-TAB 1: SOẠN BÀI TẬP (QUIZ EDITOR & PREVIEW) -->
             <div id="teacher-subtab-editor" class="space-y-6">
                 
-                <!-- QUIZ METADATA FORM CARD (TÊN BÀI TẬP, TRÌNH ĐỘ, NGÀY THÁNG NĂM TẠO - NGÀY/THÁNG/NĂM) -->
+                <!-- QUIZ METADATA FORM CARD WITH TARGET CLASS SELECTOR -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <i class="fa-solid fa-heading text-brand-600"></i> Thông Tin Bài Tập (Tiêu đề, Trình độ & Ngày/Tháng/Năm tạo)
+                        <i class="fa-solid fa-heading text-brand-600"></i> Thông Tin Bài Tập & Chọn Lớp Học Được Giao
                     </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div class="md:col-span-1">
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Tên Bài Tập / Tiêu Đề:</label>
                             <input type="text" id="quiz-title-input" placeholder="Ví dụ: Bài Tập Kỹ Năng Mềm (Transferable Skills)" 
                                 class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-purple-700 uppercase tracking-wider mb-1.5"><i class="fa-solid fa-users-rectangle mr-1"></i>Giao Cho Lớp Học Nào?</label>
+                            <select id="quiz-target-class-select" class="w-full p-3 bg-purple-50 border-2 border-purple-200 rounded-xl text-sm font-bold text-purple-900 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+                                <option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>
+                            </select>
                         </div>
 
                         <div>
@@ -292,7 +299,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <button onclick="generateQuiz()" class="sm:col-span-2 py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white font-heading font-bold text-base rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
-                                <span>TẠO & PHÁT HÀNH LÊN ĐÁM MÂY</span>
+                                <span>TẠO & PHÁT HÀNH GIAO CHO LỚP HỌC</span>
                             </button>
                             <button onclick="saveCurrentQuizToLibrary()" class="py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-bookmark text-base"></i>
@@ -340,10 +347,11 @@
                             <div>
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full"><i class="fa-solid fa-cloud-check mr-1"></i>Đã Lưu Đám Mây</span>
+                                    <span id="preview-target-class-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 text-xs font-bold rounded-full">Giao cho: Tất cả các lớp</span>
                                     <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">20 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
-                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa các bài tập để làm bài rất mượt mà.</p>
+                                <p class="text-xs text-emerald-100 mt-1">Học sinh thuộc đúng lớp học được giao sẽ làm bài rất mượt mà.</p>
                             </div>
                             
                             <div class="flex items-center gap-2">
@@ -363,7 +371,7 @@
 
             </div>
 
-            <!-- SUB-TAB 2: THƯ VIỆN ĐỀ BÀI ĐÃ LƯU (QUIZ LIBRARY MANAGEMENT) -->
+            <!-- SUB-TAB 2: THƯ VIỆN ĐỀ BÀI ĐÃ LƯU (QUIZ LIBRARY MANAGEMENT WITH CLASS SELECTOR) -->
             <div id="teacher-subtab-library" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -371,7 +379,7 @@
                             <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
                                 <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Thư Viện Đề Bài Đã Lưu Lại
                             </h3>
-                            <p class="text-xs text-slate-500">Giáo viên có thể kích hoạt bất kỳ bài tập nào trong kho đề để cho học sinh làm bài chỉ với 1 cú nhấp chuột!</p>
+                            <p class="text-xs text-slate-500">Giáo viên có thể chọn từng Lớp học cụ thể và bấm giao đề cho đúng lớp đó!</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="saveCurrentQuizToLibrary()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
@@ -479,6 +487,7 @@
                         <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">
                             <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
                         </span>
+                        <span id="student-target-class-badge" class="px-2.5 py-0.5 bg-purple-900/80 text-purple-100 font-bold text-xs rounded-full border border-purple-400">🏫 Giao cho: Tất cả các lớp</span>
                         <span id="student-quiz-level-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 font-bold text-xs rounded-full">🎯 Trình độ: B1</span>
                         <span id="student-quiz-date-badge" class="px-2.5 py-0.5 bg-teal-800/60 text-teal-100 font-semibold text-xs rounded-full">📅 Ngày tạo: 28/07/2026</span>
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
@@ -493,6 +502,21 @@
                     <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
                         <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
                     </button>
+                </div>
+            </div>
+
+            <!-- CLASS MISMATCH / RESTRICTED ACCESS NOTIFICATION BANNER -->
+            <div id="student-class-mismatch-banner" class="hidden bg-amber-50 rounded-3xl border-2 border-amber-300 p-6 shadow-md space-y-3">
+                <div class="flex items-center gap-3 text-amber-900">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-200 text-amber-700 flex items-center justify-center text-2xl font-bold">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-heading font-bold text-lg">Bài Tập Này Được Giao Riêng Cho Lớp Khác</h4>
+                        <p id="mismatch-banner-text" class="text-xs text-amber-800 leading-relaxed">
+                            Giáo viên đã giao bài tập này riêng cho <b id="mismatch-target-class-name" class="underline font-bold">Lớp ---</b>. Lớp của bạn hiện chưa có bài tập mới.
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -823,7 +847,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH QUIZ LIBRARY & BACKUP EXPORT SYSTEM -->
+    <!-- JAVASCRIPT LOGIC WITH TARGET CLASS QUIZ ASSIGNMENT & SCOPING -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1077,6 +1101,7 @@ Bài 3:
             wordBank: [],
             quizTitle: 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)',
             quizLevel: 'B1 - Intermediate (Trung cấp)',
+            quizTargetClass: 'all',
             quizCreatedDate: new Date().toISOString().slice(0, 10),
             quizDeadline: null
         };
@@ -1113,34 +1138,89 @@ Bài 3:
             if (tag) tag.innerText = activeTeacherName || 'Giáo Viên';
         }
 
+        function updateTargetClassSelectOptions() {
+            const select = document.getElementById('quiz-target-class-select');
+            if (!select) return;
+
+            const currentVal = select.value;
+            select.innerHTML = '<option value="all">🌐 Tất Cả Các Lớp / Toàn Trường</option>';
+
+            if (appData.classes && appData.classes.length > 0) {
+                appData.classes.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.innerText = `🏫 ${c.name} (${c.students ? c.students.length : 0} học sinh)`;
+                    select.appendChild(opt);
+                });
+            }
+
+            if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+                select.value = currentVal;
+            } else {
+                select.value = appData.quizTargetClass || 'all';
+            }
+        }
+
         function updateQuizMetadataUI() {
             const titleElem = document.getElementById('student-banner-title');
             const levelBadge = document.getElementById('student-quiz-level-badge');
             const dateBadge = document.getElementById('student-quiz-date-badge');
+            const classBadge = document.getElementById('student-target-class-badge');
             const activeTitleTag = document.getElementById('active-quiz-title-display');
+            const previewClassBadge = document.getElementById('preview-target-class-badge');
 
             const titleVal = appData.quizTitle || 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)';
             const levelVal = appData.quizLevel || 'B1 - Intermediate (Trung cấp)';
+            const targetClassVal = appData.quizTargetClass || 'all';
             const formattedDate = formatDateVN(appData.quizCreatedDate);
 
             if (titleElem) titleElem.innerText = titleVal;
             if (activeTitleTag) activeTitleTag.innerText = titleVal;
             if (levelBadge) levelBadge.innerText = `🎯 Trình độ: ${levelVal}`;
             if (dateBadge) dateBadge.innerText = `📅 Ngày tạo: ${formattedDate}`;
+            
+            const classLabelStr = targetClassVal === 'all' ? 'Tất cả các lớp' : targetClassVal;
+            if (classBadge) classBadge.innerText = `🏫 Giao cho: ${classLabelStr}`;
+            if (previewClassBadge) previewClassBadge.innerText = `Giao cho: ${classLabelStr}`;
 
             // Sync Teacher Editor Inputs
             const titleInput = document.getElementById('quiz-title-input');
             const levelSelect = document.getElementById('quiz-level-select');
+            const targetClassSelect = document.getElementById('quiz-target-class-select');
             const dateInput = document.getElementById('quiz-created-date-input');
 
             if (titleInput && !titleInput.value) titleInput.value = titleVal;
             if (levelSelect && !levelSelect.value) levelSelect.value = levelVal;
             if (dateInput && !dateInput.value) dateInput.value = appData.quizCreatedDate || new Date().toISOString().slice(0, 10);
+            if (targetClassSelect) targetClassSelect.value = targetClassVal;
+        }
+
+        function checkStudentClassAccessPermission() {
+            const mismatchBanner = document.getElementById('student-class-mismatch-banner');
+            const targetClass = appData.quizTargetClass || 'all';
+
+            if (!mismatchBanner) return true;
+
+            if (targetClass === 'all') {
+                mismatchBanner.classList.add('hidden');
+                return true;
+            }
+
+            const studentClass = activeStudentInfo.className || 'Tự do';
+            if (studentClass === targetClass) {
+                mismatchBanner.classList.add('hidden');
+                return true;
+            } else {
+                mismatchBanner.classList.remove('hidden');
+                document.getElementById('mismatch-target-class-name').innerText = targetClass;
+                return false;
+            }
         }
 
         function saveCurrentQuizToLibrary() {
             const title = document.getElementById('quiz-title-input').value.trim() || appData.quizTitle || 'Bài Tập Mới';
             const level = document.getElementById('quiz-level-select').value || appData.quizLevel;
+            const targetClass = document.getElementById('quiz-target-class-select').value || appData.quizTargetClass || 'all';
             const date = document.getElementById('quiz-created-date-input').value || appData.quizCreatedDate;
             const rawText = document.getElementById('markdown-input').value;
 
@@ -1153,6 +1233,7 @@ Bài 3:
                 id: 'library_' + Date.now(),
                 title: title,
                 level: level,
+                targetClass: targetClass,
                 createdDate: date,
                 savedAt: new Date().toLocaleString('vi-VN'),
                 rawText: rawText,
@@ -1164,7 +1245,7 @@ Bài 3:
             appData.quizLibrary.unshift(item);
             saveStorage();
             renderQuizLibrary();
-            showNotification(`📚 Đã lưu bài tập "${title}" vào Thư Viện thành công!`, 'success');
+            showNotification(`📚 Đã lưu bài tập "${title}" cho ${targetClass === 'all' ? 'tất cả các lớp' : targetClass} vào Thư Viện!`, 'success');
         }
 
         function renderQuizLibrary() {
@@ -1186,10 +1267,21 @@ Bài 3:
             appData.quizLibrary.forEach(item => {
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 hover:shadow-md transition";
+                
+                let classOptionsHtml = `<option value="all" ${item.targetClass === 'all' ? 'selected' : ''}>🌐 Giao cho Tất Cả Các Lớp</option>`;
+                if (appData.classes && appData.classes.length > 0) {
+                    appData.classes.forEach(c => {
+                        classOptionsHtml += `<option value="${c.name}" ${item.targetClass === c.name ? 'selected' : ''}>🏫 Giao riêng cho ${c.name}</option>`;
+                    });
+                }
+
                 card.innerHTML = `
                     <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
                         <div class="space-y-1">
-                            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 text-[11px] font-bold rounded-full">🎯 ${item.level}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 text-[11px] font-bold rounded-full">🎯 ${item.level}</span>
+                                <span class="px-2.5 py-0.5 bg-purple-100 text-purple-900 text-[11px] font-bold rounded-full border border-purple-200">🏫 ${item.targetClass === 'all' ? 'Mọi lớp' : item.targetClass}</span>
+                            </div>
                             <h4 class="font-heading font-bold text-lg text-slate-900 leading-snug">${item.title}</h4>
                             <div class="flex items-center gap-3 text-xs text-slate-400">
                                 <span>📅 Ngày tạo: ${formatDateVN(item.createdDate)}</span>
@@ -1199,35 +1291,50 @@ Bài 3:
                         <button onclick="deleteQuizFromLibrary('${item.id}')" class="text-rose-400 hover:text-rose-600 text-sm p-1"><i class="fa-solid fa-trash"></i></button>
                     </div>
 
-                    <div class="flex items-center justify-between gap-2 pt-1">
-                        <button onclick="loadQuizFromLibrary('${item.id}')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-bolt"></i> ⚡ MỞ ĐỀ NÀY CHO HỌC SINH LÀM
-                        </button>
-                        <button onclick="downloadSpecificQuizTxt('${item.id}')" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
-                            <i class="fa-solid fa-download"></i> Tải về máy
-                        </button>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2">
+                            <select id="lib-target-class-${item.id}" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800">
+                                ${classOptionsHtml}
+                            </select>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-2 pt-1">
+                            <button onclick="loadAndAssignQuizFromLibrary('${item.id}')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane"></i> ⚡ GIAO BÀI TẬP NÀY NGAY
+                            </button>
+                            <button onclick="downloadSpecificQuizTxt('${item.id}')" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
+                                <i class="fa-solid fa-download"></i> Tải file
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        async function loadQuizFromLibrary(itemId) {
+        async function loadAndAssignQuizFromLibrary(itemId) {
             const item = appData.quizLibrary.find(i => i.id === itemId);
             if (!item) return;
 
+            const selectedClass = document.getElementById(`lib-target-class-${itemId}`).value;
+
             document.getElementById('quiz-title-input').value = item.title;
             document.getElementById('quiz-level-select').value = item.level;
+            document.getElementById('quiz-target-class-select').value = selectedClass;
             document.getElementById('quiz-created-date-input').value = item.createdDate;
             document.getElementById('markdown-input').value = item.rawText;
 
             appData.quizTitle = item.title;
             appData.quizLevel = item.level;
+            appData.quizTargetClass = selectedClass;
             appData.quizCreatedDate = item.createdDate;
+
+            item.targetClass = selectedClass;
+            saveStorage();
 
             generateQuiz();
             switchTeacherSubTab('editor');
-            showNotification(`🚀 Đã mở đề bài "${item.title}" & phát hành lên Đám mây!`, 'success');
+            showNotification(`🚀 Đã giao bài tập "${item.title}" cho ${selectedClass === 'all' ? 'tất cả các lớp' : selectedClass}!`, 'success');
         }
 
         function deleteQuizFromLibrary(itemId) {
@@ -1246,7 +1353,7 @@ Bài 3:
                 return;
             }
 
-            const header = `Tên bài tập: ${title}\nTrình độ: ${appData.quizLevel}\nNgày tạo: ${formatDateVN(appData.quizCreatedDate)}\n----------------------------------------\n\n`;
+            const header = `Tên bài tập: ${title}\nLớp giao: ${appData.quizTargetClass === 'all' ? 'Tất cả các lớp' : appData.quizTargetClass}\nTrình độ: ${appData.quizLevel}\nNgày tạo: ${formatDateVN(appData.quizCreatedDate)}\n----------------------------------------\n\n`;
             const fullContent = header + text;
 
             const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8;' });
@@ -1261,7 +1368,7 @@ Bài 3:
             const item = appData.quizLibrary.find(i => i.id === itemId);
             if (!item) return;
 
-            const header = `Tên bài tập: ${item.title}\nTrình độ: ${item.level}\nNgày tạo: ${formatDateVN(item.createdDate)}\n----------------------------------------\n\n`;
+            const header = `Tên bài tập: ${item.title}\nLớp giao: ${item.targetClass === 'all' ? 'Tất cả các lớp' : item.targetClass}\nTrình độ: ${item.level}\nNgày tạo: ${formatDateVN(item.createdDate)}\n----------------------------------------\n\n`;
             const fullContent = header + item.rawText;
 
             const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8;' });
@@ -1637,6 +1744,7 @@ Bài 3:
                 const payload = {
                     quizTitle: appData.quizTitle,
                     quizLevel: appData.quizLevel,
+                    quizTargetClass: appData.quizTargetClass || 'all',
                     quizCreatedDate: appData.quizCreatedDate,
                     questions: compactQuestions,
                     sections: appData.sections,
@@ -1651,7 +1759,7 @@ Bài 3:
                     body: JSON.stringify(payload)
                 });
                 updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
-                showNotification('🚀 Bài tập đã phát hành thành công lên Đám mây!', 'success');
+                showNotification(`🚀 Bài tập đã giao cho ${appData.quizTargetClass === 'all' ? 'Tất cả các lớp' : appData.quizTargetClass}!`, 'success');
             } catch(e) {
                 console.warn('Cloud publish fallback to local:', e);
                 updateCloudStatus('Đã lưu nội bộ', 'success');
@@ -1672,6 +1780,7 @@ Bài 3:
                         appData.quizDeadline = data.quizDeadline || null;
                         if (data.quizTitle) appData.quizTitle = data.quizTitle;
                         if (data.quizLevel) appData.quizLevel = data.quizLevel;
+                        if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
                         if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
                         if (data.feedbacks) appData.feedbacks = data.feedbacks;
                         saveStorage();
@@ -1735,6 +1844,7 @@ Bài 3:
             if (!appData.quizLibrary) appData.quizLibrary = [];
             if (!appData.quizTitle) appData.quizTitle = 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)';
             if (!appData.quizLevel) appData.quizLevel = 'B1 - Intermediate (Trung cấp)';
+            if (!appData.quizTargetClass) appData.quizTargetClass = 'all';
             if (!appData.quizCreatedDate) appData.quizCreatedDate = new Date().toISOString().slice(0, 10);
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
@@ -1742,6 +1852,7 @@ Bài 3:
             document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
 
             updateTeacherBadgeUI();
+            updateTargetClassSelectOptions();
             updateQuizMetadataUI();
             updateBadges();
             renderFeedbacksList();
@@ -1857,6 +1968,7 @@ Bài 3:
             appData.classes.push(newClass);
             saveStorage();
             renderClassesList();
+            updateTargetClassSelectOptions();
 
             nameInput.value = '';
             descInput.value = '';
@@ -1954,6 +2066,7 @@ Bài 3:
                 appData.classes = appData.classes.filter(c => c.id !== classId);
                 saveStorage();
                 renderClassesList();
+                updateTargetClassSelectOptions();
             }
         }
 
@@ -2014,10 +2127,25 @@ Bài 3:
             document.getElementById('student-login-box').classList.add('hidden');
             document.getElementById('student-quiz-active').classList.remove('hidden');
 
-            resetQuiz(false);
-            activeSectionIndex = 0;
-            renderQuizQuestions();
-            startTimer();
+            const hasPermission = checkStudentClassAccessPermission();
+            if (hasPermission) {
+                resetQuiz(false);
+                activeSectionIndex = 0;
+                renderQuizQuestions();
+                startTimer();
+            } else {
+                document.getElementById('questions-list-container').innerHTML = `
+                    <div class="bg-white rounded-3xl border border-amber-200 p-8 text-center space-y-3 shadow-sm">
+                        <div class="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center text-3xl mx-auto">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </div>
+                        <h3 class="font-heading font-bold text-xl text-slate-900">Bạn Không Thuộc Lớp Được Giao Đề Bài Này</h3>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto">
+                            Hệ thống ghi nhận bạn thuộc <b>${activeStudentInfo.className}</b>, trong khi đề bài này được Giáo viên giao riêng cho <b>${appData.quizTargetClass}</b>.
+                        </p>
+                    </div>
+                `;
+            }
         }
 
         function logoutStudentSession() {
@@ -2028,6 +2156,7 @@ Bài 3:
             document.getElementById('student-id-input').value = '';
             document.getElementById('student-name-input').value = '';
             document.getElementById('class-detected-info').classList.add('hidden');
+            document.getElementById('student-class-mismatch-banner').classList.add('hidden');
 
             document.getElementById('student-quiz-active').classList.add('hidden');
             document.getElementById('student-login-box').classList.remove('hidden');
@@ -2308,13 +2437,15 @@ Bài 3:
         async function generateQuiz() {
             const rawText = document.getElementById('markdown-input').value;
             
-            // Read Title, Level and Created Date from Teacher Inputs
+            // Read Title, Level, Target Class and Created Date from Teacher Inputs
             const titleInput = document.getElementById('quiz-title-input').value.trim();
             const levelSelect = document.getElementById('quiz-level-select').value;
+            const targetClassSelect = document.getElementById('quiz-target-class-select').value;
             const dateInput = document.getElementById('quiz-created-date-input').value;
 
             if (titleInput) appData.quizTitle = titleInput;
             if (levelSelect) appData.quizLevel = levelSelect;
+            if (targetClassSelect) appData.quizTargetClass = targetClassSelect;
             if (dateInput) appData.quizCreatedDate = dateInput;
 
             appData.currentQuestions = parseInputToQuestions(rawText);
@@ -2496,6 +2627,10 @@ Bài 3:
             const primaryBtn = document.getElementById('bottom-primary-action-btn');
             
             container.innerHTML = '';
+
+            if (!checkStudentClassAccessPermission()) {
+                return;
+            }
 
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
                 appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
