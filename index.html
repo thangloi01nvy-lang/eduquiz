@@ -446,6 +446,20 @@
                     </div>
                 </div>
                 <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+
+                <!-- CLASS ASSIGNMENTS MANAGEMENT PANEL -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 mt-6">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-purple-600"></i> Quản Lý Bài Tập Đã Giao Riêng Cho Từng Lớp
+                            </h3>
+                            <p class="text-xs text-slate-500">Xem chính xác lớp nào đang giao bài gì. Đảm bảo biệt lập 100% không bị lẫn lộn giữa các lớp.</p>
+                        </div>
+                    </div>
+
+                    <div id="class-assignments-list-container" class="space-y-3"></div>
+                </div>
             </div>
 
             <!-- SUB-TAB 4: BẢNG ĐIỂM & THEO DÕI NỘP BÀI CỦA HỌC SINH -->
@@ -1546,10 +1560,115 @@ Bài 3:
 
         async function handleTargetClassChange(val) {
             appData.quizTargetClass = val || 'all';
+            assignQuizToClassTarget(val || 'all');
             saveStorage();
             updateQuizMetadataUI();
+            renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             showNotification(`🏫 Đã phát hành cập nhật giao bài cho: ${val === 'all' ? 'Tất cả các lớp' : val}!`, 'success');
+        }
+
+        function assignQuizToClassTarget(targetClass) {
+            if (!appData.classAssignments) appData.classAssignments = {};
+
+            const quizData = {
+                quizTitle: appData.quizTitle || 'Bài Tập Online',
+                quizLevel: appData.quizLevel || 'B1',
+                quizCreatedDate: appData.quizCreatedDate || new Date().toISOString().slice(0, 10),
+                quizDeadline: appData.quizDeadline || null,
+                questions: JSON.parse(JSON.stringify(appData.currentQuestions || [])),
+                sections: JSON.parse(JSON.stringify(appData.sections || [])),
+                wordBank: JSON.parse(JSON.stringify(appData.wordBank || []))
+            };
+
+            if (targetClass === 'all') {
+                (appData.classes || []).forEach(c => {
+                    appData.classAssignments[c.name] = quizData;
+                });
+            } else {
+                appData.classAssignments[targetClass] = quizData;
+            }
+        }
+
+        function renderClassAssignmentsPanel() {
+            const container = document.getElementById('class-assignments-list-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!appData.classes || appData.classes.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Chưa tạo lớp học nào</div>`;
+                return;
+            }
+
+            appData.classes.forEach(c => {
+                const assigned = appData.classAssignments ? appData.classAssignments[c.name] : null;
+                const card = document.createElement('div');
+                card.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm hover:bg-white transition";
+
+                if (assigned && assigned.questions && assigned.questions.length > 0) {
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-lg shadow-sm">
+                                <i class="fa-solid fa-file-signature"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-slate-900 text-sm">🏫 Lớp: ${c.name}</span>
+                                    <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-full border border-emerald-300">Đã giao đề</span>
+                                </div>
+                                <div class="text-xs text-slate-700 font-semibold mt-0.5">📌 Đề đang giao: <b class="text-brand-800">${assigned.quizTitle}</b> (${assigned.questions.length} câu)</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="removeQuizFromClass('${c.name}')" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash"></i> Hủy giao đề cho lớp này
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </div>
+                            <div>
+                                <span class="font-bold text-slate-900 text-sm">🏫 Lớp: ${c.name}</span>
+                                <div class="text-xs text-slate-400">Chưa giao bài tập nào</div>
+                            </div>
+                        </div>
+
+                        <button onclick="assignActiveQuizToClassTarget('${c.name}')" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane"></i> Giao bài tập hiện tại cho lớp này
+                        </button>
+                    `;
+                }
+                container.appendChild(card);
+            });
+        }
+
+        async function assignActiveQuizToClassTarget(className) {
+            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
+                showNotification('Chưa có câu hỏi nào để giao! Hãy soạn bài hoặc chọn bài từ Thư viện trước.', 'error');
+                return;
+            }
+            assignQuizToClassTarget(className);
+            saveStorage();
+            renderClassAssignmentsPanel();
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            showNotification(`🚀 Đã giao bài tập "${appData.quizTitle}" riêng cho lớp ${className}!`, 'success');
+        }
+
+        async function removeQuizFromClass(className) {
+            if (confirm(`Bạn có chắc muốn hủy giao bài tập cho lớp ${className}?`)) {
+                if (appData.classAssignments) {
+                    delete appData.classAssignments[className];
+                }
+                saveStorage();
+                renderClassAssignmentsPanel();
+                await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                showNotification(`🗑️ Đã hủy bài tập giao cho lớp ${className}!`, 'info');
+            }
         }
 
         function saveCurrentQuizToLibrary() {
@@ -2232,6 +2351,7 @@ Bài 3:
             renderFeedbacksList();
             renderQuizLibrary();
             renderClassSubmissionTracker();
+            renderClassAssignmentsPanel();
             updateDeadlineCountdown();
             setInterval(updateDeadlineCountdown, 60000);
 
@@ -2668,9 +2788,31 @@ Bài 3:
             const totalQuestionsTag = document.getElementById('quiz-total-questions-tag');
             const timerContainer = document.getElementById('quiz-timer-container');
 
-            const hasPermission = checkStudentClassAccessPermission();
+            const studentClass = (activeStudentInfo.className || '').trim();
+            let assignedQuiz = null;
+
+            if (appData.classAssignments && appData.classAssignments[studentClass]) {
+                assignedQuiz = appData.classAssignments[studentClass];
+            } else if (appData.quizTargetClass === 'all' || !studentClass || studentClass.toLowerCase() === 'tự do') {
+                if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                    assignedQuiz = {
+                        quizTitle: appData.quizTitle,
+                        quizLevel: appData.quizLevel,
+                        questions: appData.currentQuestions,
+                        sections: appData.sections,
+                        wordBank: appData.wordBank
+                    };
+                }
+            }
+
+            const hasPermission = (assignedQuiz && assignedQuiz.questions && assignedQuiz.questions.length > 0);
 
             if (hasPermission) {
+                appData.currentQuestions = assignedQuiz.questions;
+                appData.sections = assignedQuiz.sections || [];
+                appData.wordBank = assignedQuiz.wordBank || [];
+                if (assignedQuiz.quizTitle) appData.quizTitle = assignedQuiz.quizTitle;
+
                 if (statusBanner) statusBanner.classList.remove('hidden');
                 if (bottomToolbar) bottomToolbar.classList.remove('hidden');
                 if (quizTitleDisplay) {
@@ -2693,8 +2835,6 @@ Bài 3:
                 if (timerContainer) timerContainer.classList.add('hidden');
 
                 stopTimer();
-
-                const currentTargetClass = appData.quizTargetClass || 'all';
 
                 document.getElementById('questions-list-container').innerHTML = `
                     <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-6 max-w-lg mx-auto">
@@ -3043,7 +3183,9 @@ Bài 3:
             const deadlinePicker = document.getElementById('quiz-deadline-picker');
             appData.quizDeadline = (checkDeadline.checked && deadlinePicker.value) ? deadlinePicker.value : null;
 
+            assignQuizToClassTarget(appData.quizTargetClass || 'all');
             saveStorage();
+            renderClassAssignmentsPanel();
 
             document.getElementById('quiz-count-badge').innerText = appData.currentQuestions.length;
             document.getElementById('quiz-count-badge').classList.remove('hidden');
