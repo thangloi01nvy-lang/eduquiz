@@ -48,6 +48,94 @@
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+    <!-- EARLY GLOBAL TAB SWITCHER ENGINE -->
+    <script>
+        window.quickSwitchToTeacherMode = function() {
+            if (typeof isTeacherAuthenticated !== 'undefined') isTeacherAuthenticated = true;
+            
+            const teacherView = document.getElementById('teacher-view');
+            const studentView = document.getElementById('student-view');
+            const teacherBtn = document.getElementById('tab-teacher-btn');
+            const studentBtn = document.getElementById('tab-student-btn');
+
+            if (teacherView) {
+                teacherView.classList.remove('hidden');
+                teacherView.style.display = 'block';
+            }
+            if (studentView) {
+                studentView.classList.add('hidden');
+                studentView.style.display = 'none';
+            }
+
+            if (teacherBtn) {
+                teacherBtn.classList.add('active');
+                teacherBtn.style.backgroundColor = '#f59e0b';
+                teacherBtn.style.color = '#ffffff';
+            }
+            if (studentBtn) {
+                studentBtn.classList.remove('active');
+                studentBtn.style.backgroundColor = '';
+                studentBtn.style.color = '';
+            }
+
+            if (typeof switchTeacherSubTab === 'function') switchTeacherSubTab('editor');
+            if (typeof renderClassSubmissionTracker === 'function') renderClassSubmissionTracker();
+            if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
+            if (typeof renderQuizLibrary === 'function') renderQuizLibrary();
+
+            if (teacherView) {
+                teacherView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (typeof showNotification === 'function') {
+                showNotification('👩‍🏫 Đã mở Góc Giáo Viên thành công!', 'success');
+            }
+        };
+
+        window.quickSwitchToStudentMode = function() {
+            const teacherView = document.getElementById('teacher-view');
+            const studentView = document.getElementById('student-view');
+            const teacherBtn = document.getElementById('tab-teacher-btn');
+            const studentBtn = document.getElementById('tab-student-btn');
+
+            if (teacherView) {
+                teacherView.classList.add('hidden');
+                teacherView.style.display = 'none';
+            }
+            if (studentView) {
+                studentView.classList.remove('hidden');
+                studentView.style.display = 'block';
+            }
+
+            if (teacherBtn) {
+                teacherBtn.classList.remove('active');
+                teacherBtn.style.backgroundColor = '';
+                teacherBtn.style.color = '';
+            }
+            if (studentBtn) {
+                studentBtn.classList.add('active');
+                studentBtn.style.backgroundColor = '#026fc7';
+                studentBtn.style.color = '#ffffff';
+            }
+
+            if (typeof restoreStudentSessionUI === 'function') restoreStudentSessionUI();
+
+            if (studentView) {
+                studentView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (typeof showNotification === 'function') {
+                showNotification('🎒 Đã chuyển sang Góc Học Sinh!', 'info');
+            }
+        };
+
+        window.switchMainTab = function(tab, bypassAuth = false) {
+            if (tab === 'teacher') {
+                window.quickSwitchToTeacherMode();
+            } else {
+                window.quickSwitchToStudentMode();
+            }
+        };
+    </script>
+
     <style>
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
@@ -2447,6 +2535,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         document.addEventListener('DOMContentLoaded', async () => {
             loadStorage();
+            
+            const tBtn = document.getElementById('tab-teacher-btn');
+            const sBtn = document.getElementById('tab-student-btn');
+            if (tBtn) tBtn.addEventListener('click', (e) => { e.preventDefault(); window.quickSwitchToTeacherMode(); });
+            if (sBtn) sBtn.addEventListener('click', (e) => { e.preventDefault(); window.quickSwitchToStudentMode(); });
+
             document.getElementById('markdown-input').addEventListener('input', updateInputStats);
             renderClassesList();
             renderGradesTable();
