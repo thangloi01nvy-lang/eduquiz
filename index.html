@@ -1540,31 +1540,39 @@ Bài 3:
             if (!appData.classAssignments) appData.classAssignments = {};
             
             const rawName = (studentClassName || '').trim();
-            if (!rawName) return null;
 
             // Level 1: Exact match in classAssignments map
-            if (appData.classAssignments[rawName] && appData.classAssignments[rawName].questions && appData.classAssignments[rawName].questions.length > 0) {
+            if (rawName && appData.classAssignments[rawName] && appData.classAssignments[rawName].questions && appData.classAssignments[rawName].questions.length > 0) {
                 return appData.classAssignments[rawName];
             }
 
             // Level 2: Normalized match (lowercase & single-space trimmed)
-            const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
-            for (let key in appData.classAssignments) {
-                const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
-                if (normKey === normStudent && appData.classAssignments[key] && appData.classAssignments[key].questions && appData.classAssignments[key].questions.length > 0) {
-                    return appData.classAssignments[key];
+            if (rawName) {
+                const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+                for (let key in appData.classAssignments) {
+                    const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
+                    if (normKey === normStudent && appData.classAssignments[key] && appData.classAssignments[key].questions && appData.classAssignments[key].questions.length > 0) {
+                        return appData.classAssignments[key];
+                    }
                 }
             }
 
-            // Level 3: ONLY for 'Tự do' / Free accounts
-            if (rawName.toLowerCase() === 'tự do' && appData.quizTargetClass === 'all' && appData.currentQuestions && appData.currentQuestions.length > 0) {
+            // Level 3: UNIVERSAL SAFETY NET - If root active questions exist, load active quiz for student!
+            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
                 return {
-                    quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Tương Tác',
+                    quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
                     quizLevel: appData.quizLevel || 'B1',
                     questions: appData.currentQuestions,
                     sections: appData.sections || [],
                     wordBank: appData.wordBank || []
                 };
+            }
+
+            // Level 4: Fallback to any active assigned quiz in classAssignments
+            for (let k in appData.classAssignments) {
+                if (appData.classAssignments[k] && appData.classAssignments[k].questions && appData.classAssignments[k].questions.length > 0) {
+                    return appData.classAssignments[k];
+                }
             }
 
             return null;
