@@ -111,7 +111,7 @@
                         </h1>
                         <div class="flex items-center gap-2 text-xs text-slate-500">
                             <span id="cloud-sync-status" class="inline-flex items-center gap-1 text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <i class="fa-solid fa-cloud-check text-xs"></i> Tự Động Nhận Diện Bảng Đáp Án Cuối Đề
+                                <i class="fa-solid fa-cloud-check text-xs"></i> Đã kết nối Đám mây Vercel Real-Time
                             </span>
                         </div>
                     </div>
@@ -462,21 +462,7 @@
                     </div>
                 </div>
 
-                <!-- SECTION PAGINATION TOP TOOLBAR -->
-                <div id="section-pagination-toolbar" class="bg-white p-3.5 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                    <button id="prev-section-btn" onclick="changeSectionPage(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-chevron-left"></i> Bài Trước
-                    </button>
-
-                    <!-- Section Page Chips Container -->
-                    <div id="section-page-chips" class="flex items-center gap-2 overflow-x-auto"></div>
-
-                    <button id="next-section-btn" onclick="changeSectionPage(1)" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-                        Bài Tiếp <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-
-                <!-- STICKY FLOATING WORD BANK CONTAINER (DÁN NHÃN SẠCH ĐẸP BỎ CHỮ TỰ TRÔI THEO MÀN HÌNH) -->
+                <!-- STICKY FLOATING WORD BANK CONTAINER -->
                 <div id="word-bank-card" class="hidden sticky top-16 z-30 bg-white/95 backdrop-blur-md border-2 border-brand-300 rounded-3xl p-5 shadow-xl space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-bold text-brand-900 uppercase tracking-wider flex items-center gap-2">
@@ -517,17 +503,31 @@
 
                 <div id="questions-list-container" class="space-y-6"></div>
 
-                <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-lg sticky bottom-6 z-30 flex items-center justify-between gap-4">
-                    <span id="answered-progress-text" class="text-sm text-slate-600 font-medium"><i class="fa-solid fa-list-check text-brand-600 mr-2"></i>Đã trả lời: 0/0 câu</span>
+                <!-- BOTTOM NAVIGATION TOOLBAR & CONDITIONAL ACTION BAR -->
+                <div class="bg-white rounded-3xl border border-slate-200 p-4 sm:p-5 shadow-lg sticky bottom-6 z-30 flex flex-wrap items-center justify-between gap-4">
+                    
                     <div class="flex items-center gap-3">
-                        <button onclick="resetQuiz(true)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm rounded-xl transition border border-slate-200 flex items-center gap-1.5">
+                        <button id="bottom-prev-sec-btn" onclick="changeSectionPage(-1)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed text-slate-800 font-bold text-xs rounded-xl transition flex items-center gap-1.5 border border-slate-200">
+                            <i class="fa-solid fa-chevron-left"></i> Bài Trước
+                        </button>
+                        <span id="answered-progress-text" class="text-xs sm:text-sm text-slate-600 font-medium"><i class="fa-solid fa-list-check text-brand-600 mr-1.5"></i>Đã trả lời: 0/0 câu</span>
+                    </div>
+
+                    <!-- Bottom Section Chips Navigation -->
+                    <div id="section-page-chips" class="flex items-center gap-2 overflow-x-auto"></div>
+
+                    <div class="flex items-center gap-3">
+                        <button onclick="resetQuiz(true)" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200 flex items-center gap-1.5">
                             <i class="fa-solid fa-rotate-left"></i> Làm lại
                         </button>
-                        <button id="submit-quiz-btn" onclick="submitQuiz()" class="px-8 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center gap-2">
-                            <i class="fa-solid fa-paper-plane"></i> NỘP BÀI
+                        
+                        <!-- DYNAMIC PRIMARY ACTION BUTTON (BÀI TIẾP FOR EX 1 & 2 / NỘP BÀI FOR EX 3) -->
+                        <button id="bottom-primary-action-btn" onclick="handleBottomPrimaryAction()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-sm rounded-xl transition shadow-md shadow-brand-200 flex items-center gap-2">
+                            <!-- Dynamic Content -->
                         </button>
                     </div>
                 </div>
+
             </div>
 
         </div>
@@ -650,7 +650,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH ANSWER KEY AT END PARSER -->
+    <!-- JAVASCRIPT LOGIC WITH BOTTOM NAVIGATION & CONDITIONAL SUBMIT -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1890,6 +1890,14 @@ Bài 3:
             window.scrollTo({ top: 120, behavior: 'smooth' });
         }
 
+        function handleBottomPrimaryAction() {
+            if (activeSectionIndex < appData.sections.length - 1) {
+                changeSectionPage(1);
+            } else {
+                submitQuiz();
+            }
+        }
+
         // ACCURATE & AI-ENHANCED GRADING ENGINE
         function gradeSingleQuestion(q, studentAnswersMap) {
             const rawUserVal = studentAnswersMap[`q_${q.id}`] || studentAnswersMap[`q_${q.id}_blank_0`] || '';
@@ -1938,8 +1946,8 @@ Bài 3:
             const wordBankCard = document.getElementById('word-bank-card');
             const wordChipsContainer = document.getElementById('word-chips-container');
             const pageChipsContainer = document.getElementById('section-page-chips');
-            const prevBtn = document.getElementById('prev-section-btn');
-            const nextBtn = document.getElementById('next-section-btn');
+            const prevBtn = document.getElementById('bottom-prev-sec-btn');
+            const primaryBtn = document.getElementById('bottom-primary-action-btn');
             
             container.innerHTML = '';
 
@@ -1955,7 +1963,7 @@ Bài 3:
 
             const currentSec = appData.sections[activeSectionIndex];
 
-            // Render Section Page Chips
+            // Render Section Page Chips at the Bottom
             pageChipsContainer.innerHTML = '';
             appData.sections.forEach((sec, sIdx) => {
                 const btn = document.createElement('button');
@@ -1965,13 +1973,18 @@ Bài 3:
                 pageChipsContainer.appendChild(btn);
             });
 
+            // Update Bottom Previous Section Button
             prevBtn.disabled = activeSectionIndex === 0;
-            prevBtn.classList.toggle('opacity-40', activeSectionIndex === 0);
-            prevBtn.classList.toggle('cursor-not-allowed', activeSectionIndex === 0);
 
-            nextBtn.disabled = activeSectionIndex === appData.sections.length - 1;
-            nextBtn.classList.toggle('opacity-40', activeSectionIndex === appData.sections.length - 1);
-            nextBtn.classList.toggle('cursor-not-allowed', activeSectionIndex === appData.sections.length - 1);
+            // DYNAMIC PRIMARY ACTION BUTTON (BÀI TIẾP vs NỘP BÀI)
+            const isLastSection = activeSectionIndex === appData.sections.length - 1;
+            if (isLastSection) {
+                primaryBtn.className = "px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-emerald-200 flex items-center gap-2";
+                primaryBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> <span>NỘP BÀI</span>`;
+            } else {
+                primaryBtn.className = "px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-sm rounded-xl transition shadow-md shadow-brand-200 flex items-center gap-2";
+                primaryBtn.innerHTML = `<span>BÀI TIẾP (Bài ${activeSectionIndex + 2}/${appData.sections.length})</span> <i class="fa-solid fa-chevron-right"></i>`;
+            }
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu (Đang mở Bài ${activeSectionIndex + 1}/${appData.sections.length})`;
 
@@ -2174,7 +2187,7 @@ Bài 3:
                     `;
                 }
 
-                // AI PEDAGOGICAL EXPLANATION & ACCURATE SUBMITTED FEEDBACK BOX
+                // PEDAGOGICAL EXPLANATION & ACCURATE SUBMITTED FEEDBACK BOX (REMOVED 'AI' LABEL)
                 if (isSubmitted) {
                     const gradeRes = gradeSingleQuestion(q, studentAnswers);
                     const isCorrect = gradeRes.isCorrect;
@@ -2204,10 +2217,10 @@ Bài 3:
                                 <div><b>Đáp án chuẩn:</b> <span class="font-mono text-brand-700 font-bold">${expectedAnswerStr}</span></div>
                             </div>
                             
-                            <!-- RICH AI PEDAGOGICAL EXPLANATION BADGE -->
+                            <!-- RICH PEDAGOGICAL EXPLANATION BADGE (REMOVED 'AI' TEXT) -->
                             <div class="p-3 bg-white/90 rounded-xl border border-slate-200 space-y-1.5 shadow-sm text-slate-700">
                                 <div class="font-bold text-purple-700 flex items-center gap-1.5 text-xs border-b border-slate-100 pb-1">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i> ✨ AI Giải Thích Ngữ Pháp & Dịch Nghĩa:
+                                    <i class="fa-solid fa-book-open text-purple-500"></i> ✨ Giải Thích Ngữ Pháp & Dịch Nghĩa:
                                 </div>
                                 <div><b>🇻🇳 Dịch nghĩa:</b> ${aiInfo.trans}</div>
                                 <div><b>📘 Phân tích ngữ pháp:</b> ${aiInfo.grammar}</div>
@@ -2313,13 +2326,13 @@ Bài 3:
 
             if (percent >= 90) {
                 titleElem.innerText = "🌟 Xuất Sắc! Bạn Đạt Điểm Gần Như Tuyệt Đối!";
-                subElem.innerText = "Bạn đã hoàn thành xuất sắc tất cả 3 bài tập. Đã lưu kết quả & AI đã tạo giải thích bên dưới.";
+                subElem.innerText = "Bạn đã hoàn thành xuất sắc tất cả 3 bài tập. Đã lưu kết quả & tạo giải thích bên dưới.";
             } else if (percent >= 60) {
                 titleElem.innerText = "👍 Kết Quả Khá Tốt! Hãy Tiếp Tục Phát Huy!";
-                subElem.innerText = "Đã có lời giải thích ngữ pháp AI cho từng câu bên dưới. Bạn có thể bấm Làm lại để đạt 100%.";
+                subElem.innerText = "Đã có lời giải thích ngữ pháp cho từng câu bên dưới. Bạn có thể bấm Làm lại để đạt 100%.";
             } else {
                 titleElem.innerText = "💪 Cố Gắng Hơn Ở Lần Sau Nhé!";
-                subElem.innerText = "Hãy đọc kỹ phân tích ngữ pháp & dịch nghĩa AI bên dưới để rút kinh nghiệm nhé.";
+                subElem.innerText = "Hãy đọc kỹ phân tích ngữ pháp & dịch nghĩa bên dưới để rút kinh nghiệm nhé.";
             }
 
             renderQuizQuestions();
