@@ -184,10 +184,10 @@
             <!-- SUB-TAB 1: SOẠN BÀI TẬP (QUIZ EDITOR & PREVIEW) -->
             <div id="teacher-subtab-editor" class="space-y-6">
                 
-                <!-- QUIZ METADATA FORM CARD (TÊN BÀI TẬP, TRÌNH ĐỘ, NGÀY THÁNG NĂM TẠO) -->
+                <!-- QUIZ METADATA FORM CARD (TÊN BÀI TẬP, TRÌNH ĐỘ, NGÀY THÁNG NĂM TẠO - NGÀY/THÁNG/NĂM) -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <i class="fa-solid fa-heading text-brand-600"></i> Thông Tin Bài Tập (Tiêu đề, Trình độ & Ngày tạo)
+                        <i class="fa-solid fa-heading text-brand-600"></i> Thông Tin Bài Tập (Tiêu đề, Trình độ & Ngày/Tháng/Năm tạo)
                     </h3>
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -212,7 +212,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Ngày Tháng Năm Tạo:</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Ngày Tạo Bài (ngày/tháng/năm):</label>
                             <input type="date" id="quiz-created-date-input" 
                                 class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         </div>
@@ -434,12 +434,12 @@
             <!-- Active Cloud Quiz Banner inside Student View -->
             <div id="student-quiz-status-banner" class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-3xl p-6 text-white shadow-md flex flex-wrap items-center justify-between gap-4">
                 <div class="space-y-1 max-w-2xl">
-                    <div class="flex items-center gap-2 mb-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-1">
                         <span class="px-2.5 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">
                             <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Đã kết nối Đám mây
                         </span>
                         <span id="student-quiz-level-badge" class="px-2.5 py-0.5 bg-amber-400 text-amber-950 font-bold text-xs rounded-full">🎯 Trình độ: B1</span>
-                        <span id="student-quiz-date-badge" class="px-2.5 py-0.5 bg-teal-800/60 text-teal-100 font-semibold text-xs rounded-full">📅 Ngày tạo: --/--/----</span>
+                        <span id="student-quiz-date-badge" class="px-2.5 py-0.5 bg-teal-800/60 text-teal-100 font-semibold text-xs rounded-full">📅 Ngày tạo: 28/07/2026</span>
                         <span id="student-deadline-countdown" class="hidden px-3.5 py-1 bg-amber-400 text-amber-950 font-bold text-xs rounded-full border border-amber-300"></span>
                     </div>
                     <h3 id="student-banner-title" class="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)</h3>
@@ -782,7 +782,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH QUIZ METADATA (TITLE, LEVEL, CREATED DATE) -->
+    <!-- JAVASCRIPT LOGIC WITH DATE FORMATTING TO DD/MM/YYYY -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1052,6 +1052,16 @@ Bài 3:
         let isTeacherAuthenticated = sessionStorage.getItem('eduquiz_teacher_auth') === 'true';
         let activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
 
+        function formatDateVN(dateStr) {
+            if (!dateStr) return '--/--/----';
+            if (dateStr.includes('/')) return dateStr;
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateStr;
+        }
+
         function getTeacherPassword() {
             return localStorage.getItem('eduquiz_teacher_password') || '123456';
         }
@@ -1069,13 +1079,7 @@ Bài 3:
 
             const titleVal = appData.quizTitle || 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)';
             const levelVal = appData.quizLevel || 'B1 - Intermediate (Trung cấp)';
-            
-            let formattedDate = '--/--/----';
-            if (appData.quizCreatedDate) {
-                const parts = appData.quizCreatedDate.split('-');
-                if (parts.length === 3) formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                else formattedDate = appData.quizCreatedDate;
-            }
+            const formattedDate = formatDateVN(appData.quizCreatedDate);
 
             if (titleElem) titleElem.innerText = titleVal;
             if (activeTitleTag) activeTitleTag.innerText = titleVal;
