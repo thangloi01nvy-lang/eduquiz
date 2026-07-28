@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuiz Pro - Quản Lý Lớp Học & Tự Động Nhận Diện Bảng Đáp Án Cuối Đề</title>
+    <title>EduQuiz Pro - Quản Lý Lớp Học & Thư Viện Đề Bài Tự Động Đồng Bộ Cloud</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -155,6 +155,9 @@
                     <button id="subtab-editor-btn" onclick="switchTeacherSubTab('editor')" class="sub-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
                         <i class="fa-solid fa-file-pen"></i> Soạn Bài Tập & Phân Trang
                     </button>
+                    <button id="subtab-library-btn" onclick="switchTeacherSubTab('library')" class="sub-tab-btn bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Thư Viện Đề Bài (<span id="total-library-badge">0</span>)
+                    </button>
                     <button id="subtab-classes-btn" onclick="switchTeacherSubTab('classes')" class="sub-tab-btn bg-slate-100 text-slate-600 hover:bg-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
                         <i class="fa-solid fa-users-rectangle"></i> Quản Lý Lớp Học (<span id="total-classes-badge">0</span>)
                     </button>
@@ -284,17 +287,39 @@
                                 <div class="mt-2 text-xs text-slate-400" id="char-line-count">0 dòng | 0 ký tự</div>
                             </div>
                         </div>
-                        <button onclick="generateQuiz()" class="w-full py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white font-heading font-bold text-lg rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-3">
-                            <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
-                            <span>TẠO & PHÁT HÀNH BÀI TẬP LÊN ĐÁM MÂY</span>
-                        </button>
+
+                        <!-- ACTION BUTTONS: PUBLISH TO CLOUD & SAVE TO LIBRARY / BACKUP FILE -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button onclick="generateQuiz()" class="sm:col-span-2 py-4 bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-700 hover:to-brand-600 text-white font-heading font-bold text-base rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
+                                <span>TẠO & PHÁT HÀNH LÊN ĐÁM MÂY</span>
+                            </button>
+                            <button onclick="saveCurrentQuizToLibrary()" class="py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-bookmark text-base"></i>
+                                <span>LƯU VÀO THƯ VIỆN</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Cheat Sheet Sidebar -->
+                    <!-- Cheat Sheet & Backup Export Sidebar -->
                     <div class="lg:col-span-1 space-y-4">
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
-                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2"><i class="fa-solid fa-key text-amber-500 mr-2"></i>Cách Dán Đáp Án Ở Cuối Đề</h3>
+                            <h3 class="font-heading font-bold text-slate-900 text-base border-b pb-2 flex items-center justify-between">
+                                <span><i class="fa-solid fa-floppy-disk text-emerald-600 mr-2"></i>Lưu Trữ Bài Tập</span>
+                            </h3>
+
+                            <div class="space-y-2">
+                                <button onclick="downloadQuizBackupTxt()" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition border border-slate-200 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-download text-brand-600"></i> Tải File Dự Phòng Về Máy (.txt)
+                                </button>
+                                <button onclick="switchTeacherSubTab('library')" class="w-full py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl transition border border-emerald-200 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Mở Thư Viện Đề Bài Đã Lưu
+                                </button>
+                            </div>
                             
+                            <hr class="border-slate-100">
+
+                            <h4 class="font-heading font-bold text-slate-800 text-xs"><i class="fa-solid fa-key text-amber-500 mr-1.5"></i>Cách Dán Đáp Án Cuối Đề</h4>
                             <p class="text-xs text-slate-600 leading-relaxed">
                                 Bạn có thể ghi tiêu đề đáp án ở cuối văn bản theo các mẫu sau:
                             </p>
@@ -303,12 +328,7 @@
                                 <div class="font-bold text-brand-700">## Đáp án:</div>
                                 <div>1. think outside the box</div>
                                 <div>2. team player</div>
-                                <div>3. communication skills</div>
                             </div>
-
-                            <p class="text-[11px] text-slate-500">
-                                💡 *Hệ thống tự động phát hiện tiêu đề `## Đáp án`, `## Answers` hoặc `## Keys` ở cuối đề để tách riêng thành đáp án chuẩn mà không sinh ra câu hỏi thừa!*
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -323,7 +343,7 @@
                                     <span id="preview-q-count-badge" class="text-xs font-semibold text-emerald-100">20 câu hỏi</span>
                                 </div>
                                 <h3 class="font-heading font-bold text-2xl mt-1">Đề Bài Đã Được Phát Hành Lên Đám Mây Thành Công!</h3>
-                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa 3 trang bài tập để làm bài rất mượt mà.</p>
+                                <p class="text-xs text-emerald-100 mt-1">Học sinh sẽ chuyển qua lại giữa các bài tập để làm bài rất mượt mà.</p>
                             </div>
                             
                             <div class="flex items-center gap-2">
@@ -343,7 +363,28 @@
 
             </div>
 
-            <!-- SUB-TAB 2: QUẢN LÝ LỚP HỌC & HỌC SINH -->
+            <!-- SUB-TAB 2: THƯ VIỆN ĐỀ BÀI ĐÃ LƯU (QUIZ LIBRARY MANAGEMENT) -->
+            <div id="teacher-subtab-library" class="hidden space-y-6">
+                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="font-heading font-bold text-xl text-slate-900 flex items-center gap-2">
+                                <i class="fa-solid fa-book-bookmark text-emerald-600"></i> Thư Viện Đề Bài Đã Lưu Lại
+                            </h3>
+                            <p class="text-xs text-slate-500">Giáo viên có thể kích hoạt bất kỳ bài tập nào trong kho đề để cho học sinh làm bài chỉ với 1 cú nhấp chuột!</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="saveCurrentQuizToLibrary()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Lưu Bài Tập Hiện Tại Vào Thư Viện
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="quiz-library-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 3: QUẢN LÝ LỚP HỌC & HỌC SINH -->
             <div id="teacher-subtab-classes" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
@@ -360,7 +401,7 @@
                 <div id="classes-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             </div>
 
-            <!-- SUB-TAB 3: BẢNG ĐIỂM & KẾT QUẢ -->
+            <!-- SUB-TAB 4: BẢNG ĐIỂM & KẾT QUẢ -->
             <div id="teacher-subtab-grades" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -402,7 +443,7 @@
                 </div>
             </div>
 
-            <!-- SUB-TAB 4: HÒM THƯ GÓP Ý & BÁO LỖI -->
+            <!-- SUB-TAB 5: HÒM THƯ GÓP Ý & BÁO LỖI -->
             <div id="teacher-subtab-feedbacks" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
@@ -782,7 +823,7 @@
 
 
     <!-- ================================================================= -->
-    <!-- JAVASCRIPT LOGIC WITH DATE FORMATTING TO DD/MM/YYYY -->
+    <!-- JAVASCRIPT LOGIC WITH QUIZ LIBRARY & BACKUP EXPORT SYSTEM -->
     <!-- ================================================================= -->
     <script>
         const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
@@ -1030,6 +1071,7 @@ Bài 3:
             ],
             grades: [],
             feedbacks: [],
+            quizLibrary: [],
             currentQuestions: [],
             sections: [],
             wordBank: [],
@@ -1094,6 +1136,139 @@ Bài 3:
             if (titleInput && !titleInput.value) titleInput.value = titleVal;
             if (levelSelect && !levelSelect.value) levelSelect.value = levelVal;
             if (dateInput && !dateInput.value) dateInput.value = appData.quizCreatedDate || new Date().toISOString().slice(0, 10);
+        }
+
+        function saveCurrentQuizToLibrary() {
+            const title = document.getElementById('quiz-title-input').value.trim() || appData.quizTitle || 'Bài Tập Mới';
+            const level = document.getElementById('quiz-level-select').value || appData.quizLevel;
+            const date = document.getElementById('quiz-created-date-input').value || appData.quizCreatedDate;
+            const rawText = document.getElementById('markdown-input').value;
+
+            if (!rawText || !rawText.trim()) {
+                showNotification('Nội dung đề bài đang trống, không thể lưu!', 'error');
+                return;
+            }
+
+            const item = {
+                id: 'library_' + Date.now(),
+                title: title,
+                level: level,
+                createdDate: date,
+                savedAt: new Date().toLocaleString('vi-VN'),
+                rawText: rawText,
+                questionsCount: appData.currentQuestions ? appData.currentQuestions.length : 0,
+                sectionsCount: appData.sections ? appData.sections.length : 1
+            };
+
+            if (!appData.quizLibrary) appData.quizLibrary = [];
+            appData.quizLibrary.unshift(item);
+            saveStorage();
+            renderQuizLibrary();
+            showNotification(`📚 Đã lưu bài tập "${title}" vào Thư Viện thành công!`, 'success');
+        }
+
+        function renderQuizLibrary() {
+            const container = document.getElementById('quiz-library-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!appData.quizLibrary || appData.quizLibrary.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-slate-400 space-y-3">
+                        <i class="fa-solid fa-book-bookmark text-5xl text-slate-300"></i>
+                        <p class="text-sm font-semibold">Chưa có bài tập nào trong Thư Viện</p>
+                        <p class="text-xs text-slate-400">Bấm nút "Lưu Vào Thư Viện" ở trang Soạn Đề để lưu bài tập sử dụng lại lâu dài</p>
+                    </div>
+                `;
+                return;
+            }
+
+            appData.quizLibrary.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 hover:shadow-md transition";
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                        <div class="space-y-1">
+                            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-900 text-[11px] font-bold rounded-full">🎯 ${item.level}</span>
+                            <h4 class="font-heading font-bold text-lg text-slate-900 leading-snug">${item.title}</h4>
+                            <div class="flex items-center gap-3 text-xs text-slate-400">
+                                <span>📅 Ngày tạo: ${formatDateVN(item.createdDate)}</span>
+                                <span>• ${item.questionsCount} câu (${item.sectionsCount} bài)</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteQuizFromLibrary('${item.id}')" class="text-rose-400 hover:text-rose-600 text-sm p-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1">
+                        <button onclick="loadQuizFromLibrary('${item.id}')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-bolt"></i> ⚡ MỞ ĐỀ NÀY CHO HỌC SINH LÀM
+                        </button>
+                        <button onclick="downloadSpecificQuizTxt('${item.id}')" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
+                            <i class="fa-solid fa-download"></i> Tải về máy
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function loadQuizFromLibrary(itemId) {
+            const item = appData.quizLibrary.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('quiz-title-input').value = item.title;
+            document.getElementById('quiz-level-select').value = item.level;
+            document.getElementById('quiz-created-date-input').value = item.createdDate;
+            document.getElementById('markdown-input').value = item.rawText;
+
+            appData.quizTitle = item.title;
+            appData.quizLevel = item.level;
+            appData.quizCreatedDate = item.createdDate;
+
+            generateQuiz();
+            switchTeacherSubTab('editor');
+            showNotification(`🚀 Đã mở đề bài "${item.title}" & phát hành lên Đám mây!`, 'success');
+        }
+
+        function deleteQuizFromLibrary(itemId) {
+            if (confirm('Bạn có chắc muốn xóa đề bài này khỏi Thư viện?')) {
+                appData.quizLibrary = appData.quizLibrary.filter(i => i.id !== itemId);
+                saveStorage();
+                renderQuizLibrary();
+            }
+        }
+
+        function downloadQuizBackupTxt() {
+            const title = document.getElementById('quiz-title-input').value.trim() || appData.quizTitle || 'BaiTap_EduQuiz';
+            const text = document.getElementById('markdown-input').value;
+            if (!text) {
+                showNotification('Nội dung đề bài trống!', 'error');
+                return;
+            }
+
+            const header = `Tên bài tập: ${title}\nTrình độ: ${appData.quizLevel}\nNgày tạo: ${formatDateVN(appData.quizCreatedDate)}\n----------------------------------------\n\n`;
+            const fullContent = header + text;
+
+            const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${title.replace(/\s+/g, '_')}_Backup.txt`;
+            link.click();
+            showNotification('📥 Đã tải file dự phòng bài tập (.txt) về máy tính!', 'success');
+        }
+
+        function downloadSpecificQuizTxt(itemId) {
+            const item = appData.quizLibrary.find(i => i.id === itemId);
+            if (!item) return;
+
+            const header = `Tên bài tập: ${item.title}\nTrình độ: ${item.level}\nNgày tạo: ${formatDateVN(item.createdDate)}\n----------------------------------------\n\n`;
+            const fullContent = header + item.rawText;
+
+            const blob = new Blob([fullContent], { type: 'text/plain;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `${item.title.replace(/\s+/g, '_')}_Backup.txt`;
+            link.click();
         }
 
         function openTeacherAuthModal() {
@@ -1508,6 +1683,7 @@ Bài 3:
                         updateQuizMetadataUI();
                         updateDeadlineCountdown();
                         renderFeedbacksList();
+                        renderQuizLibrary();
                         updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
                         return true;
                     }
@@ -1556,6 +1732,7 @@ Bài 3:
             }
             appData.wordBank = sanitizeWordBank(appData.wordBank);
             if (!appData.feedbacks) appData.feedbacks = [];
+            if (!appData.quizLibrary) appData.quizLibrary = [];
             if (!appData.quizTitle) appData.quizTitle = 'Bài Tập Tiếng Anh Kỹ Năng Mềm (Transferable Skills)';
             if (!appData.quizLevel) appData.quizLevel = 'B1 - Intermediate (Trung cấp)';
             if (!appData.quizCreatedDate) appData.quizCreatedDate = new Date().toISOString().slice(0, 10);
@@ -1568,6 +1745,7 @@ Bài 3:
             updateQuizMetadataUI();
             updateBadges();
             renderFeedbacksList();
+            renderQuizLibrary();
             updateDeadlineCountdown();
             setInterval(updateDeadlineCountdown, 60000);
 
@@ -1599,6 +1777,8 @@ Bài 3:
             document.getElementById('total-results-badge').innerText = appData.grades ? appData.grades.length : 0;
             const fbBadge = document.getElementById('total-feedbacks-badge');
             if (fbBadge) fbBadge.innerText = appData.feedbacks ? appData.feedbacks.length : 0;
+            const libBadge = document.getElementById('total-library-badge');
+            if (libBadge) libBadge.innerText = appData.quizLibrary ? appData.quizLibrary.length : 0;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1608,6 +1788,7 @@ Bài 3:
             renderClassesList();
             renderGradesTable();
             renderFeedbacksList();
+            renderQuizLibrary();
             
             await fetchQuizFromCloud();
 
@@ -1641,16 +1822,19 @@ Bài 3:
 
         function switchTeacherSubTab(sub) {
             document.getElementById('teacher-subtab-editor').classList.toggle('hidden', sub !== 'editor');
+            document.getElementById('teacher-subtab-library').classList.toggle('hidden', sub !== 'library');
             document.getElementById('teacher-subtab-classes').classList.toggle('hidden', sub !== 'classes');
             document.getElementById('teacher-subtab-grades').classList.toggle('hidden', sub !== 'grades');
             document.getElementById('teacher-subtab-feedbacks').classList.toggle('hidden', sub !== 'feedbacks');
 
             document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
+            document.getElementById('subtab-library-btn').classList.toggle('active', sub === 'library');
             document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
             document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
             document.getElementById('subtab-feedbacks-btn').classList.toggle('active', sub === 'feedbacks');
 
             if (sub === 'feedbacks') renderFeedbacksList();
+            if (sub === 'library') renderQuizLibrary();
         }
 
         function createNewClass() {
