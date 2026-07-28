@@ -2442,25 +2442,30 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         });
 
         async function switchMainTab(tab, bypassAuth = false) {
-            document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
-            document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
-            
-            document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
-            document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
+            try {
+                document.getElementById('teacher-view').classList.toggle('hidden', tab !== 'teacher');
+                document.getElementById('student-view').classList.toggle('hidden', tab !== 'student');
+                
+                document.getElementById('tab-teacher-btn').classList.toggle('active', tab === 'teacher');
+                document.getElementById('tab-student-btn').classList.toggle('active', tab === 'student');
 
-            if (tab === 'student') {
-                await fetchQuizFromCloud();
-                activeSectionIndex = 0;
-                if (activeStudentInfo && activeStudentInfo.studentId) {
-                    restoreStudentSessionUI();
-                } else {
-                    document.getElementById('student-login-box').classList.remove('hidden');
-                    document.getElementById('student-quiz-active').classList.add('hidden');
+                if (tab === 'student') {
+                    activeSectionIndex = 0;
+                    if (activeStudentInfo && activeStudentInfo.studentId) {
+                        restoreStudentSessionUI();
+                    } else {
+                        document.getElementById('student-login-box').classList.remove('hidden');
+                        document.getElementById('student-quiz-active').classList.add('hidden');
+                    }
+                    await fetchQuizFromCloud();
+                } else if (tab === 'teacher') {
+                    switchTeacherSubTab('editor');
+                    renderClassSubmissionTracker();
+                    renderClassAssignmentsPanel();
+                    renderQuizLibrary();
                 }
-            } else if (tab === 'teacher') {
-                renderClassSubmissionTracker();
-                renderClassAssignmentsPanel();
-                renderQuizLibrary();
+            } catch(err) {
+                console.error("Error switching tab:", err);
             }
         }
 
