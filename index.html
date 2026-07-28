@@ -2183,6 +2183,8 @@ Bài 3:
         async function publishQuizToCloud(questions, wordBank) {
             updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
+                assignQuizToClassTarget(appData.quizTargetClass || 'all');
+
                 const compactQuestions = questions.map(q => ({
                     id: q.id,
                     sectionIndex: q.sectionIndex,
@@ -2205,6 +2207,7 @@ Bài 3:
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
                     classes: appData.classes || [],
+                    classAssignments: appData.classAssignments || {},
                     grades: appData.grades || [],
                     feedbacks: appData.feedbacks || [],
                     updatedAt: new Date().toLocaleString('vi-VN')
@@ -2229,15 +2232,8 @@ Bài 3:
                 });
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.questions && data.questions.length > 0) {
-                        appData.currentQuestions = data.questions;
-                        appData.sections = data.sections || [];
-                        appData.wordBank = sanitizeWordBank(data.wordBank || []);
-                        appData.quizDeadline = data.quizDeadline || null;
-                        if (data.quizTitle) appData.quizTitle = data.quizTitle;
-                        if (data.quizLevel) appData.quizLevel = data.quizLevel;
-                        if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
-                        if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
+                    if (data) {
+                        if (data.classAssignments) appData.classAssignments = data.classAssignments;
                         if (data.classes && data.classes.length > 0) {
                             appData.classes = data.classes;
                             renderClassesList();
@@ -2248,17 +2244,50 @@ Bài 3:
                             renderGradesTable();
                             renderClassSubmissionTracker();
                         }
+
+                        if (activeStudentInfo && activeStudentInfo.studentId && activeStudentInfo.className) {
+                            const studentClass = activeStudentInfo.className.trim();
+                            if (appData.classAssignments && appData.classAssignments[studentClass]) {
+                                const classQuiz = appData.classAssignments[studentClass];
+                                appData.currentQuestions = classQuiz.questions || [];
+                                appData.sections = classQuiz.sections || [];
+                                appData.wordBank = sanitizeWordBank(classQuiz.wordBank || []);
+                                if (classQuiz.quizTitle) appData.quizTitle = classQuiz.quizTitle;
+                            } else if (data.questions && data.questions.length > 0 && (data.quizTargetClass === 'all' || data.quizTargetClass === studentClass)) {
+                                appData.currentQuestions = data.questions;
+                                appData.sections = data.sections || [];
+                                appData.wordBank = sanitizeWordBank(data.wordBank || []);
+                            }
+                        } else if (data.questions && data.questions.length > 0) {
+                            appData.currentQuestions = data.questions;
+                            appData.sections = data.sections || [];
+                            appData.wordBank = sanitizeWordBank(data.wordBank || []);
+                            if (data.quizTitle) appData.quizTitle = data.quizTitle;
+                            if (data.quizLevel) appData.quizLevel = data.quizLevel;
+                        }
+
+                        if (data.quizDeadline) appData.quizDeadline = data.quizDeadline;
+                        if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
+                        if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
+                        
                         saveStorage();
                         
                         updateStudentTabBadge();
-                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections.length} bài tập)`;
+                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
                         
                         updateTargetClassSelectOptions();
                         updateQuizMetadataUI();
                         updateDeadlineCountdown();
                         renderFeedbacksList();
                         renderQuizLibrary();
+                        renderClassSubmissionTracker();
+                        renderClassAssignmentsPanel();
                         updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
+
+                        if (activeStudentInfo && activeStudentInfo.studentId) {
+                            renderQuizQuestions();
+                        }
+
                         return true;
                     }
                 }
