@@ -2413,8 +2413,8 @@ Bài 3:
                 } catch(e) {}
             }
 
-            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
-                appData.currentQuestions = parseInputToQuestions(INITIAL_SAMPLE_TEXT);
+            if (!appData.currentQuestions) {
+                appData.currentQuestions = [];
             }
 
             const savedWordBank = localStorage.getItem('eduquiz_word_bank');
@@ -3231,8 +3231,9 @@ Bài 3:
                         q.answer = answerKeyMap[secKey] || answerKeyMap[globalKey];
                     }
 
-                    // INJECT AI PEDAGOGICAL EXPLANATION IF MISSING
-                    if (AI_EXPLANATION_DICTIONARY[globalQId]) {
+                    // INJECT AI PEDAGOGICAL EXPLANATION ONLY IF IT IS THE SAMPLE SKILLS QUIZ
+                    const isSampleQuiz = (appData.quizTitle || '').includes('Transferable Skills');
+                    if (isSampleQuiz && AI_EXPLANATION_DICTIONARY[globalQId]) {
                         q.aiData = AI_EXPLANATION_DICTIONARY[globalQId];
                         if (!q.explanation) q.explanation = q.aiData.grammar;
                     }
@@ -3720,8 +3721,9 @@ Bài 3:
 
                     card.classList.add(isCorrect ? 'border-emerald-300' : 'border-rose-300', isCorrect ? 'bg-emerald-50/20' : 'bg-rose-50/20');
                     
-                    const aiInfo = AI_EXPLANATION_DICTIONARY[q.id] || {
-                        trans: "Cấu trúc ngữ pháp tiếng Anh nâng cao.",
+                    const isSampleQuiz = (appData.quizTitle || '').includes('Transferable Skills');
+                    const aiInfo = q.aiData || (isSampleQuiz ? AI_EXPLANATION_DICTIONARY[q.id] : null) || {
+                        trans: "Cấu trúc ngữ pháp tiếng Anh.",
                         grammar: q.explanation || "Đối chiếu với đáp án chuẩn của giáo viên.",
                         tip: "Hãy chú ý từ khóa trong câu."
                     };
@@ -3872,8 +3874,9 @@ Bài 3:
                     ? q.inlineBlanks[0].answer 
                     : (q.answer || '');
 
-                const aiInfo = AI_EXPLANATION_DICTIONARY[q.id] || {
-                    trans: "Cấu trúc ngữ pháp tiếng Anh nâng cao.",
+                const isSampleQuiz = (appData.quizTitle || '').includes('Transferable Skills');
+                const aiInfo = q.aiData || (isSampleQuiz ? AI_EXPLANATION_DICTIONARY[q.id] : null) || {
+                    trans: "Cấu trúc ngữ pháp tiếng Anh.",
                     grammar: q.explanation || "Đối chiếu với đáp án chuẩn của giáo viên.",
                     tip: "Hãy chú ý từ khóa trong câu."
                 };
@@ -4143,8 +4146,8 @@ Bài 3:
                     userVal: 'Đã hoàn thành',
                     expected: q.answer || '',
                     isCorrect: true,
-                    explanation: q.explanation || (AI_EXPLANATION_DICTIONARY[q.id] ? AI_EXPLANATION_DICTIONARY[q.id].grammar : ''),
-                    trans: AI_EXPLANATION_DICTIONARY[q.id] ? AI_EXPLANATION_DICTIONARY[q.id].trans : ''
+                    explanation: q.explanation || ((appData.quizTitle || '').includes('Transferable Skills') && AI_EXPLANATION_DICTIONARY[q.id] ? AI_EXPLANATION_DICTIONARY[q.id].grammar : 'Đối chiếu với đáp án chuẩn của giáo viên.'),
+                    trans: ((appData.quizTitle || '').includes('Transferable Skills') && AI_EXPLANATION_DICTIONARY[q.id]) ? AI_EXPLANATION_DICTIONARY[q.id].trans : ''
                 }));
             }
 
