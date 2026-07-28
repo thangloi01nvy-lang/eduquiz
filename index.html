@@ -652,7 +652,19 @@
                         <i class="fa-solid fa-user-check"></i>
                     </div>
                     <h3 class="font-heading font-bold text-2xl text-slate-900">Đăng Nhập Làm Bài</h3>
-                    <p class="text-slate-500 text-xs">Điền Mã học viên, Họ tên và chọn Lớp của bạn để bắt đầu tính điểm</p>
+                    <p class="text-slate-500 text-xs">Điền Mã học viên, Họ tên và chọn Lớp của bạn để bắt đầu làm bài</p>
+                </div>
+
+                <!-- Active Cloud Quiz Info Banner inside Login Box -->
+                <div id="login-active-quiz-info" class="p-3.5 bg-brand-50/80 border border-brand-200 rounded-2xl text-xs text-brand-900 space-y-1.5 shadow-sm">
+                    <div class="font-bold flex items-center justify-between text-brand-800 text-[11px] uppercase tracking-wider">
+                        <span><i class="fa-solid fa-cloud-arrow-down text-brand-600 mr-1"></i> Đề Bài Đang Phát Hành Trên Cloud:</span>
+                    </div>
+                    <div id="login-active-quiz-title" class="font-heading font-bold text-slate-900 text-sm leading-snug">Bài Tập Tiếng Anh Kỹ Năng Mềm</div>
+                    <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                        <span id="login-active-quiz-target" class="px-2.5 py-0.5 bg-purple-100 text-purple-900 font-bold text-[11px] rounded-full border border-purple-200">🏫 Giao cho: Tất cả các lớp</span>
+                        <span id="login-active-quiz-level" class="px-2.5 py-0.5 bg-amber-100 text-amber-900 font-bold text-[11px] rounded-full">🎯 B1</span>
+                    </div>
                 </div>
 
                 <div class="space-y-4">
@@ -1427,6 +1439,15 @@ Bài 3:
             if (activeCardLevel) activeCardLevel.innerText = `🎯 ${levelVal}`;
             if (activeCardDate) activeCardDate.innerText = `📅 ${formattedDate}`;
             if (activeCardTarget) activeCardTarget.innerText = classLabelStr;
+
+            // Login Box Active Quiz Badge
+            const loginQuizTitle = document.getElementById('login-active-quiz-title');
+            const loginQuizTarget = document.getElementById('login-active-quiz-target');
+            const loginQuizLevel = document.getElementById('login-active-quiz-level');
+
+            if (loginQuizTitle) loginQuizTitle.innerText = titleVal;
+            if (loginQuizTarget) loginQuizTarget.innerText = `🏫 Giao cho: ${classLabelStr}`;
+            if (loginQuizLevel) loginQuizLevel.innerText = `🎯 ${levelVal}`;
 
             // Sync Teacher Editor Inputs
             const titleInput = document.getElementById('quiz-title-input');
