@@ -704,9 +704,6 @@
                     <button onclick="startStudentQuizSession()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-heading font-bold text-base rounded-xl transition shadow-md shadow-brand-200 flex items-center justify-center gap-2">
                         <i class="fa-solid fa-play"></i> BẮT ĐẦU LÀM BÀI (TÍNH ĐIỂM)
                     </button>
-                    <button onclick="quickTestActiveQuizSession()" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-bolt text-amber-600"></i> ⚡ Thử Đề Ngay (Tự Động Đăng Nhập Đúng Lớp)
-                    </button>
                 </div>
             </div>
 
@@ -2694,27 +2691,15 @@ Bài 3:
                 const currentTargetClass = appData.quizTargetClass || 'all';
 
                 document.getElementById('questions-list-container').innerHTML = `
-                    <div class="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-5 shadow-sm my-6 max-w-xl mx-auto">
-                        <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-inner border border-amber-100">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-sm my-6 max-w-lg mx-auto">
+                        <div class="w-20 h-20 bg-slate-50 text-slate-400 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner">
+                            <i class="fa-solid fa-folder-open text-brand-400"></i>
                         </div>
-                        <div class="space-y-2">
-                            <h3 class="font-heading font-bold text-xl text-slate-800">Lớp Của Bạn (${activeStudentInfo.className}) Chưa Được Giao Bài Tập Này</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Đề bài hiện tại <b>"${appData.quizTitle || 'Bài Tập Online'}"</b> đang được phát hành cho lớp: <span class="px-2.5 py-0.5 bg-purple-100 text-purple-900 font-bold rounded-full border border-purple-200">${currentTargetClass === 'all' ? 'Tất cả các lớp' : currentTargetClass}</span>.
+                        <div class="space-y-1.5">
+                            <h3 class="font-heading font-bold text-xl text-slate-800">Lớp Của Bạn Hiện Chưa Có Bài Tập Mới</h3>
+                            <p class="text-xs text-slate-500 max-w-md mx-auto">
+                                Giáo viên chưa phát hành bài tập mới cho lớp <b class="text-brand-700 font-bold">${activeStudentInfo.className}</b>. Bạn hãy quay lại sau nhé!
                             </p>
-                        </div>
-
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 space-y-3">
-                            <div class="font-bold text-slate-800 text-center"><i class="fa-solid fa-wand-magic-sparkles text-brand-600 mr-1"></i> Nút Chuyển Lớp Nhanh (Dành Cho Giáo Viên Thử Nghiệm):</div>
-                            <div class="flex flex-wrap items-center justify-center gap-2">
-                                <button onclick="quickReassignTargetClassAndReload('${activeStudentInfo.className}')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
-                                    <i class="fa-solid fa-check-double"></i> Giao Bài Này Cho Lớp ${activeStudentInfo.className} Ngay
-                                </button>
-                                <button onclick="quickReassignTargetClassAndReload('all')" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
-                                    <i class="fa-solid fa-globe"></i> Giao Bài Cho Tất Cả Các Lớp
-                                </button>
-                            </div>
                         </div>
                     </div>
                 `;
