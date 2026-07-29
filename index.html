@@ -691,6 +691,9 @@
                     </div>
                 </div>
 
+                <!-- EDITING LIBRARY BANNER -->
+                <div id="editing-library-banner" class="hidden"></div>
+
                 <!-- Editor Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 space-y-4">
@@ -2353,36 +2356,110 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             }
         }
 
-        function saveCurrentQuizToLibrary() {
-            syncAppDataToMarkdownInput();
+        function saveCurrentQuizToLibrary(forceNew = false) {
+            const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value : '';
+            if (rawText && rawText.trim()) {
+                appData.currentQuestions = parseInputToQuestions(rawText);
+            } else {
+                syncAppDataToMarkdownInput();
+            }
+
             const title = document.getElementById('quiz-title-input').value.trim() || appData.quizTitle || 'Bài Tập Mới';
             const level = document.getElementById('quiz-level-select').value || appData.quizLevel;
             const targetClass = document.getElementById('quiz-target-class-select').value || appData.quizTargetClass || 'all';
             const date = document.getElementById('quiz-created-date-input').value || appData.quizCreatedDate;
-            const rawText = document.getElementById('markdown-input').value;
+            const finalRawText = document.getElementById('markdown-input').value;
 
-            if (!rawText || !rawText.trim()) {
+            if (!finalRawText || !finalRawText.trim()) {
                 showNotification('Nội dung đề bài đang trống, không thể lưu!', 'error');
                 return;
             }
 
-            const item = {
-                id: 'library_' + Date.now(),
-                title: title,
-                level: level,
-                targetClass: targetClass,
-                createdDate: date,
-                savedAt: new Date().toLocaleString('vi-VN'),
-                rawText: rawText,
-                questionsCount: appData.currentQuestions ? appData.currentQuestions.length : 0,
-                sectionsCount: appData.sections ? appData.sections.length : 1
-            };
-
             if (!appData.quizLibrary) appData.quizLibrary = [];
-            appData.quizLibrary.unshift(item);
+
+            let existingItem = null;
+            if (!forceNew && appData.editingLibraryId) {
+                existingItem = appData.quizLibrary.find(i => i.id === appData.editingLibraryId);
+            }
+
+            let totalQs = 0;
+            if (Array.isArray(appData.sections) && appData.sections.length > 0) {
+                appData.sections.forEach(s => {
+                    if (s && Array.isArray(s.questions)) totalQs += s.questions.length;
+                });
+            }
+            if (totalQs === 0 && Array.isArray(appData.currentQuestions)) {
+                totalQs = appData.currentQuestions.length;
+            }
+            const qCount = totalQs;
+            const sCount = (appData.sections && appData.sections.length > 0) ? appData.sections.length : 1;
+
+            if (existingItem) {
+                existingItem.title = title;
+                existingItem.level = level;
+                existingItem.targetClass = targetClass;
+                existingItem.createdDate = date;
+                existingItem.savedAt = new Date().toLocaleString('vi-VN');
+                existingItem.rawText = finalRawText;
+                existingItem.questionsCount = qCount;
+                existingItem.sectionsCount = sCount;
+
+                showNotification(`💾 Đã CẬP NHẬT THÀNH CÔNG bài tập "${title}" trong Thư Viện!`, 'success');
+            } else {
+                const item = {
+                    id: 'library_' + Date.now(),
+                    title: title,
+                    level: level,
+                    targetClass: targetClass,
+                    createdDate: date,
+                    savedAt: new Date().toLocaleString('vi-VN'),
+                    rawText: finalRawText,
+                    questionsCount: qCount,
+                    sectionsCount: sCount
+                };
+                appData.quizLibrary.unshift(item);
+                appData.editingLibraryId = item.id;
+                showNotification(`📚 Đã lưu bài tập mới "${title}" vào Thư Viện!`, 'success');
+            }
+
             saveStorage();
             renderQuizLibrary();
-            showNotification(`📚 Đã lưu bài tập "${title}" cho ${targetClass === 'all' ? 'tất cả các lớp' : targetClass} vào Thư Viện!`, 'success');
+            publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
+            updateEditingLibraryBanner();
+        }
+
+        function updateEditingLibraryBanner() {
+            const banner = document.getElementById('editing-library-banner');
+            if (!banner) return;
+            if (appData.editingLibraryId) {
+                const item = (appData.quizLibrary || []).find(i => i.id === appData.editingLibraryId);
+                const titleStr = item ? item.title : 'Bài tập từ thư viện';
+                banner.className = "bg-gradient-to-r from-amber-500 to-orange-600 text-white p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-md mb-4 font-heading font-bold text-xs border border-amber-300";
+                banner.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-base text-amber-100"></i>
+                        <span>📝 ĐANG CHỈNH SỬA ĐỀ TỪ THƯ VIỆN: <b class="text-white underline">${titleStr}</b></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="saveCurrentQuizToLibrary(false)" class="px-3 py-1.5 bg-white text-amber-900 rounded-xl font-bold hover:bg-amber-50 shadow-sm flex items-center gap-1 transition">
+                            <i class="fa-solid fa-floppy-disk text-emerald-600"></i> 💾 LƯU CẬP NHẬT VÀO THƯ VIỆN
+                        </button>
+                        <button onclick="saveCurrentQuizToLibrary(true)" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold shadow-sm flex items-center gap-1 transition">
+                            <i class="fa-solid fa-plus"></i> ➕ LƯU THÀNH BÀI MỚI
+                        </button>
+                        <button onclick="cancelEditingLibrary()" class="px-2 py-1.5 text-white/80 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+                banner.classList.remove('hidden');
+            } else {
+                banner.classList.add('hidden');
+            }
+        }
+
+        function cancelEditingLibrary() {
+            appData.editingLibraryId = null;
+            updateEditingLibraryBanner();
+            showNotification('Đã thoát chế độ chỉnh sửa bài từ Thư viện.', 'info');
         }
 
         function renderQuizLibrary() {
@@ -2456,6 +2533,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const item = appData.quizLibrary.find(i => i.id === itemId);
             if (!item) return;
 
+            appData.editingLibraryId = itemId;
+
             document.getElementById('quiz-title-input').value = item.title;
             document.getElementById('quiz-level-select').value = item.level;
             document.getElementById('quiz-target-class-select').value = item.targetClass || 'all';
@@ -2470,9 +2549,10 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             appData.currentQuestions = parseInputToQuestions(item.rawText);
             updateInputStats();
             renderTeacherPreview(true);
+            updateEditingLibraryBanner();
             switchTeacherSubTab('editor');
 
-            showNotification(`✏️ Đã tải bài tập "${item.title}" vào Bộ Chỉnh Sửa! Thầy/Cô có thể chỉnh sửa và bấm "Lưu Vào Thư Viện" hoặc "Giao Cho Lớp"!`, 'success');
+            showNotification(`✏️ Đang chỉnh sửa bài tập "${item.title}". Sau khi sửa xong, bấm "💾 LƯU CẬP NHẬT VÀO THƯ VIỆN"!`, 'success');
         }
 
         async function loadAndAssignQuizFromLibrary(itemId) {
