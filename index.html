@@ -3686,7 +3686,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             let currentSecIndex = 0;
             const remainingLines = [];
 
-            const answerHeaderRegex = /^(?:##|#)?\s*(?:answer\s*key|answers|đáp\s*án|key|keys|đ\/a)\b/i;
+            const answerHeaderRegex = /^(?:##|#)?\s*(?:answer\s*key|answers|answer|đáp\s*án|key|keys|đ\/a)[:\s]?/i;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -3708,7 +3708,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         continue;
                     }
 
-                    const kvM = line.match(/^(?:câu|question|q)?\s*(\d+)[\.\:\)\s\-]+(.*)$/i);
+                    const kvM = line.match(/^(?:câu|question|q)?\s*(\d+)[\.\:\)\s\-\t]+(.*)$/i);
                     if (kvM) {
                         const qNum = parseInt(kvM[1]);
                         const ansVal = kvM[2].trim();
@@ -4387,39 +4387,56 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const rawUserVal = studentAnswersMap[`q_${q.id}`] || studentAnswersMap[`q_${q.id}_blank_0`] || '';
             const userVal = rawUserVal.trim();
 
-            // RULE 1: IF STUDENT LEFT ANSWER BLANK, IT IS UNCONDITIONALLY WRONG!
             if (!userVal || userVal === '') {
                 return { isCorrect: false, userVal: '' };
             }
 
-            const cleanUser = userVal.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+            const normUser = userVal.toLowerCase().replace(/[’`']/g, "'").replace(/[“”"]/g, '"');
+            const cleanUser = normUser.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
 
             let expected = (q.inlineBlanks && q.inlineBlanks.length > 0 && q.inlineBlanks[0].answer) 
                 ? q.inlineBlanks[0].answer 
                 : (q.answer || '');
 
-            const cleanExpected = expected.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+            const normExpected = expected.toLowerCase().replace(/[’`']/g, "'").replace(/[“”"]/g, '"');
+            const cleanExpected = normExpected.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
 
             if (q.type === 'multiple_choice' || q.type === 'true_false') {
                 return { isCorrect: cleanUser === cleanExpected, userVal: userVal };
             }
 
-            // Exact match
+            // 1. Exact clean match (ignoring quotes, case & punctuation)
             if (cleanUser === cleanExpected) {
                 return { isCorrect: true, userVal: userVal };
             }
 
-            // Check slash choices e.g. "confident/independent"
-            if (cleanExpected.includes('/')) {
-                const slashParts = cleanExpected.split('/').map(p => p.trim());
+            // 2. Slash choices e.g. "confident/independent"
+            if (expected.includes('/')) {
+                const slashParts = expected.split('/').map(p => p.toLowerCase().replace(/[’`']/g, "'").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim());
                 if (slashParts.includes(cleanUser)) {
                     return { isCorrect: true, userVal: userVal };
                 }
             }
 
-            // Exercise 3 suffix essay match e.g. 'able' for 'dependable' or 'able' for 'dependable'
-            if (cleanExpected.endsWith(cleanUser) || cleanUser.endsWith(cleanExpected)) {
+            // 3. Suffix / Substring match for short fill-in-blanks
+            if (cleanExpected.length >= 3 && cleanUser.length >= 3 && (cleanExpected.endsWith(cleanUser) || cleanUser.endsWith(cleanExpected))) {
                 return { isCorrect: true, userVal: userVal };
+            }
+
+            // 4. SMART ESSAY & SENTENCE REWRITE FLEXIBLE MATCHING
+            if (q.type === 'short_answer' || cleanExpected.split(' ').length >= 4) {
+                const uTokens = cleanUser.split(' ').filter(t => t.length > 0);
+                const eTokens = cleanExpected.split(' ').filter(t => t.length > 0);
+
+                if (uTokens.length >= 3 && eTokens.length >= 3) {
+                    const eSet = new Set(eTokens);
+                    const overlap = uTokens.filter(t => eSet.has(t)).length;
+                    const similarityRatio = overlap / Math.max(uTokens.length, eTokens.length);
+
+                    if (similarityRatio >= 0.85) {
+                        return { isCorrect: true, userVal: userVal };
+                    }
+                }
             }
 
             return { isCorrect: false, userVal: userVal };
