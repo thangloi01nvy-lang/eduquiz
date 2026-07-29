@@ -1177,7 +1177,10 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="forceReloadCloudQuizForStudent()" class="px-4 py-3 bg-white text-emerald-950 hover:bg-emerald-50 font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5 border border-white">
+                            <i class="fa-solid fa-rotate text-emerald-600"></i> <span>🔄 LẤY BÀI MỚI TỪ GIÁO VIÊN</span>
+                        </button>
                         <button onclick="openStudentFeedbackModal()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition border border-white/20 flex items-center gap-1.5">
                             <i class="fa-solid fa-comment-dots text-amber-300"></i> Góp Ý Cho GV
                         </button>
@@ -1684,18 +1687,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- FLOATING QUICK TOGGLE TOOLBAR FOR ALWAYS-ON TAB ACCESS -->
-    <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-700 shadow-2xl">
-        <button onclick="quickSwitchToStudentMode()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-user-graduate text-brand-400"></i>
-            <span>Góc Học Sinh</span>
-        </button>
-        <button onclick="quickSwitchToTeacherMode()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-md">
-            <i class="fa-solid fa-user-tie text-slate-950"></i>
-            <span>👩‍🏫 Góc Giáo Viên</span>
-        </button>
     </div>
 
     <!-- FOOTER -->
@@ -2926,17 +2917,32 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                         if (activeStudentInfo && activeStudentInfo.studentId && activeStudentInfo.className) {
                             const studentClass = activeStudentInfo.className.trim();
-                            if (appData.classAssignments && appData.classAssignments[studentClass]) {
-                                const classQuiz = appData.classAssignments[studentClass];
+                            let classQuiz = appData.classAssignments ? appData.classAssignments[studentClass] : null;
+
+                            if (!classQuiz && appData.classAssignments) {
+                                const normStudent = studentClass.toLowerCase().replace(/\s+/g, ' ');
+                                for (let key in appData.classAssignments) {
+                                    if (key.trim().toLowerCase().replace(/\s+/g, ' ') === normStudent) {
+                                        classQuiz = appData.classAssignments[key];
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (classQuiz && classQuiz.questions && classQuiz.questions.length > 0) {
                                 appData.currentQuestions = classQuiz.questions || [];
                                 appData.sections = classQuiz.sections || [];
                                 appData.wordBank = sanitizeWordBank(classQuiz.wordBank || []);
                                 if (classQuiz.quizTitle) appData.quizTitle = classQuiz.quizTitle;
-                            } else if (data.questions && data.questions.length > 0 && (data.quizTargetClass === 'all' || data.quizTargetClass === studentClass)) {
+                            } else if (data.questions && data.questions.length > 0 && (data.quizTargetClass === 'all' || (data.quizTargetClass && data.quizTargetClass.trim().toLowerCase() === studentClass.toLowerCase()))) {
                                 appData.currentQuestions = data.questions;
                                 appData.sections = data.sections || [];
                                 appData.wordBank = sanitizeWordBank(data.wordBank || []);
                                 if (data.quizTitle) appData.quizTitle = data.quizTitle;
+                            } else {
+                                appData.currentQuestions = [];
+                                appData.sections = [];
+                                appData.wordBank = [];
                             }
                         } else if (data.questions && data.questions.length > 0) {
                             appData.currentQuestions = data.questions;
@@ -2976,6 +2982,15 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 console.warn('Could not fetch cloud quiz:', e);
             }
             return false;
+        }
+
+        async function forceReloadCloudQuizForStudent() {
+            showNotification('📡 Đang làm mới bài tập từ Giáo viên...', 'info');
+            await fetchQuizFromCloud();
+            if (activeStudentInfo && activeStudentInfo.studentId) {
+                restoreStudentSessionUI();
+            }
+            showNotification('✅ Đã cập nhật xong bài tập mới nhất từ Giáo viên!', 'success');
         }
 
         function updateCloudStatus(msg, state) {
