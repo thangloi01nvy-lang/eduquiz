@@ -1576,7 +1576,7 @@
                         <div class="text-[11px] text-amber-800">Đổi loại câu hỏi cho TẤT CẢ các câu trong bài tập này chỉ với 1 click</div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <select id="master-bulk-type-select" class="px-3 py-1.5 bg-white border border-amber-300 rounded-xl font-bold text-xs text-amber-900 focus:ring-2 focus:ring-amber-500 outline-none">
                         <option value="">-- Chọn loại áp dụng TẤT CẢ --</option>
                         <option value="fill_blank">🧩 Chuyển TẤT CẢ sang Chọn từ / Nút bấm</option>
@@ -1586,6 +1586,9 @@
                     </select>
                     <button type="button" onclick="applyMasterBulkTypeChange()" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1">
                         <i class="fa-solid fa-bolt"></i> ÁP DỤNG ALL
+                    </button>
+                    <button type="button" onclick="triggerAutoDetectAllBulkAnswers()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1" title="Nhấp để hệ thống tự động tìm và điền đáp án từ đề bài">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> 🎯 TỰ ĐỘNG NHẬN DIỆN ĐÁP ÁN
                     </button>
                 </div>
             </div>
@@ -4285,6 +4288,85 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             }
         }
 
+        function autoDetectAnswerFromTitleAndChoices(title, choicesStr, currentAns) {
+            let t = title || '';
+            let c = choicesStr || '';
+
+            // 1. Check asterisk in choices e.g. "but / *so / because"
+            if (c.includes('*')) {
+                const parts = c.split('/');
+                for (let p of parts) {
+                    if (p.includes('*')) {
+                        return p.replace(/[\*\_\`]/g, '').replace(/^[A-E]\.\s*/i, '').trim();
+                    }
+                }
+            }
+
+            // 2. Check arrow notation e.g. "Although she was tired. → DP"
+            if (t.includes('→') || t.includes('->') || t.includes('=>')) {
+                const arrowParts = t.split(/→|->|=>/);
+                let ans = arrowParts[1] ? arrowParts[1].trim() : '';
+                const idDp = ans.match(/\b(ID|DP)\b/i);
+                if (idDp) return idDp[1].toUpperCase();
+                if (ans) return ans;
+            }
+
+            // 3. Check trailing parenthetical e.g. "She was tired, ___ she went to bed early. (so)" or "(because)"
+            const parenM = t.match(/\(([^)]+)\)\s*$/);
+            if (parenM) {
+                const val = parenM[1].trim();
+                if (!val.includes('/') && val.length <= 40) {
+                    return val;
+                }
+            }
+
+            // 4. Check ID / DP keywords in title
+            const idDpMatch = t.match(/\b(ID|DP)\b/i);
+            if (idDpMatch && (t.toLowerCase().includes('mệnh đề') || t.toLowerCase().includes('clause') || t.toLowerCase().includes('viết'))) {
+                return idDpMatch[1].toUpperCase();
+            }
+
+            // 5. If choices exist, and current answer matches one choice, return current answer
+            if (c && c.includes('/')) {
+                const choices = c.split('/').map(x => x.trim().toLowerCase());
+                if (currentAns && choices.includes(currentAns.trim().toLowerCase())) {
+                    return currentAns.trim();
+                }
+                const cleanChoices = c.split('/').map(x => x.trim());
+                return cleanChoices[0] || currentAns;
+            }
+
+            return currentAns ? currentAns.trim() : '';
+        }
+
+        function triggerAutoDetectAllBulkAnswers() {
+            const secIdx = parseInt(document.getElementById('bulk-sec-index-input').value);
+            const sec = (appData.sections && appData.sections[secIdx]) ? appData.sections[secIdx] : (appData.sections ? appData.sections[0] : null);
+            if (!sec) return;
+
+            const questions = sec.questions && sec.questions.length > 0 ? sec.questions : (appData.currentQuestions || []);
+            let autoCount = 0;
+
+            questions.forEach(q => {
+                const titleElem = document.getElementById(`bulk-q-title-${q.id}`);
+                const choicesElem = document.getElementById(`bulk-q-choices-${q.id}`);
+                const ansElem = document.getElementById(`bulk-q-answer-${q.id}`);
+
+                const titleVal = titleElem ? titleElem.value : q.title;
+                const choicesVal = choicesElem ? choicesElem.value : '';
+                const currentAns = ansElem ? ansElem.value : q.answer;
+
+                const detected = autoDetectAnswerFromTitleAndChoices(titleVal, choicesVal, currentAns);
+                if (detected) {
+                    q.answer = detected;
+                    if (ansElem) ansElem.value = detected;
+                    autoCount++;
+                }
+            });
+
+            showNotification(`🎯 Đã tự động nhận diện thành công đáp án cho ${autoCount} câu hỏi!`, 'success');
+        }
+
         function applyMasterBulkTypeChange() {
             const masterType = document.getElementById('master-bulk-type-select').value;
             if (!masterType) {
@@ -4301,6 +4383,20 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 const selectElem = document.getElementById(`bulk-q-type-${q.id}`);
                 if (selectElem) selectElem.value = masterType;
                 q.type = masterType;
+
+                const titleElem = document.getElementById(`bulk-q-title-${q.id}`);
+                const choicesElem = document.getElementById(`bulk-q-choices-${q.id}`);
+                const ansElem = document.getElementById(`bulk-q-answer-${q.id}`);
+
+                const titleVal = titleElem ? titleElem.value : q.title;
+                const choicesVal = choicesElem ? choicesElem.value : '';
+                const currentAns = ansElem ? ansElem.value : q.answer;
+
+                const detected = autoDetectAnswerFromTitleAndChoices(titleVal, choicesVal, currentAns);
+                if (detected) {
+                    q.answer = detected;
+                    if (ansElem) ansElem.value = detected;
+                }
             });
 
             const typeLabels = {
@@ -4310,7 +4406,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 'true_false': '⚖️ Đúng / Sai'
             };
 
-            showNotification(`🚀 Đã áp dụng loại "${typeLabels[masterType] || masterType}" cho TẤT CẢ câu hỏi trong bài!`, 'success');
+            showNotification(`🚀 Đã áp dụng loại "${typeLabels[masterType] || masterType}" và TỰ ĐỘNG NHẬN DIỆN ĐÁP ÁN cho TẤT CẢ câu hỏi!`, 'success');
         }
 
         function openBulkSectionEditorModal(secIdx) {
@@ -4343,8 +4439,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     choicesStr = q.options.map(o => `${o.key}. ${o.text}`).join(' / ');
                 }
 
+                let detectedAns = q.answer || '';
+                if (!detectedAns) {
+                    detectedAns = autoDetectAnswerFromTitleAndChoices(q.title, choicesStr, '');
+                    q.answer = detectedAns;
+                }
+
                 rawLines.push(`${qIdx + 1}. ${q.title || ''}`);
-                if (q.answer) answerLines.push(`${qIdx + 1}. ${q.answer}`);
+                if (detectedAns) answerLines.push(`${qIdx + 1}. ${detectedAns}`);
 
                 const card = document.createElement('div');
                 card.className = "p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs";
@@ -4372,8 +4474,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             <input type="text" id="bulk-q-choices-${q.id}" value="${choicesStr.replace(/"/g, '&quot;')}" placeholder="Ví dụ: but / so / because" class="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-brand-500 outline-none">
                         </div>
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Đáp án chuẩn:</label>
-                            <input type="text" id="bulk-q-answer-${q.id}" value="${(q.answer || '').replace(/"/g, '&quot;')}" placeholder="Ví dụ: so" class="w-full p-2 bg-white border border-slate-200 rounded-xl font-bold text-brand-700 text-xs focus:ring-2 focus:ring-brand-500 outline-none">
+                            <label class="block text-[11px] font-bold text-slate-600 mb-0.5">Đáp án chuẩn (Tự động nhận diện):</label>
+                            <input type="text" id="bulk-q-answer-${q.id}" value="${(detectedAns || '').replace(/"/g, '&quot;')}" placeholder="Ví dụ: so" class="w-full p-2 bg-white border border-slate-200 rounded-xl font-bold text-brand-700 text-xs focus:ring-2 focus:ring-brand-500 outline-none">
                         </div>
                     </div>
                 `;
@@ -4429,7 +4531,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         let newTitle = titleElem.value.trim();
                         const newType = typeElem ? typeElem.value : q.type;
                         const newChoicesStr = choicesElem ? choicesElem.value.trim() : '';
-                        const newAnswer = answerElem ? answerElem.value.trim() : q.answer;
+                        let newAnswer = answerElem ? answerElem.value.trim() : q.answer;
+
+                        if (!newAnswer) {
+                            newAnswer = autoDetectAnswerFromTitleAndChoices(newTitle, newChoicesStr, q.answer);
+                        }
 
                         if (newChoicesStr && !newTitle.includes('[') && !newTitle.includes('___')) {
                             newTitle = `${newTitle} [${newChoicesStr}]`;
@@ -4638,7 +4744,22 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const cleanExpected = normExpected.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
 
             if (q.type === 'multiple_choice' || q.type === 'true_false') {
-                return { isCorrect: cleanUser === cleanExpected, userVal: userVal };
+                if (cleanUser === cleanExpected) {
+                    return { isCorrect: true, userVal: userVal };
+                }
+                if (q.options && q.options.length > 0) {
+                    const cleanOptText = (txt) => (txt || '').toLowerCase().replace(/[’`']/g, "'").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
+                    const userOpt = q.options.find(o => o.key.toLowerCase() === cleanUser || cleanOptText(o.text) === cleanUser);
+                    const expOpt = q.options.find(o => o.key.toLowerCase() === cleanExpected || cleanOptText(o.text) === cleanExpected);
+
+                    if (userOpt && expOpt && userOpt.key === expOpt.key) {
+                        return { isCorrect: true, userVal: userVal };
+                    }
+                    if (userOpt && cleanOptText(userOpt.text) === cleanExpected) {
+                        return { isCorrect: true, userVal: userVal };
+                    }
+                }
+                return { isCorrect: false, userVal: userVal };
             }
 
             // 1. Exact clean match (ignoring quotes, case & punctuation)
