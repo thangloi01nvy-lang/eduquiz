@@ -412,11 +412,15 @@
                         <i class="fa-solid fa-user-tie text-amber-600"></i> GV: <span id="active-teacher-name-tag">Giáo Viên</span>
                     </span>
 
+                    <button onclick="exportSystemBackupJSON()" title="Tải toàn bộ dữ liệu lớp & bài tập về máy tính làm file dự phòng" class="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-xl transition border border-emerald-200 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-download text-emerald-600"></i> Tải File Backup (.json)
+                    </button>
+                    <label title="Khôi phục lại toàn bộ lớp học & bài tập từ file backup" class="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold rounded-xl transition border border-indigo-200 cursor-pointer flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-upload text-indigo-600"></i> Khôi Phục Dữ Liệu
+                        <input type="file" accept=".json" onchange="importSystemBackupJSON(event)" class="hidden">
+                    </label>
                     <button onclick="openChangePasswordModal()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition border border-slate-200 flex items-center gap-1.5">
                         <i class="fa-solid fa-pen-to-square text-amber-500"></i> Đổi Tên / Mật Khẩu
-                    </button>
-                    <button onclick="lockTeacherView()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition border border-rose-200 flex items-center gap-1.5">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất GV
                     </button>
                 </div>
             </div>
@@ -2920,11 +2924,13 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     appData.classes = [];
                 }
 
-                // Check duplicate class name
-                const isDup = appData.classes.some(c => c.name.toLowerCase() === name.toLowerCase());
-                if (isDup) {
-                    showNotification(`Lớp "${name}" đã tồn tại! Vui lòng đặt tên khác.`, 'error');
-                    nameInput.focus();
+                // Check duplicate class name - if exists, gently inform teacher
+                const existingIndex = appData.classes.findIndex(c => c && c.name && c.name.toLowerCase() === name.toLowerCase());
+                if (existingIndex !== -1) {
+                    showNotification(`ℹ️ Lớp "${name}" đã có sẵn trong danh sách!`, 'info');
+                    nameInput.value = '';
+                    if (descInput) descInput.value = '';
+                    renderClassesList();
                     return;
                 }
 
@@ -4635,7 +4641,51 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
+        function exportSystemBackupJSON() {
+            try {
+                const dataStr = JSON.stringify(appData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `EduQuiz_System_Backup_${new Date().toISOString().slice(0,10)}.json`;
+                link.click();
+                showNotification('📥 Đã tải file sao lưu dữ liệu (.json) về máy tính thành công!', 'success');
+            } catch(e) {
+                showNotification('Không thể xuất file sao lưu!', 'error');
+            }
+        }
+
+        function importSystemBackupJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && typeof imported === 'object') {
+                        appData = imported;
+                        saveStorage();
+                        renderClassesList();
+                        renderClassAssignmentsPanel();
+                        updateTargetClassSelectOptions();
+                        renderClassSubmissionTracker();
+                        renderQuizLibrary();
+                        renderGradesTable();
+                        renderFeedbacksList();
+                        updateBadges();
+                        showNotification('📤 Đã khôi phục 100% dữ liệu lớp học & bài tập từ file sao lưu!', 'success');
+                    }
+                } catch(err) {
+                    showNotification('File sao lưu .json không hợp lệ!', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
         // EXPORT ALL TEACHER VIEW FUNCTIONS TO WINDOW GLOBAL SCOPE FOR 100% RELIABILITY
+        window.exportSystemBackupJSON = exportSystemBackupJSON;
+        window.importSystemBackupJSON = importSystemBackupJSON;
         window.switchTeacherSubTab = switchTeacherSubTab;
         window.createNewClass = createNewClass;
         window.deleteClass = deleteClass;
