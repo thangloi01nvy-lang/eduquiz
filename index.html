@@ -1701,7 +1701,7 @@
     <!-- JAVASCRIPT LOGIC WITH AIRTIGHT CLASS ASSIGNMENT PERMISSION CHECK -->
     <!-- ================================================================= -->
     <script>
-        const CLOUD_QUIZ_URL = 'https://jsonblob.com/api/jsonBlob/019fa3e4-0753-7949-9559-ed40f6543dd5';
+        const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || 'https://jsonblob.com/api/jsonBlob/019fadab-c033-772a-abc3-c5a269278984';
 
         const SAMPLE_DATASETS = {
             multi_type: `## Transferable skills
@@ -2880,12 +2880,27 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 saveStorage();
                 try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
 
-                await fetch(CLOUD_QUIZ_URL, {
+                let activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || CLOUD_QUIZ_URL;
+                let res = await fetch(activeUrl, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                updateCloudStatus('Đã đồng bộ Đám mây Vercel Real-Time', 'success');
+
+                if (!res.ok && res.status === 404) {
+                    res = await fetch('https://jsonblob.com/api/jsonBlob', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const loc = res.headers.get('Location') || res.headers.get('location');
+                    if (loc) {
+                        const newUrl = loc.startsWith('http') ? loc : `https://jsonblob.com${loc}`;
+                        localStorage.setItem('eduquiz_active_cloud_url', newUrl);
+                    }
+                }
+
+                updateCloudStatus('Đã đồng bộ Đám mây Real-Time', 'success');
             } catch(e) {
                 console.warn('Cloud publish fallback to local:', e);
                 updateCloudStatus('Đã lưu nội bộ', 'success');
@@ -2894,7 +2909,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         async function fetchQuizFromCloud() {
             try {
-                const res = await fetch(CLOUD_QUIZ_URL + '?t=' + Date.now(), {
+                const activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || CLOUD_QUIZ_URL;
+                const res = await fetch(activeUrl + '?t=' + Date.now(), {
                     headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache, no-store, must-revalidate' }
                 });
                 if (res.ok) {
