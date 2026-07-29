@@ -4011,6 +4011,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             return { isCorrect: false, userVal: userVal };
         }
 
+        window.currentInteractionMode = localStorage.getItem('eduquiz_interaction_mode') || 'drag';
+        window.setInteractionMode = function(mode) {
+            window.currentInteractionMode = mode;
+            localStorage.setItem('eduquiz_interaction_mode', mode);
+            renderQuizQuestions();
+            if (typeof showNotification === 'function') {
+                const labels = {
+                    'drag': '🖱️ Đã chọn chế độ: Kéo-thả & Bấm chọn từ!',
+                    'dropdown': '🔽 Đã chọn chế độ: Danh sách chọn (Dropdown)!',
+                    'input': '✍️ Đã chọn chế độ: Gõ phím trực tiếp!'
+                };
+                showNotification(labels[mode] || 'Đã đổi chế độ làm bài', 'info');
+            }
+        };
+
         function renderQuizQuestions() {
             const container = document.getElementById('questions-list-container');
             const wordBankCard = document.getElementById('word-bank-card');
@@ -4062,11 +4077,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
             document.getElementById('quiz-total-questions-tag').innerText = `${appData.currentQuestions.length} câu (Đang mở Bài ${activeSectionIndex + 1}/${appData.sections.length})`;
 
-            // RENDER WORD BANK ONLY IF CURRENT SECTION IS EXERCISE 1
+            // RENDER WORD BANK ONLY IF CURRENT SECTION HAS WORDS AND MODE IS DRAG
             const currentSecWords = sanitizeWordBank(currentSec.wordBank || []);
             const isExercise1 = activeSectionIndex === 0;
+            const currentMode = window.currentInteractionMode || 'drag';
 
-            if (currentSecWords.length > 0 && isExercise1) {
+            if (currentSecWords.length > 0 && currentMode === 'drag') {
                 wordBankCard.classList.remove('hidden');
                 wordChipsContainer.innerHTML = '';
                 
@@ -4085,7 +4101,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     chip.onclick = () => {
                         if (isUsed || isSubmitted) return;
                         selectedWordForClick = (selectedWordForClick === w) ? null : w;
-                        showNotification(selectedWordForClick ? `Đã chọn: "${w}". Hãy bấm vào ô trống cần điền!` : 'Đã bỏ chọn từ', 'info');
+                        showNotification(selectedWordForClick ? `Đã chọn từ: "${w}". Nhấp vào ô trống để điền!` : 'Đã bỏ chọn từ', 'info');
                     };
 
                     wordChipsContainer.appendChild(chip);
@@ -4094,9 +4110,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 wordBankCard.classList.add('hidden');
             }
 
-            // Render Section Instruction Banner
+            // Render Section Instruction Banner with Mode Selector
             const secHeaderCard = document.createElement('div');
-            secHeaderCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-2 flex items-center justify-between";
+            secHeaderCard.className = "bg-gradient-to-r from-slate-900 via-brand-900 to-indigo-900 text-white px-6 py-4 rounded-2xl shadow-md border-l-8 border-amber-400 my-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3";
             secHeaderCard.innerHTML = `
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold text-base">
@@ -4107,6 +4123,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(currentSec.title)}</h4>
                     </div>
                 </div>
+                ${currentSecWords.length > 0 ? `
+                <div class="flex flex-wrap items-center gap-1.5 bg-white/10 p-1.5 rounded-xl border border-white/20 text-xs">
+                    <span class="text-[11px] font-bold text-amber-300 px-1.5 hidden sm:inline">Kiểu tương tác:</span>
+                    <button onclick="setInteractionMode('drag')" class="px-2.5 py-1 rounded-lg font-bold transition ${currentMode==='drag'?'bg-amber-400 text-amber-950 shadow-md':'text-white hover:bg-white/20'}" title="Kéo thả hoặc Bấm chọn từ">🖱️ Kéo thả / Bấm chọn</button>
+                    <button onclick="setInteractionMode('dropdown')" class="px-2.5 py-1 rounded-lg font-bold transition ${currentMode==='dropdown'?'bg-amber-400 text-amber-950 shadow-md':'text-white hover:bg-white/20'}" title="Chọn từ danh sách thả xuống">🔽 Dropdown</button>
+                    <button onclick="setInteractionMode('input')" class="px-2.5 py-1 rounded-lg font-bold transition ${currentMode==='input'?'bg-amber-400 text-amber-950 shadow-md':'text-white hover:bg-white/20'}" title="Gõ phím trực tiếp">✍️ Gõ từ</button>
+                </div>
+                ` : ''}
             `;
             container.appendChild(secHeaderCard);
 
@@ -4158,7 +4182,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     q.inlineBlanks.forEach((b, bIdx) => {
                         const currentVal = studentAnswers[`q_${q.id}_blank_${bIdx}`] || '';
                         
-                        // PILL TOGGLE BUTTONS FOR EXERCISE 2 (CHOICE IN ITALICS)
+                        // PILL TOGGLE BUTTONS FOR CHOICE IN BRACKETS [word1/word2]
                         if (b.choices && b.choices.length > 0) {
                             let pillToggleHtml = `<span class="inline-flex items-center gap-1 mx-1.5 p-1 bg-slate-100 border-2 border-brand-200 rounded-2xl align-middle">`;
                             b.choices.forEach(c => {
@@ -4173,23 +4197,39 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             pillToggleHtml += `</span>`;
                             titleHtml = titleHtml.replace(b.placeholder, pillToggleHtml);
                         } else {
-                            const dropZoneHtml = `
-                                <span class="drop-zone ${currentVal ? 'filled' : ''}" 
-                                    ondragover="event.preventDefault(); this.classList.add('hovered');" 
-                                    ondragleave="this.classList.remove('hovered');" 
-                                    ondrop="handleWordDrop(event, ${q.id}, ${bIdx})"
-                                    onclick="handleZoneClick(${q.id}, ${bIdx})">
-                                    ${currentVal || 'Thả từ vào đây'}
-                                </span>
-                            `;
-                            titleHtml = titleHtml.replace(b.placeholder, dropZoneHtml);
+                            if (currentMode === 'dropdown' && currentSecWords.length > 0) {
+                                let dropdownHtml = `<select onchange="saveBlankAnswer(${q.id}, ${bIdx}, this.value)" ${isSubmitted ? 'disabled' : ''} class="inline-block mx-1.5 px-3 py-1 bg-amber-50 border-2 border-amber-300 focus:border-amber-500 rounded-xl font-bold text-xs text-amber-900 focus:bg-white focus:outline-none transition align-middle shadow-inner">
+                                    <option value="">-- Chọn từ --</option>
+                                    ${currentSecWords.map(w => `<option value="${w}" ${currentVal === w ? 'selected' : ''}>${w}</option>`).join('')}
+                                </select>`;
+                                titleHtml = titleHtml.replace(b.placeholder, dropdownHtml);
+                            } else if (currentMode === 'input') {
+                                let inputHtml = `<input type="text" oninput="onInputBlankAnswer(${q.id}, ${bIdx}, this.value)" value="${currentVal}" placeholder="điền..." ${isSubmitted ? 'disabled' : ''} class="inline-block mx-1.5 w-32 px-3 py-1 bg-amber-50 border-2 border-amber-300 focus:border-amber-500 rounded-xl font-bold font-mono text-xs text-amber-900 focus:bg-white focus:outline-none transition align-middle shadow-inner">`;
+                                titleHtml = titleHtml.replace(b.placeholder, inputHtml);
+                            } else {
+                                const dropZoneHtml = `
+                                    <span class="drop-zone ${currentVal ? 'filled' : ''}" 
+                                        ondragover="event.preventDefault(); this.classList.add('hovered');" 
+                                        ondragleave="this.classList.remove('hovered');" 
+                                        ondrop="handleWordDrop(event, ${q.id}, ${bIdx})"
+                                        onclick="handleZoneClick(${q.id}, ${bIdx})">
+                                        ${currentVal || 'Thả/Chọn từ'}
+                                    </span>
+                                `;
+                                titleHtml = titleHtml.replace(b.placeholder, dropZoneHtml);
+                            }
                         }
                     });
                 } else if (q.title.includes('___')) {
                     const currentVal = studentAnswers[`q_${q.id}_blank_0`] || '';
                     
-                    // EXERCISE 3 SUFFIX ESSAY INLINE INPUT
-                    if (activeSectionIndex === 2 || !isExercise1) {
+                    if (currentMode === 'dropdown' && currentSecWords.length > 0) {
+                        let dropdownHtml = `<select onchange="saveBlankAnswer(${q.id}, 0, this.value)" ${isSubmitted ? 'disabled' : ''} class="inline-block mx-1.5 px-3 py-1 bg-amber-50 border-2 border-amber-300 focus:border-amber-500 rounded-xl font-bold text-xs text-amber-900 focus:bg-white focus:outline-none transition align-middle shadow-inner">
+                            <option value="">-- Chọn từ --</option>
+                            ${currentSecWords.map(w => `<option value="${w}" ${currentVal === w ? 'selected' : ''}>${w}</option>`).join('')}
+                        </select>`;
+                        titleHtml = titleHtml.replace(/___+/g, dropdownHtml);
+                    } else if (currentMode === 'input' || activeSectionIndex === 2 || !isExercise1) {
                         const inlineInputHtml = `
                             <input type="text" oninput="onInputBlankAnswer(${q.id}, 0, this.value)" value="${currentVal}" placeholder="điền..." 
                                 ${isSubmitted ? 'disabled' : ''}
@@ -4203,20 +4243,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                                 ondragleave="this.classList.remove('hovered');" 
                                 ondrop="handleWordDrop(event, ${q.id}, 0)"
                                 onclick="handleZoneClick(${q.id}, 0)">
-                                ${currentVal || 'Thả từ vào đây'}
+                                ${currentVal || 'Thả/Chọn từ'}
                             </span>
                         `;
                         titleHtml = titleHtml.replace(/___+/g, dropZoneHtml);
                     }
                 }
 
-                let badgeText = 'Điền từ (Kéo thả)';
-                if (q.type === 'multiple_choice') badgeText = 'Trắc nghiệm';
+                let badgeText = 'Chọn từ thích hợp';
+                if (q.type === 'multiple_choice') badgeText = 'Trắc nghiệm (A,B,C,D)';
                 else if (q.type === 'true_false') badgeText = 'Đúng / Sai';
                 else if (q.type === 'matching') badgeText = 'Nối cột A-B';
                 else if (q.type === 'short_answer') badgeText = 'Trả lời ngắn';
-                else if (activeSectionIndex === 1 || (q.inlineBlanks && q.inlineBlanks.some(b => b.choices && b.choices.length > 0))) badgeText = 'Chọn 1 trong 2 từ';
-                else if (activeSectionIndex === 2) badgeText = 'Điền tự luận';
+                else if (q.inlineBlanks && q.inlineBlanks.some(b => b.choices && b.choices.length > 0)) badgeText = 'Nút chọn đáp án';
+                else if (currentSecWords.length > 0) badgeText = `Chọn từ (${currentMode === 'dropdown' ? 'Dropdown' : (currentMode === 'input' ? 'Gõ từ' : 'Kéo thả / Bấm chọn')})`;
+                else badgeText = 'Điền tự luận';
 
                 let html = `
                     <div class="flex items-center justify-between border-b pb-3">
