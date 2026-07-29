@@ -1569,15 +1569,58 @@
 
             <input type="hidden" id="bulk-sec-index-input" value="0">
 
-            <div class="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            <!-- MASTER BATCH ACTION BAR -->
+            <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-xs text-amber-950">Chuyển Đổi Hàng Loạt Loại Câu Hỏi:</div>
+                        <div class="text-[11px] text-amber-800">Đổi loại câu hỏi cho TẤT CẢ các câu trong bài tập này chỉ với 1 click</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <select id="master-bulk-type-select" class="px-3 py-1.5 bg-white border border-amber-300 rounded-xl font-bold text-xs text-amber-900 focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="">-- Chọn loại áp dụng TẤT CẢ --</option>
+                        <option value="fill_blank">🧩 Chuyển TẤT CẢ sang Chọn từ / Nút bấm</option>
+                        <option value="multiple_choice">🔘 Chuyển TẤT CẢ sang Trắc nghiệm A,B,C,D</option>
+                        <option value="short_answer">✍️ Chuyển TẤT CẢ sang Tự luận / Viết lại câu</option>
+                        <option value="true_false">⚖️ Chuyển TẤT CẢ sang Đúng / Sai</option>
+                    </select>
+                    <button type="button" onclick="applyMasterBulkTypeChange()" class="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition shadow flex items-center gap-1">
+                        <i class="fa-solid fa-bolt"></i> ÁP DỤNG ALL
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODE SWITCHER TABS -->
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+                <button type="button" id="bulk-tab-form-btn" onclick="switchBulkEditorTab('form')" class="px-4 py-1.5 rounded-xl font-bold text-xs bg-brand-600 text-white shadow-sm transition">
+                    <i class="fa-solid fa-table-cells mr-1"></i> Form Chỉnh Sửa Chi Tiết
+                </button>
+                <button type="button" id="bulk-tab-raw-btn" onclick="switchBulkEditorTab('raw')" class="px-4 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                    <i class="fa-solid fa-code mr-1"></i> Sửa Raw Văn Bản Toàn Bộ Bài
+                </button>
+            </div>
+
+            <div class="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tiêu đề bài tập / Tên phần:</label>
                     <input type="text" id="bulk-sec-title-input" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
                 </div>
 
-                <div class="border-t border-slate-100 pt-2">
-                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Danh sách câu hỏi trong bài:</h4>
+                <!-- TAB 1: FORM LIST VIEW -->
+                <div id="bulk-tab-form-content" class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Danh sách câu hỏi trong bài:</h4>
                     <div id="bulk-questions-container" class="space-y-3"></div>
+                </div>
+
+                <!-- TAB 2: RAW TEXTAREA VIEW -->
+                <div id="bulk-tab-raw-content" class="hidden space-y-2">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Văn bản thô toàn bộ câu hỏi & đáp án (Chỉnh sửa toàn bộ cùng lúc):</label>
+                    <textarea id="bulk-raw-markdown-input" rows="12" class="w-full p-3 bg-slate-900 text-amber-300 border border-slate-700 rounded-2xl text-xs font-mono focus:ring-2 focus:ring-brand-500 outline-none leading-relaxed"></textarea>
+                    <p class="text-[11px] text-slate-500">Sửa lại văn bản tại đây và bấm <b>LƯU TẤT CẢ & ĐỒNG BỘ HỌC SINH</b> để cập nhật toàn bộ bài tập cùng lúc!</p>
                 </div>
             </div>
 
@@ -4118,6 +4161,56 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             showNotification(`✅ Đã lưu và ĐỒNG BỘ thành công Câu ${qIdx + 1}!`, 'success');
         }
 
+        let currentBulkTab = 'form';
+
+        function switchBulkEditorTab(tabName) {
+            currentBulkTab = tabName;
+            const formContent = document.getElementById('bulk-tab-form-content');
+            const rawContent = document.getElementById('bulk-tab-raw-content');
+            const formBtn = document.getElementById('bulk-tab-form-btn');
+            const rawBtn = document.getElementById('bulk-tab-raw-btn');
+
+            if (tabName === 'raw') {
+                formContent.classList.add('hidden');
+                rawContent.classList.remove('hidden');
+                rawBtn.className = "px-4 py-1.5 rounded-xl font-bold text-xs bg-brand-600 text-white shadow-sm transition";
+                formBtn.className = "px-4 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+            } else {
+                rawContent.classList.add('hidden');
+                formContent.classList.remove('hidden');
+                formBtn.className = "px-4 py-1.5 rounded-xl font-bold text-xs bg-brand-600 text-white shadow-sm transition";
+                rawBtn.className = "px-4 py-1.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+            }
+        }
+
+        function applyMasterBulkTypeChange() {
+            const masterType = document.getElementById('master-bulk-type-select').value;
+            if (!masterType) {
+                showNotification('Vui lòng chọn loại câu hỏi muốn áp dụng cho TẤT CẢ!', 'warning');
+                return;
+            }
+
+            const secIdx = parseInt(document.getElementById('bulk-sec-index-input').value);
+            const sec = (appData.sections && appData.sections[secIdx]) ? appData.sections[secIdx] : (appData.sections ? appData.sections[0] : null);
+            if (!sec) return;
+
+            const questions = sec.questions && sec.questions.length > 0 ? sec.questions : (appData.currentQuestions || []);
+            questions.forEach(q => {
+                const selectElem = document.getElementById(`bulk-q-type-${q.id}`);
+                if (selectElem) selectElem.value = masterType;
+                q.type = masterType;
+            });
+
+            const typeLabels = {
+                'fill_blank': '🧩 Chọn từ / Chọn nút',
+                'multiple_choice': '🔘 Trắc nghiệm A,B,C,D',
+                'short_answer': '✍️ Tự luận / Viết lại câu',
+                'true_false': '⚖️ Đúng / Sai'
+            };
+
+            showNotification(`🚀 Đã áp dụng loại "${typeLabels[masterType] || masterType}" cho TẤT CẢ câu hỏi trong bài!`, 'success');
+        }
+
         function openBulkSectionEditorModal(secIdx) {
             if (!appData.sections || appData.sections.length === 0) {
                 appData.sections = [{ id: 0, title: "Bài 1: Bài Tập Tương Tác", questions: appData.currentQuestions || [], wordBank: appData.wordBank || [] }];
@@ -4130,11 +4223,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             document.getElementById('bulk-sec-index-input').value = secIdx;
             document.getElementById('bulk-modal-header').innerText = `Chỉnh Sửa Hàng Loạt - Bài ${secIdx + 1}`;
             document.getElementById('bulk-sec-title-input').value = sec.title || `Bài Tập ${secIdx + 1}`;
+            document.getElementById('master-bulk-type-select').value = '';
 
+            // Populate Form Grid
             const container = document.getElementById('bulk-questions-container');
             container.innerHTML = '';
 
             const questions = sec.questions && sec.questions.length > 0 ? sec.questions : (appData.currentQuestions || []);
+            let rawLines = [`## ${sec.title || ('Bài ' + (secIdx + 1))}`];
+            let answerLines = ['Answer:'];
+
             questions.forEach((q, qIdx) => {
                 let choicesStr = '';
                 if (q.inlineBlanks && q.inlineBlanks[0] && q.inlineBlanks[0].choices && q.inlineBlanks[0].choices.length > 0) {
@@ -4142,6 +4240,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 } else if (q.options && q.options.length > 0) {
                     choicesStr = q.options.map(o => `${o.key}. ${o.text}`).join(' / ');
                 }
+
+                rawLines.push(`${qIdx + 1}. ${q.title || ''}`);
+                if (q.answer) answerLines.push(`${qIdx + 1}. ${q.answer}`);
 
                 const card = document.createElement('div');
                 card.className = "p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2 text-xs";
@@ -4177,6 +4278,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 container.appendChild(card);
             });
 
+            // Populate Raw Markdown View
+            const fullRawText = rawLines.join('\n') + '\n\n' + answerLines.join('\n');
+            document.getElementById('bulk-raw-markdown-input').value = fullRawText;
+
+            switchBulkEditorTab('form');
             document.getElementById('bulk-section-modal').classList.remove('hidden');
         }
 
@@ -4193,62 +4299,90 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             let sec = appData.sections[secIdx] || appData.sections[0];
             if (!sec) return;
 
-            const newSecTitle = document.getElementById('bulk-sec-title-input').value.trim();
-            if (newSecTitle) sec.title = newSecTitle;
-
-            const questions = sec.questions && sec.questions.length > 0 ? sec.questions : (appData.currentQuestions || []);
-            questions.forEach(q => {
-                const titleElem = document.getElementById(`bulk-q-title-${q.id}`);
-                const typeElem = document.getElementById(`bulk-q-type-${q.id}`);
-                const choicesElem = document.getElementById(`bulk-q-choices-${q.id}`);
-                const answerElem = document.getElementById(`bulk-q-answer-${q.id}`);
-
-                if (titleElem) {
-                    let newTitle = titleElem.value.trim();
-                    const newType = typeElem ? typeElem.value : q.type;
-                    const newChoicesStr = choicesElem ? choicesElem.value.trim() : '';
-                    const newAnswer = answerElem ? answerElem.value.trim() : q.answer;
-
-                    if (newChoicesStr && !newTitle.includes('[') && !newTitle.includes('___')) {
-                        newTitle = `${newTitle} [${newChoicesStr}]`;
-                    } else if (newChoicesStr && newTitle.includes('___') && !newTitle.includes('[')) {
-                        newTitle = newTitle.replace(/___+/, `[${newChoicesStr}]`);
-                    }
-
-                    q.title = newTitle;
-                    q.type = newType;
-                    q.answer = newAnswer;
-                    if (newSecTitle) q.sectionTitle = newSecTitle;
-
-                    const bracketMatches = [...newTitle.matchAll(/\[(.*?)\]/g)];
-                    if (bracketMatches.length > 0) {
-                        q.inlineBlanks = [];
-                        bracketMatches.forEach(m => {
-                            const content = m[1].trim();
-                            if (content.includes('/')) {
-                                const choices = content.split('/').map(c => c.trim());
-                                q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: newAnswer || choices[0] });
-                            }
-                        });
-                    } else if (newChoicesStr && newChoicesStr.includes('/')) {
-                        const choices = newChoicesStr.split('/').map(c => c.trim());
-                        q.inlineBlanks = [{ placeholder: '[choices]', choices: choices, answer: newAnswer || choices[0] }];
-                    }
-
-                    if (newType === 'multiple_choice' && newChoicesStr && newChoicesStr.includes('/')) {
-                        const keys = ['A', 'B', 'C', 'D', 'E'];
-                        q.options = newChoicesStr.split('/').map((c, idx) => ({
-                            key: keys[idx] || `${idx + 1}`,
-                            text: c.replace(/^[A-E]\.\s*/i, '').trim()
-                        }));
+            if (currentBulkTab === 'raw') {
+                // Parse Raw Markdown Input
+                const rawMarkdownText = document.getElementById('bulk-raw-markdown-input').value.trim();
+                if (rawMarkdownText) {
+                    const parsedQuestions = parseInputToQuestions(rawMarkdownText);
+                    if (parsedQuestions && parsedQuestions.length > 0) {
+                        appData.currentQuestions = parsedQuestions;
+                        if (appData.sections && appData.sections[0]) {
+                            appData.sections[0].questions = parsedQuestions;
+                        }
                     }
                 }
-            });
+            } else {
+                // Parse Form Grid Input
+                const newSecTitle = document.getElementById('bulk-sec-title-input').value.trim();
+                if (newSecTitle) sec.title = newSecTitle;
+
+                const questions = sec.questions && sec.questions.length > 0 ? sec.questions : (appData.currentQuestions || []);
+                questions.forEach(q => {
+                    const titleElem = document.getElementById(`bulk-q-title-${q.id}`);
+                    const typeElem = document.getElementById(`bulk-q-type-${q.id}`);
+                    const choicesElem = document.getElementById(`bulk-q-choices-${q.id}`);
+                    const answerElem = document.getElementById(`bulk-q-answer-${q.id}`);
+
+                    if (titleElem) {
+                        let newTitle = titleElem.value.trim();
+                        const newType = typeElem ? typeElem.value : q.type;
+                        const newChoicesStr = choicesElem ? choicesElem.value.trim() : '';
+                        const newAnswer = answerElem ? answerElem.value.trim() : q.answer;
+
+                        if (newChoicesStr && !newTitle.includes('[') && !newTitle.includes('___')) {
+                            newTitle = `${newTitle} [${newChoicesStr}]`;
+                        } else if (newChoicesStr && newTitle.includes('___') && !newTitle.includes('[')) {
+                            newTitle = newTitle.replace(/___+/, `[${newChoicesStr}]`);
+                        }
+
+                        q.title = newTitle;
+                        q.type = newType;
+                        q.answer = newAnswer;
+                        if (newSecTitle) q.sectionTitle = newSecTitle;
+
+                        const bracketMatches = [...newTitle.matchAll(/\[(.*?)\]/g)];
+                        if (bracketMatches.length > 0) {
+                            q.inlineBlanks = [];
+                            bracketMatches.forEach(m => {
+                                const content = m[1].trim();
+                                if (content.includes('/')) {
+                                    const choices = content.split('/').map(c => c.trim());
+                                    q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: newAnswer || choices[0] });
+                                }
+                            });
+                        } else if (newChoicesStr && newChoicesStr.includes('/')) {
+                            const choices = newChoicesStr.split('/').map(c => c.trim());
+                            q.inlineBlanks = [{ placeholder: '[choices]', choices: choices, answer: newAnswer || choices[0] }];
+                        }
+
+                        if (newType === 'multiple_choice') {
+                            if (newChoicesStr && newChoicesStr.includes('/')) {
+                                const keys = ['A', 'B', 'C', 'D', 'E'];
+                                q.options = newChoicesStr.split('/').map((c, idx) => ({
+                                    key: keys[idx] || `${idx + 1}`,
+                                    text: c.replace(/^[A-E]\.\s*/i, '').trim()
+                                }));
+                            } else if (!q.options || q.options.length === 0) {
+                                q.options = [
+                                    { key: 'A', text: 'Phương án A' },
+                                    { key: 'B', text: 'Phương án B' },
+                                    { key: 'C', text: 'Phương án C' },
+                                    { key: 'D', text: 'Phương án D' }
+                                ];
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (sec && sec.questions && sec.questions.length > 0) {
+                appData.currentQuestions = sec.questions;
+            }
 
             syncAndPublishAllAssignments();
             renderTeacherPreview(false); // DO NOT JUMP SCROLL
             closeBulkSectionModal();
-            showNotification(`🚀 Đã lưu chỉnh sửa hàng loạt Bài ${secIdx + 1} và ĐỒNG BỘ ĐẾN HỌC SINH!`, 'success');
+            showNotification(`🚀 Đã lưu và ĐỒNG BỘ CHỈNH SỬA HÀNG LOẠT đến tất cả Học sinh!`, 'success');
         }
 
         async function syncAndPublishAllAssignments() {
