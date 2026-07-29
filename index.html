@@ -711,10 +711,16 @@
 
                         <!-- ACTION BUTTONS: STEP 1 -> STEP 2 (PHÂN TÍCH & XEM TRƯỚC) -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <button type="button" onclick="processStep1Preview()" class="sm:col-span-2 py-4 bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white font-heading font-bold text-base rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-2 group">
+                            <button type="button" onclick="processStep1Preview()" class="py-4 bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 hover:from-brand-700 hover:to-purple-700 text-white font-heading font-bold text-sm rounded-2xl shadow-lg shadow-brand-200 transition flex items-center justify-center gap-2 group">
                                 <i class="fa-solid fa-magnifying-glass-chart text-lg group-hover:scale-110 transition-transform"></i>
-                                <span>BƯỚC 2: PHÂN TÍCH & XEM TRƯỚC BÀI TẬP ➔</span>
+                                <span>BƯỚC 2: XEM TRƯỚC BÀI NÀY ➔</span>
                             </button>
+
+                            <button type="button" onclick="appendNewExerciseToQuiz()" class="py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-heading font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-square-plus text-base"></i>
+                                <span>➕ GHÉP VÀO ĐỀ ĐANG CÓ</span>
+                            </button>
+
                             <button type="button" onclick="saveCurrentQuizToLibrary()" class="py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-heading font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-bookmark text-base"></i>
                                 <span>LƯU VÀO THƯ VIỆN</span>
@@ -4270,6 +4276,53 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             updateWizardStepperUI(2);
 
             showNotification(`🔍 BƯỚC 2: Đã phân tích thành công ${appData.currentQuestions.length} câu hỏi! Vui lòng kiểm tra Bản Xem Trước bên dưới trước khi bấm "Gửi Bài Cho Học Sinh".`, 'info');
+        }
+
+        function appendNewExerciseToQuiz() {
+            const rawText = document.getElementById('markdown-input').value;
+            if (!rawText || !rawText.trim()) {
+                showNotification('Vui lòng nhập nội dung bài tập mới vào ô văn bản!', 'warning');
+                return;
+            }
+
+            const newQuestions = parseInputToQuestions(rawText, false);
+            if (!newQuestions || newQuestions.length === 0) {
+                showNotification('Không thể phân tích câu hỏi nào từ nội dung mới! Hãy kiểm tra lại.', 'error');
+                return;
+            }
+
+            if (!appData.sections) appData.sections = [];
+            const newSecIdx = appData.sections.length;
+            const firstQ = newQuestions[0];
+            const secTitle = (firstQ && firstQ.sectionTitle && !firstQ.sectionTitle.startsWith('Phần 1')) ? firstQ.sectionTitle : `Bài ${newSecIdx + 1}: Bài Tập Mới`;
+
+            const newSec = {
+                id: newSecIdx,
+                title: secTitle,
+                questions: newQuestions,
+                wordBank: []
+            };
+
+            appData.sections.push(newSec);
+
+            // Re-combine all questions sequentially
+            let combinedQuestions = [];
+            let globalQId = 1;
+            appData.sections.forEach((s, sIdx) => {
+                (s.questions || []).forEach(q => {
+                    q.id = globalQId++;
+                    q.sectionIndex = sIdx;
+                    q.sectionTitle = s.title;
+                    combinedQuestions.push(q);
+                });
+            });
+
+            appData.currentQuestions = combinedQuestions;
+            syncAppDataToMarkdownInput();
+            updateWizardStepperUI(2);
+            renderTeacherPreview(true);
+
+            showNotification(`➕ Đã ghép thêm bài tập mới "${secTitle}" thành công! Đã có tổng cộng ${appData.sections.length} bài tập.`, 'success');
         }
 
         async function publishQuizToStudents() {
