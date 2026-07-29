@@ -3005,7 +3005,26 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         const deletedList = appData.deletedClasses || [];
 
                         if (Array.isArray(data.classes)) {
-                            appData.classes = data.classes.filter(c => c && c.name && !deletedList.includes(c.name.trim().toLowerCase()));
+                            if (!appData.classes) appData.classes = [];
+                            data.classes.forEach(cloudC => {
+                                if (!cloudC || !cloudC.name) return;
+                                const normCloud = cloudC.name.trim().toLowerCase();
+                                if (deletedList.includes(normCloud)) return;
+
+                                const localC = appData.classes.find(lc => lc && lc.name && lc.name.trim().toLowerCase() === normCloud);
+                                if (!localC) {
+                                    appData.classes.push(cloudC);
+                                } else if (Array.isArray(cloudC.students) && cloudC.students.length > 0) {
+                                    if (!Array.isArray(localC.students)) localC.students = [];
+                                    cloudC.students.forEach(cs => {
+                                        if (cs && cs.id && !localC.students.some(ls => ls.id === cs.id)) {
+                                            localC.students.push(cs);
+                                        }
+                                    });
+                                }
+                            });
+
+                            appData.classes = appData.classes.filter(c => c && c.name && !deletedList.includes(c.name.trim().toLowerCase()));
                             saveStorage();
                             renderClassesList();
                             updateTargetClassSelectOptions();
@@ -3616,33 +3635,40 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         function addStudentToClass(classId) {
             const idInput = document.getElementById(`st-id-${classId}`);
             const nameInput = document.getElementById(`st-name-${classId}`);
-            const stId = idInput.value.trim().toUpperCase();
-            const stName = nameInput.value.trim();
+            const stId = idInput ? idInput.value.trim().toUpperCase() : '';
+            const stName = nameInput ? nameInput.value.trim() : '';
 
             if (!stId || !stName) {
                 showNotification('Vui lòng nhập đầy đủ Mã HV và Họ Tên!', 'error');
                 return;
             }
 
-            const cls = appData.classes.find(c => c.id === classId);
+            const cls = appData.classes.find(c => c && c.id === classId);
             if (cls) {
+                if (!Array.isArray(cls.students)) cls.students = [];
                 cls.students.push({ id: stId, name: stName });
                 saveStorage();
                 renderClassesList();
+                updateTargetClassSelectOptions();
                 renderClassSubmissionTracker();
-                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
-                showNotification(`Đã thêm học sinh ${stName} vào ${cls.name}!`, 'success');
+                publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
+
+                if (idInput) idInput.value = '';
+                if (nameInput) nameInput.value = '';
+
+                showNotification(`🎉 Đã thêm học sinh ${stName} vào lớp ${cls.name}!`, 'success');
             }
         }
 
         function deleteStudent(classId, studentId) {
-            const cls = appData.classes.find(c => c.id === classId);
+            const cls = appData.classes.find(c => c && c.id === classId);
             if (cls) {
                 cls.students = cls.students.filter(s => s.id !== studentId);
                 saveStorage();
                 renderClassesList();
+                updateTargetClassSelectOptions();
                 renderClassSubmissionTracker();
-                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
             }
         }
 
