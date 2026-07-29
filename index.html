@@ -1859,16 +1859,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         };
 
         let appData = {
-            classes: [
-                {
-                    id: 'class_10a1',
-                    name: 'Lớp 10A1',
-                    desc: 'Lớp Mẫu tiếng Anh',
-                    students: [
-                        { id: 'HS01', name: 'Nguyễn Văn An' }
-                    ]
-                }
-            ],
+            classes: [],
             grades: [],
             feedbacks: [],
             quizLibrary: [],
@@ -2938,6 +2929,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     wordBank: sanitizeWordBank(wordBank),
                     quizDeadline: appData.quizDeadline,
                     classes: appData.classes || [],
+                    deletedClasses: appData.deletedClasses || [],
                     classAssignments: appData.classAssignments || {},
                     grades: appData.grades || [],
                     feedbacks: appData.feedbacks || [],
@@ -3004,45 +2996,32 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         } else if (!appData.classAssignments) {
                             appData.classAssignments = {};
                         }
+                        if (Array.isArray(data.deletedClasses)) {
+                            if (!appData.deletedClasses) appData.deletedClasses = [];
+                            data.deletedClasses.forEach(d => {
+                                if (d && !appData.deletedClasses.includes(d)) appData.deletedClasses.push(d);
+                            });
+                        }
                         const deletedList = appData.deletedClasses || [];
-                        if (Array.isArray(data.classes) && data.classes.length > 0) {
-                            if (!appData.classes) appData.classes = [];
-                            data.classes.forEach(cloudC => {
-                                if (!cloudC || !cloudC.name) return;
-                                const normCloud = cloudC.name.trim().toLowerCase();
-                                if (deletedList.includes(normCloud)) return;
 
-                                const localC = appData.classes.find(lc => lc && lc.name && lc.name.trim().toLowerCase() === normCloud);
-                                if (!localC) {
-                                    appData.classes.push(cloudC);
-                                } else if (cloudC.students && cloudC.students.length > 0) {
-                                    if (!localC.students) localC.students = [];
-                                    cloudC.students.forEach(cs => {
-                                        if (!localC.students.some(ls => ls.id === cs.id)) {
-                                            localC.students.push(cs);
-                                        }
-                                    });
-                                }
-                            });
+                        if (Array.isArray(data.classes)) {
+                            appData.classes = data.classes.filter(c => c && c.name && !deletedList.includes(c.name.trim().toLowerCase()));
                             saveStorage();
                             renderClassesList();
+                            updateTargetClassSelectOptions();
                         } else if (data.classAssignments && Object.keys(data.classAssignments).length > 0) {
-                            if (!appData.classes) appData.classes = [];
-                            Object.keys(data.classAssignments).forEach(cName => {
-                                const normC = cName.trim().toLowerCase();
-                                if (deletedList.includes(normC)) return;
-
-                                if (!appData.classes.some(lc => lc && lc.name && lc.name.trim().toLowerCase() === normC)) {
-                                    appData.classes.push({
-                                        id: 'class_' + cName.replace(/\s+/g, '_'),
-                                        name: cName,
-                                        desc: 'Lớp học từ Giáo viên',
-                                        students: []
-                                    });
-                                }
-                            });
+                            const extractedClasses = Object.keys(data.classAssignments)
+                                .filter(cName => !deletedList.includes(cName.trim().toLowerCase()))
+                                .map(cName => ({
+                                    id: 'class_' + cName.replace(/\s+/g, '_'),
+                                    name: cName,
+                                    desc: 'Lớp học từ Giáo viên',
+                                    students: []
+                                }));
+                            appData.classes = extractedClasses;
                             saveStorage();
                             renderClassesList();
+                            updateTargetClassSelectOptions();
                         }
                         if (data.feedbacks) appData.feedbacks = data.feedbacks;
                         if (data.grades) {
