@@ -1486,6 +1486,71 @@
         </div>
     </div>
 
+    <!-- SINGLE QUESTION EDITOR MODAL FOR TEACHER -->
+    <div id="edit-question-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div>
+                        <h3 id="edit-q-modal-header" class="font-heading font-bold text-lg text-slate-900">Chỉnh Sửa Câu Hỏi</h3>
+                        <p class="text-xs text-slate-500">Tùy chỉnh nội dung, loại câu hỏi, phương án lựa chọn và đáp án</p>
+                    </div>
+                </div>
+                <button onclick="closeEditQuestionModal()" class="text-slate-400 hover:text-slate-600 text-lg p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <input type="hidden" id="edit-q-index-input" value="-1">
+
+            <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nội dung câu hỏi / Đề bài:</label>
+                    <textarea id="edit-q-title-input" rows="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-1">Gõ <code>___</code> hoặc <code>[từ_1/từ_2/từ_3]</code> để tạo ô trống chọn phương án.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Loại câu hỏi:</label>
+                        <select id="edit-q-type-select" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="fill_blank">🧩 Điền từ / Chọn nút</option>
+                            <option value="multiple_choice">🔘 Trắc nghiệm A,B,C,D</option>
+                            <option value="short_answer">✍️ Điền tự luận</option>
+                            <option value="true_false">⚖️ Đúng / Sai</option>
+                            <option value="matching">🔗 Nối cột A-B</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Đáp án đúng chuẩn (*):</label>
+                        <input type="text" id="edit-q-answer-input" placeholder="Ví dụ: so hoặc A..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-brand-700 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Các từ gợi ý / Các phương án (phân cách dấu <code>/</code>):</label>
+                    <input type="text" id="edit-q-choices-input" placeholder="Ví dụ: but / so / because" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Giải thích đáp án (Ngữ pháp / Từ vựng):</label>
+                    <input type="text" id="edit-q-explanation-input" placeholder="Ví dụ: dùng 'so' vì chỉ kết quả..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+                <button onclick="closeEditQuestionModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                    Hủy bỏ
+                </button>
+                <button onclick="saveQuestionFromModal()" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-heading font-bold text-xs rounded-xl transition shadow-md flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i> LƯU THAY ĐỔI
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- FLOATING QUICK TOGGLE TOOLBAR FOR ALWAYS-ON TAB ACCESS -->
     <div class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-slate-700 shadow-2xl">
         <button onclick="quickSwitchToStudentMode()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow-sm">
@@ -3664,7 +3729,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 let cleanTitle = currentQ.text.replace(/^(?:câu|question|q)?\s*\d+[\.\:\)\/\s]\s*/i, '').trim();
                 cleanTitle = cleanTitle.replace(/^##\s*/, '');
 
-                if (!cleanTitle.includes('[') && !cleanTitle.includes('___')) {
+                // AUTOMATICALLY CONVERT (option1 / option2 / option3) INTO [option1 / option2 / option3]
+                const parenSlashMatches = [...cleanTitle.matchAll(/\(([^)]+?\s*\/\s*[^)]+?)\)/gi)];
+                if (parenSlashMatches.length > 0) {
+                    parenSlashMatches.forEach(pm => {
+                        const fullParen = pm[0];
+                        const choicesStr = pm[1].trim();
+                        if (cleanTitle.includes('___')) {
+                            cleanTitle = cleanTitle.replace(/___+/, `[${choicesStr}]`);
+                            cleanTitle = cleanTitle.replace(fullParen, '').trim();
+                        } else if (!cleanTitle.includes('[')) {
+                            cleanTitle = cleanTitle.replace(fullParen, `[${choicesStr}]`);
+                        }
+                    });
+                    cleanTitle = cleanTitle.replace(/\s+/g, ' ').replace(/\s+\./g, '.').trim();
+                } else if (!cleanTitle.includes('[') && !cleanTitle.includes('___')) {
                     cleanTitle = cleanTitle.replace(/\((ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\)/gi, '[$1]');
                     cleanTitle = cleanTitle.replace(/\b(ID\s*\/\s*DP|DP\s*\/\s*ID|independent\s*\/\s*dependent)\b/gi, '[$1]');
                     if (cleanTitle.includes('/')) {
@@ -3885,6 +3964,120 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
         }
 
+        function changeQuestionTypeInTeacherPreview(qIdx, newType) {
+            if (!appData.currentQuestions || !appData.currentQuestions[qIdx]) return;
+            const q = appData.currentQuestions[qIdx];
+            q.type = newType;
+
+            if (newType === 'multiple_choice' && (!q.options || q.options.length === 0)) {
+                let optionsList = [];
+                if (q.inlineBlanks && q.inlineBlanks[0] && q.inlineBlanks[0].choices && q.inlineBlanks[0].choices.length > 0) {
+                    const keys = ['A', 'B', 'C', 'D', 'E'];
+                    q.inlineBlanks[0].choices.forEach((c, idx) => {
+                        if (keys[idx]) optionsList.push({ key: keys[idx], text: c });
+                    });
+                } else {
+                    optionsList = [
+                        { key: 'A', text: 'Phương án A' },
+                        { key: 'B', text: 'Phương án B' },
+                        { key: 'C', text: 'Phương án C' },
+                        { key: 'D', text: 'Phương án D' }
+                    ];
+                }
+                q.options = optionsList;
+            }
+
+            saveStorage();
+            renderTeacherPreview();
+            publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            showNotification(`🎯 Đã chuyển Câu ${qIdx + 1} sang loại: ${newType}`, 'success');
+        }
+
+        function openSingleQuestionEditorModal(qIdx) {
+            if (!appData.currentQuestions || !appData.currentQuestions[qIdx]) return;
+            const q = appData.currentQuestions[qIdx];
+
+            document.getElementById('edit-q-index-input').value = qIdx;
+            document.getElementById('edit-q-modal-header').innerText = `Chỉnh Sửa Câu ${qIdx + 1}`;
+            document.getElementById('edit-q-title-input').value = q.title || '';
+            document.getElementById('edit-q-type-select').value = q.type || 'fill_blank';
+            document.getElementById('edit-q-answer-input').value = q.answer || '';
+            document.getElementById('edit-q-explanation-input').value = q.explanation || '';
+
+            let choicesStr = '';
+            if (q.inlineBlanks && q.inlineBlanks[0] && q.inlineBlanks[0].choices && q.inlineBlanks[0].choices.length > 0) {
+                choicesStr = q.inlineBlanks[0].choices.join(' / ');
+            } else if (q.options && q.options.length > 0) {
+                choicesStr = q.options.map(o => `${o.key}. ${o.text}`).join(' / ');
+            }
+            document.getElementById('edit-q-choices-input').value = choicesStr;
+
+            document.getElementById('edit-question-modal').classList.remove('hidden');
+        }
+
+        function closeEditQuestionModal() {
+            document.getElementById('edit-question-modal').classList.add('hidden');
+        }
+
+        function saveQuestionFromModal() {
+            const qIdx = parseInt(document.getElementById('edit-q-index-input').value);
+            if (isNaN(qIdx) || !appData.currentQuestions[qIdx]) return;
+
+            const q = appData.currentQuestions[qIdx];
+            let newTitle = document.getElementById('edit-q-title-input').value.trim();
+            const newType = document.getElementById('edit-q-type-select').value;
+            const newAnswer = document.getElementById('edit-q-answer-input').value.trim();
+            const newChoicesStr = document.getElementById('edit-q-choices-input').value.trim();
+            const newExplanation = document.getElementById('edit-q-explanation-input').value.trim();
+
+            if (!newTitle) {
+                showNotification('Nội dung câu hỏi không được để trống!', 'error');
+                return;
+            }
+
+            if (newChoicesStr && !newTitle.includes('[') && !newTitle.includes('___')) {
+                newTitle = `${newTitle} [${newChoicesStr}]`;
+            } else if (newChoicesStr && newTitle.includes('___') && !newTitle.includes('[')) {
+                newTitle = newTitle.replace(/___+/, `[${newChoicesStr}]`);
+            }
+
+            q.title = newTitle;
+            q.type = newType;
+            q.answer = newAnswer;
+            q.explanation = newExplanation;
+
+            const bracketMatches = [...newTitle.matchAll(/\[(.*?)\]/g)];
+            if (bracketMatches.length > 0) {
+                q.inlineBlanks = [];
+                bracketMatches.forEach(m => {
+                    const content = m[1].trim();
+                    if (content.includes('/')) {
+                        const choices = content.split('/').map(c => c.trim());
+                        q.inlineBlanks.push({ placeholder: m[0], choices: choices, answer: newAnswer || choices[0] });
+                    }
+                });
+            } else if (newChoicesStr && newChoicesStr.includes('/')) {
+                const choices = newChoicesStr.split('/').map(c => c.trim());
+                q.inlineBlanks = [{ placeholder: '[choices]', choices: choices, answer: newAnswer || choices[0] }];
+            }
+
+            if (newType === 'multiple_choice') {
+                if (newChoicesStr && newChoicesStr.includes('/')) {
+                    const keys = ['A', 'B', 'C', 'D', 'E'];
+                    q.options = newChoicesStr.split('/').map((c, idx) => ({
+                        key: keys[idx] || `${idx + 1}`,
+                        text: c.replace(/^[A-E]\.\s*/i, '').trim()
+                    }));
+                }
+            }
+
+            saveStorage();
+            renderTeacherPreview();
+            publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            closeEditQuestionModal();
+            showNotification(`✅ Đã lưu chỉnh sửa Câu ${qIdx + 1}!`, 'success');
+        }
+
         function renderTeacherPreview() {
             const previewSection = document.getElementById('teacher-preview-section');
             const previewContainer = document.getElementById('teacher-preview-questions-list');
@@ -3919,24 +4112,32 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 
                 let titleHtml = marked.parseInline(q.title || '');
 
-                let badgeText = 'Điền từ (Kéo thả)';
-                if (q.type === 'multiple_choice') badgeText = 'Trắc nghiệm';
-                else if (q.type === 'true_false') badgeText = 'Đúng / Sai';
-                else if (q.type === 'matching') badgeText = 'Nối cột A-B';
-                else if (q.type === 'short_answer') badgeText = 'Trả lời ngắn';
-
                 let html = `
-                    <div class="flex items-center justify-between border-b pb-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
                         <div class="flex items-center gap-2">
                             <span class="w-7 h-7 rounded-xl bg-slate-900 text-white font-bold text-xs flex items-center justify-center">${idx + 1}</span>
                             <span class="font-heading font-bold text-sm text-slate-700">Câu ${idx + 1} / ${appData.currentQuestions.length}</span>
                         </div>
-                        <span class="px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-full border border-brand-200">${badgeText}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] font-bold text-slate-500 hidden sm:inline">Loại câu:</span>
+                            <select onchange="changeQuestionTypeInTeacherPreview(${idx}, this.value)" 
+                                class="px-2.5 py-1 text-xs font-bold bg-amber-50 border border-amber-300 text-amber-900 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none">
+                                <option value="fill_blank" ${q.type === 'fill_blank' ? 'selected' : ''}>🧩 Chọn từ / Chọn nút</option>
+                                <option value="multiple_choice" ${q.type === 'multiple_choice' ? 'selected' : ''}>🔘 Trắc nghiệm A,B,C,D</option>
+                                <option value="short_answer" ${q.type === 'short_answer' ? 'selected' : ''}>✍️ Tự luận / Trả lời ngắn</option>
+                                <option value="true_false" ${q.type === 'true_false' ? 'selected' : ''}>⚖️ Đúng / Sai</option>
+                                <option value="matching" ${q.type === 'matching' ? 'selected' : ''}>🔗 Nối cột</option>
+                            </select>
+                            <button type="button" onclick="openSingleQuestionEditorModal(${idx})" 
+                                class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl transition shadow-sm flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
+                            </button>
+                        </div>
                     </div>
                     <div class="text-slate-900 font-semibold text-base sm:text-lg leading-relaxed">${titleHtml}</div>
                 `;
 
-                if (q.type === 'multiple_choice') {
+                if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
                     html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">`;
                     q.options.forEach(opt => {
                         const isCorrect = q.answer && q.answer.toUpperCase() === opt.key;
@@ -3952,7 +4153,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                 html += `
                     <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs space-y-1">
-                        <div class="font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Đáp án chuẩn: <span class="text-brand-700 font-mono">${q.answer || 'Đáp án mẫu'}</span></div>
+                        <div class="font-bold text-slate-800"><i class="fa-solid fa-key text-amber-500 mr-1"></i>Đáp án chuẩn: <span class="text-brand-700 font-mono">${q.answer || 'Chưa thiết lập'}</span></div>
                         ${q.explanation ? `<div class="text-slate-600"><b>Giải thích:</b> ${q.explanation}</div>` : ''}
                     </div>
                 `;
