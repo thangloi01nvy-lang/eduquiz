@@ -2149,10 +2149,19 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function quickReassignTargetClassAndReload(newTargetClass) {
-            appData.quizTargetClass = newTargetClass;
+            const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value.trim() : '';
+            if (rawText && (!appData.currentQuestions || appData.currentQuestions.length === 0)) {
+                appData.currentQuestions = parseInputToQuestions(rawText);
+            }
+
+            appData.quizTargetClass = newTargetClass || 'all';
+            isQuizPublishedToStudents = true;
+            assignQuizToClassTarget(newTargetClass || 'all');
             saveStorage();
             updateQuizMetadataUI();
             updateTargetClassSelectOptions();
+            renderTeacherPreview(false);
+            renderClassAssignmentsPanel();
 
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             restoreStudentSessionUI();
@@ -2160,13 +2169,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function handleTargetClassChange(val) {
+            const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value.trim() : '';
+            if (rawText && (!appData.currentQuestions || appData.currentQuestions.length === 0)) {
+                appData.currentQuestions = parseInputToQuestions(rawText);
+            }
+
             appData.quizTargetClass = val || 'all';
+            isQuizPublishedToStudents = true;
             assignQuizToClassTarget(val || 'all');
             saveStorage();
             updateQuizMetadataUI();
+            updateTargetClassSelectOptions();
+            renderTeacherPreview(false);
             renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
-            showNotification(`🏫 Đã phát hành cập nhật giao bài cho: ${val === 'all' ? 'Tất cả các lớp' : val}!`, 'success');
+            showNotification(`🏫 Đã cập nhật giao bài tập thành công cho: ${val === 'all' ? 'Tất cả các lớp' : val}!`, 'success');
         }
 
         function assignQuizToClassTarget(targetClass) {
@@ -4415,8 +4432,18 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function publishQuizToStudents() {
-            if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
-                showNotification('Chưa có câu hỏi nào để gửi! Vui lòng nhập đề bài ở Bước 1.', 'warning');
+            const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value.trim() : '';
+
+            if (rawText && (!appData.currentQuestions || appData.currentQuestions.length === 0)) {
+                await processStep1Preview();
+            }
+
+            if (rawText && (!appData.currentQuestions || appData.currentQuestions.length === 0)) {
+                appData.currentQuestions = parseInputToQuestions(rawText);
+            }
+
+            if ((!appData.currentQuestions || appData.currentQuestions.length === 0) && !rawText) {
+                showNotification('Chưa có câu hỏi nào để gửi! Vui lòng nhập đề bài ở Bước 1 hoặc chọn bài từ Thư viện trước.', 'warning');
                 return;
             }
 
