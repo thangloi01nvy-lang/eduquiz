@@ -254,12 +254,13 @@
         };
 
         window.promptCreateNewClass = function() {
-            const className = prompt("Nhập Tên Lớp Học Mới (Ví dụ: Teen 4 - 04, IELTS K15):");
-            if (!className || !className.trim()) return;
-            
+            // Focus the inline name input directly — no popup needed
             const nameInput = document.getElementById('new-class-name');
-            if (nameInput) nameInput.value = className.trim();
-            window.createNewClass();
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (typeof showNotification === 'function') showNotification('✏️ Vui lòng nhập tên lớp vào ô bên dưới rồi nhấn [Tạo Lớp Mới]', 'info');
+            }
         };
 
         window.repairAndResetClassData = function() {
@@ -299,12 +300,9 @@
             if (typeof showNotification === 'function') showNotification('🔧 Đã sửa lỗi & khôi phục dữ liệu danh sách lớp học thành công!', 'success');
         };
 
+        // quickAddClassPreset: passes className directly — no prompt(), no input dependency
         window.quickAddClassPreset = function(className, classDesc) {
-            const nameInput = document.getElementById('new-class-name');
-            const descInput = document.getElementById('new-class-desc');
-            if (nameInput) nameInput.value = className;
-            if (descInput) descInput.value = classDesc;
-            window.createNewClass();
+            window.createNewClass(className, classDesc || 'Lớp học mới');
         };
 
         window.openCreateClassModal = function() {
@@ -3026,19 +3024,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 const nDescInput = document.getElementById('new-class-desc');
                 const mDescInput = document.getElementById('modal-new-class-desc');
 
+                // Get name from input fields if not passed directly
                 if (!name) {
                     if (nInput && nInput.value.trim()) name = nInput.value.trim();
                     else if (mInput && mInput.value.trim()) name = mInput.value.trim();
                 }
 
+                // NO prompt() — instead focus the input and show guidance
                 if (!name) {
-                    name = prompt("Nhập Tên Lớp Học Mới (Ví dụ: Teen 4 - 04, IELTS K15):");
-                    if (name) name = name.trim();
-                }
-
-                if (!name) {
-                    showNotification('Vui lòng nhập tên lớp học!', 'error');
-                    if (nInput) nInput.focus();
+                    showNotification('✏️ Vui lòng nhập tên lớp học vào ô "Tên lớp" rồi nhấn nút Tạo Lớp Mới!', 'error');
+                    if (nInput) { nInput.focus(); nInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                     return;
                 }
 
@@ -3094,6 +3089,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         function renderClassesList() {
             const container = document.getElementById('classes-list-container');
+            if (!container) return; // Guard: tab may not be visible yet
             container.innerHTML = '';
 
             appData.classes.forEach(c => {
