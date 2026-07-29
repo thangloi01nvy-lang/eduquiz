@@ -3839,7 +3839,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             return { answerKeyMap, remainingLines };
         }
 
-        function parseInputToQuestions(rawText) {
+        function parseInputToQuestions(rawText, updateGlobalSections = true) {
             if (!rawText || !rawText.trim()) return [];
             let textToParse = rawText.trim();
 
@@ -4101,7 +4101,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 aggregatedWordBank = aggregatedWordBank.concat(sec.wordBank);
             });
 
-            appData.sections = sections;
+            if (updateGlobalSections) {
+                appData.sections = sections;
+            }
             appData.wordBank = sanitizeWordBank(aggregatedWordBank);
             return allQuestions;
         }
@@ -4507,7 +4509,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 // Parse Raw Markdown Input
                 const rawMarkdownText = document.getElementById('bulk-raw-markdown-input').value.trim();
                 if (rawMarkdownText) {
-                    const parsedQuestions = parseInputToQuestions(rawMarkdownText);
+                    const parsedQuestions = parseInputToQuestions(rawMarkdownText, false);
                     if (parsedQuestions && parsedQuestions.length > 0) {
                         sec.questions = parsedQuestions;
                     }
@@ -4606,17 +4608,33 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function syncAndPublishAllAssignments() {
-            if (appData.classAssignments) {
-                for (let cName in appData.classAssignments) {
-                    if (appData.classAssignments[cName]) {
-                        appData.classAssignments[cName].questions = appData.currentQuestions;
-                        appData.classAssignments[cName].sections = appData.sections;
-                        appData.classAssignments[cName].wordBank = appData.wordBank;
-                    }
-                }
+            const updatedQuizData = {
+                quizTitle: appData.quizTitle || 'Bài Tập Online',
+                quizLevel: appData.quizLevel || 'B1',
+                quizCreatedDate: appData.quizCreatedDate || new Date().toISOString().slice(0, 10),
+                quizDeadline: appData.quizDeadline || null,
+                questions: JSON.parse(JSON.stringify(appData.currentQuestions || [])),
+                sections: JSON.parse(JSON.stringify(appData.sections || [])),
+                wordBank: JSON.parse(JSON.stringify(appData.wordBank || []))
+            };
+
+            if (!appData.classAssignments) appData.classAssignments = {};
+
+            (appData.classes || []).forEach(c => {
+                appData.classAssignments[c.name] = JSON.parse(JSON.stringify(updatedQuizData));
+            });
+
+            if (appData.quizTargetClass && appData.quizTargetClass !== 'all') {
+                appData.classAssignments[appData.quizTargetClass] = JSON.parse(JSON.stringify(updatedQuizData));
             }
+
+            for (let cName in appData.classAssignments) {
+                appData.classAssignments[cName] = JSON.parse(JSON.stringify(updatedQuizData));
+            }
+
             saveStorage();
-            await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+            try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
+            await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
         }
 
         function renderTeacherPreview(autoScroll = false) {
