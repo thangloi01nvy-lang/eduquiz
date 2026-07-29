@@ -1863,27 +1863,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 {
                     id: 'class_10a1',
                     name: 'Lớp 10A1',
-                    desc: 'Tiếng Anh Cơ Bản',
+                    desc: 'Lớp Mẫu tiếng Anh',
                     students: [
-                        { id: 'HS01', name: 'Nguyễn Văn An' },
-                        { id: 'HS02', name: 'Trần Thị Bình' },
-                        { id: 'HS03', name: 'Lê Hoàng Cường' }
-                    ]
-                },
-                {
-                    id: 'class_teen4',
-                    name: 'Teen 4 - 03',
-                    desc: 'Lớp Tiếng Anh Teen',
-                    students: [
-                        { id: 'HS04', name: 'Thư' }
-                    ]
-                },
-                {
-                    id: 'class_toeic',
-                    name: 'Toeic Sáng T2,4,6',
-                    desc: 'Lớp Luyện Thi TOEIC',
-                    students: [
-                        { id: 'HV01', name: 'Phạm Minh Đức' }
+                        { id: 'HS01', name: 'Nguyễn Văn An' }
                     ]
                 }
             ],
@@ -2924,8 +2906,17 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         } else if (!appData.classAssignments) {
                             appData.classAssignments = {};
                         }
-                        if (data.classes && data.classes.length > 0) {
+                        if (Array.isArray(data.classes) && data.classes.length > 0) {
                             appData.classes = data.classes;
+                            renderClassesList();
+                        } else if (data.classAssignments && Object.keys(data.classAssignments).length > 0) {
+                            const extractedClasses = Object.keys(data.classAssignments).map(cName => ({
+                                id: 'class_' + cName.replace(/\s+/g, '_'),
+                                name: cName,
+                                desc: 'Lớp học từ Giáo viên',
+                                students: []
+                            }));
+                            appData.classes = extractedClasses;
                             renderClassesList();
                         }
                         if (data.feedbacks) appData.feedbacks = data.feedbacks;
