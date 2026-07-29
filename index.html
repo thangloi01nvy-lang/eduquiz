@@ -342,9 +342,13 @@
             window.createNewClass();
         };
 
-        window.createNewClass = function() {
+        window.createNewClass = function(name, desc) {
             if (typeof window._actualCreateNewClass === 'function') {
-                window._actualCreateNewClass();
+                window._actualCreateNewClass(name, desc);
+            } else if (typeof createNewClass === 'function') {
+                createNewClass(name, desc);
+            } else {
+                alert("⚡ Đang khởi tải hệ thống! Vui lòng nhấp lại nút sau 1 giây.");
             }
         };
 
@@ -3077,9 +3081,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 if (mDescInput) mDescInput.value = '';
 
                 showNotification(`🎉 Đã tạo thành công lớp "${finalName}"!`, 'success');
+                alert(`🎉 ĐÃ TẠO THÀNH CÔNG LỚP HỌC MỚI: "${finalName}"!\n\nThẻ lớp học mới đã nảy ngay vị trí đầu tiên trên cùng.`);
             } catch(err) {
                 console.error("Error creating new class:", err);
                 showNotification("Có lỗi xảy ra khi tạo lớp mới!", "error");
+                alert("❌ CÓ LỖI XẢY RA KHI TẠO LỚP MỚI: " + err.message);
             }
         }
 
