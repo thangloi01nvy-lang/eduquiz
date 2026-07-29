@@ -2209,12 +2209,22 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 wordBank: JSON.parse(JSON.stringify(appData.wordBank || []))
             };
 
-            if (targetClass === 'all') {
+            const normTarget = (targetClass || 'all').trim().toLowerCase();
+
+            if (normTarget === 'all') {
                 (appData.classes || []).forEach(c => {
-                    appData.classAssignments[c.name] = quizData;
+                    appData.classAssignments[c.name] = JSON.parse(JSON.stringify(quizData));
                 });
-            } else {
-                appData.classAssignments[targetClass] = quizData;
+            } else if (normTarget !== 'none') {
+                (appData.classes || []).forEach(c => {
+                    const normC = c.name.trim().toLowerCase();
+                    if (normC === normTarget) {
+                        appData.classAssignments[c.name] = JSON.parse(JSON.stringify(quizData));
+                    } else {
+                        delete appData.classAssignments[c.name];
+                    }
+                });
+                appData.classAssignments[targetClass] = JSON.parse(JSON.stringify(quizData));
             }
         }
 
@@ -4853,32 +4863,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function syncAndPublishAllAssignments() {
-            const updatedQuizData = {
-                quizTitle: appData.quizTitle || 'Bài Tập Online',
-                quizLevel: appData.quizLevel || 'B1',
-                quizCreatedDate: appData.quizCreatedDate || new Date().toISOString().slice(0, 10),
-                quizDeadline: appData.quizDeadline || null,
-                questions: JSON.parse(JSON.stringify(appData.currentQuestions || [])),
-                sections: JSON.parse(JSON.stringify(appData.sections || [])),
-                wordBank: JSON.parse(JSON.stringify(appData.wordBank || []))
-            };
-
-            if (!appData.classAssignments) appData.classAssignments = {};
-
-            (appData.classes || []).forEach(c => {
-                appData.classAssignments[c.name] = JSON.parse(JSON.stringify(updatedQuizData));
-            });
-
-            if (appData.quizTargetClass && appData.quizTargetClass !== 'all') {
-                appData.classAssignments[appData.quizTargetClass] = JSON.parse(JSON.stringify(updatedQuizData));
-            }
-
-            for (let cName in appData.classAssignments) {
-                appData.classAssignments[cName] = JSON.parse(JSON.stringify(updatedQuizData));
-            }
+            const targetClass = appData.quizTargetClass || 'all';
+            assignQuizToClassTarget(targetClass);
 
             saveStorage();
             try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
+            renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
         }
 
