@@ -1701,7 +1701,7 @@
     <!-- JAVASCRIPT LOGIC WITH AIRTIGHT CLASS ASSIGNMENT PERMISSION CHECK -->
     <!-- ================================================================= -->
     <script>
-        const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || 'https://jsonblob.com/api/jsonBlob/019fadab-c033-772a-abc3-c5a269278984';
+        const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
 
         const SAMPLE_DATASETS = {
             multi_type: `## Transferable skills
@@ -3187,11 +3187,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             renderClassSubmissionTracker();
             
             await fetchQuizFromCloud();
-
-            // AUTO-POLLING FOR REAL-TIME QUIZ UPDATES (EVERY 4 SECONDS)
+            
+            // AUTO-POLLING FOR TEACHER ONLY (EVERY 15 SECONDS) TO AVOID JSONBLOB RATE-LIMITING
             setInterval(async () => {
-                await fetchQuizFromCloud();
-            }, 4000);
+                const isTeacherView = !document.getElementById('teacher-view').classList.contains('hidden');
+                if (isTeacherView) {
+                    await fetchQuizFromCloud();
+                }
+            }, 15000);
 
             // REAL-TIME MULTI-TAB STORAGE LISTENER
             window.addEventListener('storage', (e) => {
