@@ -170,6 +170,12 @@
             }
         };
 
+        window.createNewClass = function() {
+            if (typeof createNewClass === 'function') {
+                createNewClass();
+            }
+        };
+
         window.switchMainTab = function(tab, bypassAuth = false) {
             if (tab === 'teacher') {
                 window.quickSwitchToTeacherMode();
@@ -580,10 +586,10 @@
                         <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
                     </h3>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <input type="text" id="new-class-name" placeholder="Tên lớp (VD: Teen 4 - 03, Toeic Sáng T2,4,6)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
-                        <input type="text" id="new-class-desc" placeholder="Ghi chú (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <input type="text" id="new-class-name" onkeydown="if(event.key==='Enter') createNewClass()" placeholder="Tên lớp (VD: Teen 4 - 03, Toeic Sáng T2,4,6)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <input type="text" id="new-class-desc" onkeydown="if(event.key==='Enter') createNewClass()" placeholder="Ghi chú (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <button onclick="createNewClass()" class="py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-folder-plus"></i> Tạo Lớp
+                            <i class="fa-solid fa-folder-plus"></i> Tạo Lớp Mới
                         </button>
                     </div>
                 </div>
@@ -2743,32 +2749,58 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function createNewClass() {
-            const nameInput = document.getElementById('new-class-name');
-            const descInput = document.getElementById('new-class-desc');
-            const name = nameInput.value.trim();
+            try {
+                const nameInput = document.getElementById('new-class-name');
+                const descInput = document.getElementById('new-class-desc');
+                if (!nameInput) return;
 
-            if (!name) {
-                showNotification('Vui lòng nhập tên lớp học!', 'error');
-                return;
+                const name = nameInput.value.trim();
+
+                if (!name) {
+                    showNotification('Vui lòng nhập tên lớp học!', 'error');
+                    nameInput.focus();
+                    return;
+                }
+
+                if (!appData.classes || !Array.isArray(appData.classes)) {
+                    appData.classes = [];
+                }
+
+                // Check duplicate class name
+                const isDup = appData.classes.some(c => c.name.toLowerCase() === name.toLowerCase());
+                if (isDup) {
+                    showNotification(`Lớp "${name}" đã tồn tại! Vui lòng đặt tên khác.`, 'error');
+                    nameInput.focus();
+                    return;
+                }
+
+                const newClass = {
+                    id: 'class_' + Date.now(),
+                    name: name,
+                    desc: (descInput && descInput.value.trim()) ? descInput.value.trim() : 'Lớp học mới',
+                    students: []
+                };
+
+                appData.classes.push(newClass);
+                saveStorage();
+                
+                renderClassesList();
+                renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
+                renderClassSubmissionTracker();
+                updateBadges();
+
+                try {
+                    publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                } catch(e) {}
+
+                nameInput.value = '';
+                if (descInput) descInput.value = '';
+                showNotification(`🎉 Đã tạo thành công lớp "${name}"!`, 'success');
+            } catch(err) {
+                console.error("Error creating new class:", err);
+                showNotification("Có lỗi xảy ra khi tạo lớp mới!", "error");
             }
-
-            const newClass = {
-                id: 'class_' + Date.now(),
-                name: name,
-                desc: descInput.value.trim() || 'Lớp học mới',
-                students: []
-            };
-
-            appData.classes.push(newClass);
-            saveStorage();
-            renderClassesList();
-            updateTargetClassSelectOptions();
-            renderClassSubmissionTracker();
-            publishQuizToCloud(appData.currentQuestions, appData.wordBank);
-
-            nameInput.value = '';
-            descInput.value = '';
-            showNotification(`Đã tạo lớp ${name} thành công!`, 'success');
         }
 
         function renderClassesList() {
