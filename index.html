@@ -189,6 +189,7 @@
 
             if (typeof isTeacherAuthenticated !== 'undefined') isTeacherAuthenticated = true;
             if (typeof activeTeacherName !== 'undefined') activeTeacherName = tName;
+            window.activeTeacherName = tName;
             
             sessionStorage.setItem('eduquiz_teacher_auth', 'true');
             sessionStorage.setItem('eduquiz_teacher_name', tName);
@@ -214,6 +215,8 @@
             if (typeof switchMainTab === 'function') switchMainTab('teacher', true);
             else if (typeof quickSwitchToTeacherMode === 'function') quickSwitchToTeacherMode();
         };
+
+        window._actualVerifyTeacherPassword = window.verifyTeacherPassword;
 
         window.resetTeacherPasswordToDefault = function() {
             localStorage.setItem('eduquiz_teacher_password', '123456');
@@ -337,7 +340,10 @@
             if (dInput) dInput.value = mDesc ? mDesc.value.trim() : '';
 
             window.closeCreateClassModal();
-            window.createNewClass();
+            window.createNewClass(name, mDesc ? mDesc.value.trim() : '');
+            if (typeof window.switchTeacherSubTab === 'function') {
+                window.switchTeacherSubTab('classes');
+            }
         };
 
         window.createNewClass = function(name, desc) {
@@ -455,6 +461,10 @@
                         <button id="tab-teacher-btn" onclick="quickSwitchToTeacherMode()" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold text-slate-700 transition-all duration-200 flex items-center gap-2">
                             <i class="fa-solid fa-user-tie text-amber-500"></i>
                             <span>Góc Giáo Viên</span>
+                        </button>
+                        <button onclick="openCreateClassModal()" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5" title="Bấm để tạo lớp học mới lập tức">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span class="hidden md:inline">+ Tạo Lớp Mới</span>
                         </button>
                     </div>
                 </div>
@@ -1574,7 +1584,7 @@ can-do attitude communication skills critical thinking determination integrity s
 2 My manager is really ambitious / passionate about customer service.
 3 In an interview you need to show adaptability/confidence in your abilities.
 4 After four years in the job her motivation / passion was quite low and she started to look for a new one.
-5 Our budgets are not high so we need to be very resourceful / ambitious when planning travel.
+5 Our budgets are not high so we need to be very resourceful / ambitious when planning travel.`,
             multi_type: `# BÀI TẬP VỀ MỆNH ĐỀ & LIÊN TỪ (CLAUSE AND CONJUNCTION)
 
 [SECTION: BÀI TẬP VỀ MỆNH ĐỀ VÀ LIÊN TỪ - CLAUSE AND CONJUNCTION]
@@ -1636,6 +1646,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         const INITIAL_SAMPLE_TEXT = SAMPLE_DATASETS.multi_type;
 
         // EMBEDDED PEDAGOGICAL KNOWLEDGE DICTIONARY FOR EXPLANATIONS
+        const KNOWLEDGE_DICT = {
+            18: {
+                fullWord: "enthusiasm",
                 trans: "Henri yêu công việc của mình và rất hăng hái. Thật tốt khi thấy sự nhiệt tình như vậy.",
                 grammar: "Danh từ chỉ sự nhiệt tình là 'enthusiasm' (đuôi '-iasm'). Học sinh có thể điền đuôi 'iasm' hoặc gõ cả từ 'enthusiasm'.",
                 tip: "Sau 'such' là một danh từ."
@@ -3046,9 +3059,13 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 }
 
                 if (!name) {
-                    showNotification('✏️ Vui lòng nhập tên lớp học vào ô "Tên lớp" rồi nhấn nút Tạo Lớp Mới!', 'error');
-                    if (nInput) { nInput.focus(); nInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-                    return;
+                    const promptName = prompt("✏️ Nhập tên lớp học mới (VD: Teen 4 - 03, IELTS K15, TOEIC Sáng):");
+                    if (promptName && promptName.trim()) {
+                        name = promptName.trim();
+                    } else {
+                        if (typeof openCreateClassModal === 'function') openCreateClassModal();
+                        return;
+                    }
                 }
 
                 let finalName = name;
@@ -4837,7 +4854,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         // EXPORT ALL TEACHER VIEW FUNCTIONS TO WINDOW GLOBAL SCOPE FOR 100% RELIABILITY
-        window.verifyTeacherPassword = verifyTeacherPassword;
+        window.verifyTeacherPassword = window._actualVerifyTeacherPassword || verifyTeacherPassword;
         window.resetTeacherPasswordToDefault = resetTeacherPasswordToDefault;
         window.lockTeacherView = lockTeacherView;
         window.openTeacherAuthModal = openTeacherAuthModal;
