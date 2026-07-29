@@ -343,54 +343,8 @@
         };
 
         window.createNewClass = function() {
-            try {
-                const nameInput = document.getElementById('new-class-name');
-                const descInput = document.getElementById('new-class-desc');
-                if (!nameInput) return;
-
-                const name = nameInput.value.trim();
-
-                if (!name) {
-                    if (typeof showNotification === 'function') showNotification('Vui lòng nhập tên lớp học!', 'error');
-                    nameInput.focus();
-                    return;
-                }
-
-                if (typeof appData === 'undefined' || !appData) appData = {};
-                if (!appData.classes || !Array.isArray(appData.classes)) appData.classes = [];
-
-                let finalName = name;
-                const dupCount = appData.classes.filter(c => c && c.name && c.name.toLowerCase().startsWith(name.toLowerCase())).length;
-                if (dupCount > 0) {
-                    finalName = `${name} (${dupCount + 1})`;
-                }
-
-                const newClass = {
-                    id: 'class_' + Date.now(),
-                    name: finalName,
-                    desc: (descInput && descInput.value.trim()) ? descInput.value.trim() : 'Lớp học mới',
-                    students: []
-                };
-
-                appData.classes.unshift(newClass);
-                
-                if (typeof saveStorage === 'function') saveStorage();
-                if (typeof renderClassesList === 'function') renderClassesList();
-                if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
-                if (typeof updateTargetClassSelectOptions === 'function') updateTargetClassSelectOptions();
-                if (typeof renderClassSubmissionTracker === 'function') renderClassSubmissionTracker();
-                if (typeof updateBadges === 'function') updateBadges();
-
-                try {
-                    if (typeof publishQuizToCloud === 'function') publishQuizToCloud(appData.currentQuestions, appData.wordBank);
-                } catch(e) {}
-
-                nameInput.value = '';
-                if (descInput) descInput.value = '';
-                if (typeof showNotification === 'function') showNotification(`🎉 Đã tạo thành công lớp "${finalName}"!`, 'success');
-            } catch(err) {
-                console.error("Error creating new class:", err);
-                if (typeof showNotification === 'function') showNotification("Có lỗi xảy ra khi tạo lớp mới!", "error");
+            if (typeof window._actualCreateNewClass === 'function') {
+                window._actualCreateNewClass();
             }
         };
 
@@ -3036,8 +2990,58 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function createNewClass() {
-            window.createNewClass();
+            try {
+                const nameInput = document.getElementById('new-class-name');
+                const descInput = document.getElementById('new-class-desc');
+                if (!nameInput) return;
+
+                const name = nameInput.value.trim();
+
+                if (!name) {
+                    showNotification('Vui lòng nhập tên lớp học!', 'error');
+                    nameInput.focus();
+                    return;
+                }
+
+                if (!appData.classes || !Array.isArray(appData.classes)) appData.classes = [];
+
+                let finalName = name;
+                const dupCount = appData.classes.filter(c => c && c.name && c.name.toLowerCase().startsWith(name.toLowerCase())).length;
+                if (dupCount > 0) {
+                    finalName = `${name} (${dupCount + 1})`;
+                }
+
+                const newClass = {
+                    id: 'class_' + Date.now(),
+                    name: finalName,
+                    desc: (descInput && descInput.value.trim()) ? descInput.value.trim() : 'Lớp học mới',
+                    students: []
+                };
+
+                appData.classes.unshift(newClass);
+                
+                saveStorage();
+                renderClassesList();
+                renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
+                renderClassSubmissionTracker();
+                updateBadges();
+
+                try {
+                    publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                } catch(e) {}
+
+                nameInput.value = '';
+                if (descInput) descInput.value = '';
+                showNotification(`🎉 Đã tạo thành công lớp "${finalName}"!`, 'success');
+            } catch(err) {
+                console.error("Error creating new class:", err);
+                showNotification("Có lỗi xảy ra khi tạo lớp mới!", "error");
+            }
         }
+
+        window._actualCreateNewClass = createNewClass;
+        window.createNewClass = createNewClass;
 
         function renderClassesList() {
             const container = document.getElementById('classes-list-container');
