@@ -2212,7 +2212,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             }
 
             appData.classes.forEach(c => {
-                const assigned = appData.classAssignments ? appData.classAssignments[c.name] : null;
+                const assigned = getAssignedQuizForClass(c.name);
                 const card = document.createElement('div');
                 card.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm hover:bg-white transition";
 
@@ -2260,11 +2260,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         async function assignActiveQuizToClassTarget(className) {
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
-                showNotification('Chưa có câu hỏi nào để giao! Hãy soạn bài hoặc chọn bài từ Thư viện trước.', 'error');
+                showNotification('Chưa có câu hỏi nào để giao! Vui lòng nhập đề bài ở Bước 1 hoặc chọn bài từ Thư viện trước.', 'error');
                 return;
             }
+            appData.quizTargetClass = className;
+            isQuizPublishedToStudents = true;
             assignQuizToClassTarget(className);
             saveStorage();
+            updateTargetClassSelectOptions();
             renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             showNotification(`🚀 Đã giao bài tập "${appData.quizTitle}" riêng cho lớp ${className}!`, 'success');
