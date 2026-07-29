@@ -462,10 +462,6 @@
                             <i class="fa-solid fa-user-tie text-amber-500"></i>
                             <span>Góc Giáo Viên</span>
                         </button>
-                        <button onclick="openCreateClassModal()" class="px-3 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5" title="Bấm để tạo lớp học mới lập tức">
-                            <i class="fa-solid fa-plus-circle"></i>
-                            <span class="hidden md:inline">+ Tạo Lớp Mới</span>
-                        </button>
                     </div>
                 </div>
 
@@ -2349,16 +2345,42 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                         <div class="flex items-center justify-between gap-2 pt-1">
                             <button onclick="loadAndAssignQuizFromLibrary('${item.id}')" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-paper-plane"></i> ⚡ GIAO BÀI TẬP NÀY NGAY
+                                <i class="fa-solid fa-paper-plane"></i> ⚡ GIAO BÀI NGAY
                             </button>
-                            <button onclick="downloadSpecificQuizTxt('${item.id}')" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200">
-                                <i class="fa-solid fa-download"></i> Tải file
+                            <button onclick="editQuizFromLibrary('${item.id}')" class="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square"></i> ✏️ SỬA ĐỀ BÀI
+                            </button>
+                            <button onclick="downloadSpecificQuizTxt('${item.id}')" class="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition border border-slate-200" title="Tải file text">
+                                <i class="fa-solid fa-download"></i>
                             </button>
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
+        }
+
+        function editQuizFromLibrary(itemId) {
+            const item = appData.quizLibrary.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('quiz-title-input').value = item.title;
+            document.getElementById('quiz-level-select').value = item.level;
+            document.getElementById('quiz-target-class-select').value = item.targetClass || 'all';
+            document.getElementById('quiz-created-date-input').value = item.createdDate;
+            document.getElementById('markdown-input').value = item.rawText;
+
+            appData.quizTitle = item.title;
+            appData.quizLevel = item.level;
+            appData.quizTargetClass = item.targetClass || 'all';
+            appData.quizCreatedDate = item.createdDate;
+
+            appData.currentQuestions = parseInputToQuestions(item.rawText);
+            updateInputStats();
+            renderTeacherPreview(true);
+            switchTeacherSubTab('editor');
+
+            showNotification(`✏️ Đã tải bài tập "${item.title}" vào Bộ Chỉnh Sửa! Thầy/Cô có thể chỉnh sửa và bấm "Lưu Vào Thư Viện" hoặc "Giao Cho Lớp"!`, 'success');
         }
 
         async function loadAndAssignQuizFromLibrary(itemId) {
@@ -2792,6 +2814,10 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     feedbacks: appData.feedbacks || [],
                     updatedAt: new Date().toLocaleString('vi-VN')
                 };
+
+                saveStorage();
+                try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
+
                 await fetch(CLOUD_QUIZ_URL, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -2807,7 +2833,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         async function fetchQuizFromCloud() {
             try {
                 const res = await fetch(CLOUD_QUIZ_URL + '?t=' + Date.now(), {
-                    headers: { 'Accept': 'application/json' }
+                    headers: { 'Accept': 'application/json', 'Cache-Control': 'no-cache, no-store, must-revalidate' }
                 });
                 if (res.ok) {
                     const data = await res.json();
@@ -2836,6 +2862,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                                 appData.currentQuestions = data.questions;
                                 appData.sections = data.sections || [];
                                 appData.wordBank = sanitizeWordBank(data.wordBank || []);
+                                if (data.quizTitle) appData.quizTitle = data.quizTitle;
                             }
                         } else if (data.questions && data.questions.length > 0) {
                             appData.currentQuestions = data.questions;
@@ -2852,7 +2879,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         saveStorage();
                         
                         updateStudentTabBadge();
-                        document.getElementById('student-banner-q-count').innerText = `${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
+                        const countEl = document.getElementById('student-banner-q-count');
+                        if (countEl) countEl.innerText = `${appData.currentQuestions ? appData.currentQuestions.length : 0} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập)`;
                         
                         updateTargetClassSelectOptions();
                         updateQuizMetadataUI();
@@ -3050,6 +3078,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             renderClassSubmissionTracker();
             
             await fetchQuizFromCloud();
+
+            // AUTO-POLLING FOR REAL-TIME QUIZ UPDATES (EVERY 4 SECONDS)
+            setInterval(async () => {
+                await fetchQuizFromCloud();
+            }, 4000);
+
+            // REAL-TIME MULTI-TAB STORAGE LISTENER
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'eduquiz_pro_v3_data' || e.key === 'eduquiz_cloud_publish_signal') {
+                    loadStorage();
+                    if (activeStudentInfo && activeStudentInfo.studentId) {
+                        restoreStudentSessionUI();
+                    }
+                }
+            });
 
             const isSavedTeacher = (localStorage.getItem('eduquiz_teacher_auth') === 'true' || sessionStorage.getItem('eduquiz_teacher_auth') === 'true');
             if (isSavedTeacher) {
