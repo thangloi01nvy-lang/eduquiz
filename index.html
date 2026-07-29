@@ -3870,7 +3870,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                         if (ansVal) {
                             answerKeyMap[`sec_${currentSecIndex}_q_${qNum}`] = ansVal;
-                            answerKeyMap[`q_${qNum}`] = ansVal;
+                            if (!answerKeyMap[`q_${qNum}`]) {
+                                answerKeyMap[`q_${qNum}`] = ansVal;
+                            }
                         }
                     }
                     continue;
