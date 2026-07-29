@@ -4125,9 +4125,34 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     // INJECT ANSWER FROM END-OF-TEXT ANSWER KEY IF NOT ALREADY SET
                     const secKey = `sec_${sIdx}_q_${qIdx + 1}`;
                     const globalKey = `q_${globalQId}`;
+                    let rawAns = answerKeyMap[secKey] || answerKeyMap[globalKey];
 
-                    if (!q.answer && (answerKeyMap[secKey] || answerKeyMap[globalKey])) {
-                        q.answer = answerKeyMap[secKey] || answerKeyMap[globalKey];
+                    if (rawAns) {
+                        let cleanAns = rawAns.trim();
+                        if (q.inlineBlanks && q.inlineBlanks.length > 0 && q.inlineBlanks[0].choices && q.inlineBlanks[0].choices.length > 0) {
+                            const choices = q.inlineBlanks[0].choices;
+                            const matchedChoice = choices.find(c => {
+                                const regex = new RegExp('\\b' + c.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\b', 'i');
+                                return regex.test(cleanAns);
+                            });
+                            if (matchedChoice) cleanAns = matchedChoice;
+                        } else if (q.options && q.options.length > 0) {
+                            const matchedOpt = q.options.find(o => o.key.toLowerCase() === cleanAns.toLowerCase() || cleanAns.toLowerCase().includes(o.text.toLowerCase()));
+                            if (matchedOpt) cleanAns = matchedOpt.key;
+                        }
+
+                        q.answer = cleanAns;
+                    }
+
+                    if (q.inlineBlanks && q.inlineBlanks.length > 0) {
+                        q.inlineBlanks.forEach(b => {
+                            if (q.answer && b.choices && b.choices.some(c => c.toLowerCase() === q.answer.toLowerCase())) {
+                                const exact = b.choices.find(c => c.toLowerCase() === q.answer.toLowerCase());
+                                b.answer = exact || q.answer;
+                            } else if (b.choices && b.choices.length > 0 && !b.answer) {
+                                b.answer = b.choices[0];
+                            }
+                        });
                     }
 
                     if (q.answer && ['ID', 'DP'].includes(q.answer.toUpperCase().trim())) {
