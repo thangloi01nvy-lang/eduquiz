@@ -3841,25 +3841,13 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     continue;
                 }
 
-                if (secHeaderRegex.test(line) && !answerHeaderRegex.test(line)) {
-                    if (inAnswerKey) {
-                        inAnswerKey = false;
-                        currentSecIndex++;
-                    } else if (remainingLines.length > 0) {
-                        const hasSecAlready = remainingLines.some(l => secHeaderRegex.test(l));
-                        if (hasSecAlready) currentSecIndex++;
-                    }
-                    remainingLines.push(lines[i]);
-                    continue;
-                }
-
                 if (answerHeaderRegex.test(line)) {
                     inAnswerKey = true;
                     continue;
                 }
 
                 if (inAnswerKey) {
-                    const secM = line.match(/^(?:bài|part|section|exercise|phần)?\s*(\d+)[\.\:\)]?$/i);
+                    const secM = line.match(/^(?:##|#)?\s*(?:bài|part|section|exercise|phần)?\s*(\d+)[\.\:\)]?$/i);
                     if (secM && !line.includes('___')) {
                         currentSecIndex = parseInt(secM[1]) - 1;
                         continue;
@@ -3884,8 +3872,17 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             answerKeyMap[`sec_${currentSecIndex}_q_${qNum}`] = ansVal;
                             answerKeyMap[`q_${qNum}`] = ansVal;
                         }
-                        continue;
                     }
+                    continue;
+                }
+
+                if (secHeaderRegex.test(line)) {
+                    if (remainingLines.length > 0) {
+                        const hasSecAlready = remainingLines.some(l => secHeaderRegex.test(l));
+                        if (hasSecAlready) currentSecIndex++;
+                    }
+                    remainingLines.push(lines[i]);
+                    continue;
                 }
 
                 remainingLines.push(lines[i]);
