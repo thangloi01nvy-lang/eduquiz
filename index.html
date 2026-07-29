@@ -1909,6 +1909,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             
             const rawName = (studentClassName || '').trim();
 
+            // If teacher explicitly unassigned / set target to 'none', no quiz assigned!
+            if (appData.quizTargetClass === 'none') {
+                return null;
+            }
+
             // Level 1: Exact match in classAssignments map
             if (rawName && appData.classAssignments[rawName] && appData.classAssignments[rawName].questions && appData.classAssignments[rawName].questions.length > 0) {
                 return appData.classAssignments[rawName];
@@ -1925,21 +1930,31 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 }
             }
 
-            // Level 3: UNIVERSAL SAFETY NET - If root active questions exist, load active quiz for student!
-            if (appData.currentQuestions && appData.currentQuestions.length > 0) {
-                return {
-                    quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
-                    quizLevel: appData.quizLevel || 'B1',
-                    questions: appData.currentQuestions,
-                    sections: appData.sections || [],
-                    wordBank: appData.wordBank || []
-                };
+            // Level 3: Check if targetClass is 'all'
+            if (appData.quizTargetClass === 'all' || !appData.quizTargetClass) {
+                if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+                    return {
+                        quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
+                        quizLevel: appData.quizLevel || 'B1',
+                        questions: appData.currentQuestions,
+                        sections: appData.sections || [],
+                        wordBank: appData.wordBank || []
+                    };
+                }
             }
 
-            // Level 4: Fallback to any active assigned quiz in classAssignments
-            for (let k in appData.classAssignments) {
-                if (appData.classAssignments[k] && appData.classAssignments[k].questions && appData.classAssignments[k].questions.length > 0) {
-                    return appData.classAssignments[k];
+            // Level 4: Check if targetClass matches studentClassName
+            if (rawName && appData.quizTargetClass) {
+                const normTarget = appData.quizTargetClass.trim().toLowerCase().replace(/\s+/g, ' ');
+                const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+                if (normTarget === normStudent && appData.currentQuestions && appData.currentQuestions.length > 0) {
+                    return {
+                        quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
+                        quizLevel: appData.quizLevel || 'B1',
+                        questions: appData.currentQuestions,
+                        sections: appData.sections || [],
+                        wordBank: appData.wordBank || []
+                    };
                 }
             }
 
@@ -2076,8 +2091,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             if (confirm(`Bạn có chắc muốn hủy giao bài tập cho lớp ${className}?`)) {
                 if (!appData.classAssignments) appData.classAssignments = {};
                 delete appData.classAssignments[className];
+                if (appData.quizTargetClass === className || appData.quizTargetClass === 'all') {
+                    appData.quizTargetClass = 'none';
+                }
                 saveStorage();
                 renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
                 await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
                 showNotification(`🗑️ Đã hủy bài tập giao cho lớp ${className} thành công!`, 'info');
             }
@@ -2086,8 +2105,10 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         async function removeAllClassAssignments() {
             if (confirm('Bạn có chắc muốn HỦY GIAO BÀI TẬP cho TẤT CẢ CÁC LỚP? Học sinh các lớp sẽ không thấy bài tập nữa.')) {
                 appData.classAssignments = {};
+                appData.quizTargetClass = 'none';
                 saveStorage();
                 renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
                 await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
                 showNotification('🗑️ Đã hủy tất cả bài tập đã giao cho mọi lớp thành công!', 'info');
             }
