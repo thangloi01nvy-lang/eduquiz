@@ -4509,10 +4509,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 if (rawMarkdownText) {
                     const parsedQuestions = parseInputToQuestions(rawMarkdownText);
                     if (parsedQuestions && parsedQuestions.length > 0) {
-                        appData.currentQuestions = parsedQuestions;
-                        if (appData.sections && appData.sections[0]) {
-                            appData.sections[0].questions = parsedQuestions;
-                        }
+                        sec.questions = parsedQuestions;
                     }
                 }
             } else {
@@ -4583,8 +4580,23 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 });
             }
 
-            if (sec && sec.questions && sec.questions.length > 0) {
-                appData.currentQuestions = sec.questions;
+            // RE-COMBINE ALL QUESTIONS FROM ALL SECTIONS
+            let combinedQuestions = [];
+            let globalQId = 1;
+            if (appData.sections && appData.sections.length > 0) {
+                appData.sections.forEach((s, sIdx) => {
+                    if (s.questions && s.questions.length > 0) {
+                        s.questions.forEach(q => {
+                            q.id = globalQId++;
+                            q.sectionIndex = sIdx;
+                            q.sectionTitle = s.title;
+                            combinedQuestions.push(q);
+                        });
+                    }
+                });
+            }
+            if (combinedQuestions.length > 0) {
+                appData.currentQuestions = combinedQuestions;
             }
 
             syncAndPublishAllAssignments();
