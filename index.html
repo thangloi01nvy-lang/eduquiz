@@ -3730,11 +3730,24 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const remainingLines = [];
 
             const answerHeaderRegex = /^(?:##|#)?\s*(?:answer\s*key|answers|answer|đáp\s*án|key|keys|đ\/a)[:\s]?/i;
+            const secHeaderRegex = /^(?:##|#)?\s*(?:bài|part|section|exercise|phần)\s*\d+/i;
 
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) {
                     if (inAnswerKey) continue;
+                    remainingLines.push(lines[i]);
+                    continue;
+                }
+
+                if (secHeaderRegex.test(line) && !answerHeaderRegex.test(line)) {
+                    if (inAnswerKey) {
+                        inAnswerKey = false;
+                        currentSecIndex++;
+                    } else if (remainingLines.length > 0) {
+                        const hasSecAlready = remainingLines.some(l => secHeaderRegex.test(l));
+                        if (hasSecAlready) currentSecIndex++;
+                    }
                     remainingLines.push(lines[i]);
                     continue;
                 }
@@ -3754,7 +3767,18 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     const kvM = line.match(/^(?:câu|question|q)?\s*(\d+)[\.\:\)\s\-\t]+(.*)$/i);
                     if (kvM) {
                         const qNum = parseInt(kvM[1]);
-                        const ansVal = kvM[2].trim();
+                        let ansVal = kvM[2].trim();
+
+                        if (ansVal.includes('→') || ansVal.includes('->') || ansVal.includes('=>')) {
+                            const arrowParts = ansVal.split(/→|->|=>/);
+                            ansVal = arrowParts[1] ? arrowParts[1].trim() : ansVal;
+                        }
+
+                        const idDpMatch = ansVal.match(/\b(ID|DP)\b/i);
+                        if (idDpMatch) {
+                            ansVal = idDpMatch[1].toUpperCase();
+                        }
+
                         if (ansVal) {
                             answerKeyMap[`sec_${currentSecIndex}_q_${qNum}`] = ansVal;
                             answerKeyMap[`q_${qNum}`] = ansVal;
@@ -3798,6 +3822,31 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             }
 
             const initialLines = textToParse.split('\n');
+
+            // PRE-PROCESS UNNUMBERED QUESTION #1 UNDER SECTION HEADERS
+            for (let i = 0; i < initialLines.length; i++) {
+                const line = initialLines[i].trim();
+                const isSecHeader = /^(?:##|#)?\s*(?:bài|part|section|exercise|phần)\s*\d+/i.test(line);
+
+                if (isSecHeader) {
+                    let nextNonEmpty = [];
+                    let j = i + 1;
+                    while (j < initialLines.length && nextNonEmpty.length < 2) {
+                        if (initialLines[j].trim()) {
+                            nextNonEmpty.push({ idx: j, text: initialLines[j].trim() });
+                        }
+                        j++;
+                    }
+                    if (nextNonEmpty.length >= 2) {
+                        const l1 = nextNonEmpty[0];
+                        const l2 = nextNonEmpty[1];
+                        if (!/^\d+[\.\:\)\/]/i.test(l1.text) && /^2[\.\:\)\/]/i.test(l2.text)) {
+                            initialLines[l1.idx] = "1. " + initialLines[l1.idx];
+                        }
+                    }
+                }
+            }
+
             const { answerKeyMap, remainingLines } = extractAnswerKeyMap(initialLines);
 
             const sections = [];
@@ -3981,6 +4030,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                     if (!q.answer && (answerKeyMap[secKey] || answerKeyMap[globalKey])) {
                         q.answer = answerKeyMap[secKey] || answerKeyMap[globalKey];
+                    }
+
+                    if (q.answer && ['ID', 'DP'].includes(q.answer.toUpperCase().trim())) {
+                        q.answer = q.answer.toUpperCase().trim();
+                        if (!q.title.includes('[')) {
+                            q.title += ' [ID/DP]';
+                        }
+                        q.type = 'fill_blank';
+                        q.inlineBlanks = [{ placeholder: '[ID/DP]', choices: ['ID', 'DP'], answer: q.answer }];
+                        sec.wordBank.push('ID', 'DP');
                     }
 
                     // INJECT AI PEDAGOGICAL EXPLANATION ONLY IF IT IS THE SAMPLE SKILLS QUIZ
