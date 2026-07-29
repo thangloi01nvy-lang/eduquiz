@@ -2919,7 +2919,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         if (data.isPublished !== undefined) {
                             isQuizPublishedToStudents = data.isPublished;
                         }
-                        if (data.classAssignments) appData.classAssignments = data.classAssignments;
+                        if (data.classAssignments && Object.keys(data.classAssignments).length > 0) {
+                            appData.classAssignments = data.classAssignments;
+                        } else if (!appData.classAssignments) {
+                            appData.classAssignments = {};
+                        }
                         if (data.classes && data.classes.length > 0) {
                             appData.classes = data.classes;
                             renderClassesList();
