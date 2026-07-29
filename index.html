@@ -1701,7 +1701,8 @@
     <!-- JAVASCRIPT LOGIC WITH AIRTIGHT CLASS ASSIGNMENT PERMISSION CHECK -->
     <!-- ================================================================= -->
     <script>
-        const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
+        const BASE_STATIC_CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
+        const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || BASE_STATIC_CLOUD_URL;
 
         const SAMPLE_DATASETS = {
             multi_type: `## Transferable skills
@@ -2918,6 +2919,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     explanation: q.explanation || ''
                 }));
 
+                // Purge deleted classes from classAssignments before sending payload
+                if (appData.classAssignments && appData.deletedClasses) {
+                    const normDeleted = appData.deletedClasses.map(d => d.trim().toLowerCase());
+                    Object.keys(appData.classAssignments).forEach(key => {
+                        if (normDeleted.includes(key.trim().toLowerCase())) {
+                            delete appData.classAssignments[key];
+                        }
+                    });
+                }
+
                 const payload = {
                     quizTitle: appData.quizTitle,
                     quizLevel: appData.quizLevel,
@@ -2939,17 +2950,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 saveStorage();
                 try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
 
-                // DUAL CLOUD SYNC: Always sync to primary CLOUD_QUIZ_URL + secondary fallback
-                let primaryUrl = CLOUD_QUIZ_URL;
-                let activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || primaryUrl;
+                // DUAL CLOUD SYNC: Always sync to BASE_STATIC_CLOUD_URL + activeUrl
+                let activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || BASE_STATIC_CLOUD_URL;
 
-                let res = await fetch(primaryUrl, {
+                let res = await fetch(BASE_STATIC_CLOUD_URL, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (activeUrl !== primaryUrl) {
+                if (activeUrl !== BASE_STATIC_CLOUD_URL) {
                     try {
                         await fetch(activeUrl, {
                             method: 'PUT',
@@ -3003,6 +3013,15 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             });
                         }
                         const deletedList = appData.deletedClasses || [];
+
+                        // PURGE DELETED CLASSES FROM classAssignments IMMEDIATELY!
+                        if (appData.classAssignments) {
+                            Object.keys(appData.classAssignments).forEach(key => {
+                                if (deletedList.includes(key.trim().toLowerCase())) {
+                                    delete appData.classAssignments[key];
+                                }
+                            });
+                        }
 
                         if (Array.isArray(data.classes)) {
                             if (!appData.classes) appData.classes = [];
@@ -3087,7 +3106,21 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         }
 
                         if (data.quizDeadline) appData.quizDeadline = data.quizDeadline;
-                        if (data.quizTargetClass) appData.quizTargetClass = data.quizTargetClass;
+                        if (data.quizTargetClass) {
+                            const normTarget = data.quizTargetClass.trim().toLowerCase();
+                            if (deletedList.includes(normTarget)) {
+                                appData.quizTargetClass = 'all';
+                            } else if (normTarget !== 'all' && normTarget !== 'none' && appData.classes && appData.classes.length > 0) {
+                                const targetExists = appData.classes.some(c => c && c.name && c.name.trim().toLowerCase() === normTarget);
+                                if (!targetExists) {
+                                    appData.quizTargetClass = 'all';
+                                } else {
+                                    appData.quizTargetClass = data.quizTargetClass;
+                                }
+                            } else {
+                                appData.quizTargetClass = data.quizTargetClass;
+                            }
+                        }
                         if (data.quizCreatedDate) appData.quizCreatedDate = data.quizCreatedDate;
                         
                         saveStorage();
@@ -3521,6 +3554,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     else if (mDescInput && mDescInput.value && mDescInput.value.trim()) desc = mDescInput.value.trim();
                 }
 
+                if (appData.deletedClasses) {
+                    const normFinal = finalName.trim().toLowerCase();
+                    appData.deletedClasses = appData.deletedClasses.filter(d => d !== normFinal);
+                }
+
                 const newClass = {
                     id: 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                     name: finalName,
@@ -3672,7 +3710,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             }
         }
 
-        function deleteClass(classId) {
+        async function deleteClass(classId) {
             if (confirm('Bạn có chắc muốn xóa lớp học này?')) {
                 const deletedClassObj = appData.classes ? appData.classes.find(c => c && c.id === classId) : null;
                 const deletedName = deletedClassObj ? deletedClassObj.name : null;
@@ -3691,15 +3729,18 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             }
                         }
                     }
+                    if (appData.quizTargetClass && appData.quizTargetClass.trim().toLowerCase() === normDeleted) {
+                        appData.quizTargetClass = 'all';
+                    }
                 }
 
-                appData.classes = appData.classes.filter(c => c.id !== classId);
+                appData.classes = (appData.classes || []).filter(c => c && c.id !== classId);
                 saveStorage();
                 renderClassesList();
                 renderClassAssignmentsPanel();
                 updateTargetClassSelectOptions();
                 renderClassSubmissionTracker();
-                publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
                 showNotification('🗑️ Đã xóa lớp học thành công!', 'info');
             }
         }
