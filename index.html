@@ -170,6 +170,14 @@
             }
         };
 
+        window.quickAddClassPreset = function(className, classDesc) {
+            const nameInput = document.getElementById('new-class-name');
+            const descInput = document.getElementById('new-class-desc');
+            if (nameInput) nameInput.value = className;
+            if (descInput) descInput.value = classDesc;
+            window.createNewClass();
+        };
+
         window.openCreateClassModal = function() {
             const modal = document.getElementById('create-class-modal');
             const input = document.getElementById('modal-new-class-name');
@@ -617,10 +625,30 @@
             <!-- SUB-TAB 3: QUẢN LÝ LỚP HỌC & HỌC SINH -->
             <div id="teacher-subtab-classes" class="hidden space-y-6">
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
+                        </h3>
+                        <button onclick="openCreateClassModal()" class="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs rounded-xl transition border border-purple-200 flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-window-restore"></i> Mở Hộp Thoại Tạo Lớp Mới
+                        </button>
+                    </div>
+
+                    <!-- 1-CLICK QUICK CLASS PRESETS FOR INSTANT CREATION -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">⚡ Tạo nhanh lớp mẫu 1-Click:</span>
+                        <button onclick="quickAddClassPreset('Teen 4 - 04', 'Lớp Tiếng Anh Khóa Teen 4 Cơ sở 4')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl border border-amber-200 transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-amber-600"></i> + Lớp Teen 4 - 04
+                        </button>
+                        <button onclick="quickAddClassPreset('IELTS K15', 'Lớp Luyện Thi IELTS Mục Tiêu 7.0')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold text-xs rounded-xl border border-indigo-200 transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-indigo-600"></i> + Lớp IELTS K15
+                        </button>
+                        <button onclick="quickAddClassPreset('TOEIC Sáng T2,4,6', 'Lớp Luyện Thi TOEIC Ca Sáng')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl border border-emerald-200 transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-plus text-emerald-600"></i> + Lớp TOEIC Sáng
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                         <input type="text" id="new-class-name" onkeydown="if(event.key==='Enter') createNewClass()" placeholder="Tên lớp (VD: Teen 4 - 03, Toeic Sáng T2,4,6)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <input type="text" id="new-class-desc" onkeydown="if(event.key==='Enter') createNewClass()" placeholder="Ghi chú (tùy chọn)" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
                         <button onclick="createNewClass()" class="py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2">
@@ -2856,7 +2884,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     students: []
                 };
 
-                appData.classes.push(newClass);
+                appData.classes.unshift(newClass);
                 saveStorage();
                 
                 renderClassesList();
