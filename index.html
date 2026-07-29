@@ -170,6 +170,36 @@
             }
         };
 
+        window.lockTeacherView = function() {
+            isTeacherAuthenticated = false;
+            sessionStorage.removeItem('eduquiz_teacher_auth');
+            sessionStorage.removeItem('eduquiz_teacher_name');
+            localStorage.removeItem('eduquiz_teacher_name');
+            if (typeof activeTeacherName !== 'undefined') activeTeacherName = '';
+
+            const nameInput = document.getElementById('teacher-name-input');
+            const passInput = document.getElementById('teacher-password-input');
+            const modal = document.getElementById('teacher-auth-modal');
+
+            if (nameInput) nameInput.value = '';
+            if (passInput) passInput.value = '';
+
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+
+            if (typeof updateTeacherBadgeUI === 'function') updateTeacherBadgeUI();
+            
+            setTimeout(() => {
+                if (nameInput) nameInput.focus();
+            }, 100);
+
+            if (typeof showNotification === 'function') {
+                showNotification('🔒 Đã đăng xuất! Vui lòng nhập Tên & Mật Khẩu Giáo Viên mới.', 'info');
+            }
+        };
+
         window.promptCreateNewClass = function() {
             const className = prompt("Nhập Tên Lớp Học Mới (Ví dụ: Teen 4 - 04, IELTS K15):");
             if (!className || !className.trim()) return;
@@ -2173,13 +2203,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function lockTeacherView() {
-            isTeacherAuthenticated = false;
-            sessionStorage.removeItem('eduquiz_teacher_auth');
-            sessionStorage.removeItem('eduquiz_teacher_name');
-            activeTeacherName = 'Giáo Viên';
-            if (typeof updateTeacherBadgeUI === 'function') updateTeacherBadgeUI();
-            openTeacherAuthModal();
-            showNotification('🔒 Đã đăng xuất khỏi Góc Giáo Viên! Vui lòng nhập Tên & Mật Khẩu Giáo Viên mới.', 'info');
+            window.lockTeacherView();
         }
 
         function openChangePasswordModal() {
