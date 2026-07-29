@@ -2893,16 +2893,34 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         async function publishQuizToCloud(questions, wordBank, autoAssign = true) {
             updateCloudStatus('Đang phát hành lên Cloud...', 'warning');
             try {
-                if (autoAssign) {
+                let activeQuestions = (questions && questions.length > 0) ? questions : (appData.currentQuestions || []);
+                const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value.trim() : '';
+
+                if ((!activeQuestions || activeQuestions.length === 0) && rawText) {
+                    activeQuestions = parseInputToQuestions(rawText);
+                    appData.currentQuestions = activeQuestions;
+                }
+
+                if ((!activeQuestions || activeQuestions.length === 0) && appData.classAssignments) {
+                    for (let cKey in appData.classAssignments) {
+                        if (appData.classAssignments[cKey] && appData.classAssignments[cKey].questions && appData.classAssignments[cKey].questions.length > 0) {
+                            activeQuestions = appData.classAssignments[cKey].questions;
+                            appData.currentQuestions = activeQuestions;
+                            break;
+                        }
+                    }
+                }
+
+                if (autoAssign && activeQuestions && activeQuestions.length > 0) {
                     assignQuizToClassTarget(appData.quizTargetClass || 'all');
                 }
 
-                const compactQuestions = (questions || []).map(q => ({
+                const compactQuestions = (activeQuestions || []).map(q => ({
                     id: q.id,
                     sectionIndex: q.sectionIndex,
                     sectionTitle: q.sectionTitle,
-                    title: q.title,
-                    type: q.type,
+                    title: q.title || q.text || '',
+                    type: q.type || 'multiple_choice',
                     answer: q.answer || '',
                     options: q.options || [],
                     inlineBlanks: q.inlineBlanks || [],
@@ -2929,12 +2947,25 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 saveStorage();
                 try { localStorage.setItem('eduquiz_cloud_publish_signal', Date.now().toString()); } catch(e) {}
 
-                let activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || CLOUD_QUIZ_URL;
-                let res = await fetch(activeUrl, {
+                // DUAL CLOUD SYNC: Always sync to primary CLOUD_QUIZ_URL + secondary fallback
+                let primaryUrl = CLOUD_QUIZ_URL;
+                let activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || primaryUrl;
+
+                let res = await fetch(primaryUrl, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
+                if (activeUrl !== primaryUrl) {
+                    try {
+                        await fetch(activeUrl, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch(e) {}
+                }
 
                 if (!res.ok && res.status === 404) {
                     res = await fetch('https://jsonblob.com/api/jsonBlob', {
