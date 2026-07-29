@@ -2297,6 +2297,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function assignActiveQuizToClassTarget(className) {
+            const rawText = document.getElementById('markdown-input') ? document.getElementById('markdown-input').value : '';
+            if (rawText && (!appData.currentQuestions || appData.currentQuestions.length === 0)) {
+                appData.currentQuestions = parseInputToQuestions(rawText);
+            }
+
             if (!appData.currentQuestions || appData.currentQuestions.length === 0) {
                 showNotification('Chưa có câu hỏi nào để giao! Vui lòng nhập đề bài ở Bước 1 hoặc chọn bài từ Thư viện trước.', 'error');
                 return;
@@ -2306,6 +2311,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             assignQuizToClassTarget(className);
             saveStorage();
             updateTargetClassSelectOptions();
+            renderTeacherPreview(false);
             renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank);
             showNotification(`🚀 Đã giao bài tập "${appData.quizTitle}" riêng cho lớp ${className}!`, 'success');
@@ -2478,10 +2484,13 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             appData.quizCreatedDate = item.createdDate;
             item.targetClass = selectedClass;
 
+            isQuizPublishedToStudents = true;
             appData.currentQuestions = parseInputToQuestions(item.rawText);
             assignQuizToClassTarget(selectedClass);
 
             saveStorage();
+            updateTargetClassSelectOptions();
+            renderTeacherPreview(false);
             renderClassAssignmentsPanel();
             await publishQuizToCloud(appData.currentQuestions, appData.wordBank, false);
 
