@@ -192,6 +192,7 @@
             
             sessionStorage.setItem('eduquiz_teacher_auth', 'true');
             sessionStorage.setItem('eduquiz_teacher_name', tName);
+            localStorage.setItem('eduquiz_teacher_auth', 'true');
             localStorage.setItem('eduquiz_teacher_name', tName);
             if (inputPass) {
                 localStorage.setItem('eduquiz_teacher_password', inputPass);
@@ -225,6 +226,7 @@
             isTeacherAuthenticated = false;
             sessionStorage.removeItem('eduquiz_teacher_auth');
             sessionStorage.removeItem('eduquiz_teacher_name');
+            localStorage.removeItem('eduquiz_teacher_auth');
             localStorage.removeItem('eduquiz_teacher_name');
             if (typeof activeTeacherName !== 'undefined') activeTeacherName = '';
 
@@ -2884,12 +2886,22 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             
             await fetchQuizFromCloud();
 
-            if (activeStudentInfo && activeStudentInfo.studentId) {
+            const isSavedTeacher = (localStorage.getItem('eduquiz_teacher_auth') === 'true' || sessionStorage.getItem('eduquiz_teacher_auth') === 'true');
+            if (isSavedTeacher) {
+                const savedName = localStorage.getItem('eduquiz_teacher_name') || sessionStorage.getItem('eduquiz_teacher_name');
+                if (savedName) {
+                    window.activeTeacherName = savedName;
+                    activeTeacherName = savedName;
+                }
+                isTeacherAuthenticated = true;
+                window.updateTeacherBadgeUI();
+                switchMainTab('teacher', true);
+            } else if (activeStudentInfo && activeStudentInfo.studentId) {
                 restoreStudentSessionUI();
+                switchMainTab('student');
+            } else {
+                switchMainTab('student');
             }
-
-            // DEFAULT MODE IS STUDENT VIEW (PROTECTS TEACHER VIEW FROM STUDENTS)
-            switchMainTab('student');
         });
 
         function quickSwitchToTeacherMode() {
