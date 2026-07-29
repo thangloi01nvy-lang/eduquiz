@@ -2646,21 +2646,47 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function switchTeacherSubTab(sub) {
-            document.getElementById('teacher-subtab-editor').classList.toggle('hidden', sub !== 'editor');
-            document.getElementById('teacher-subtab-library').classList.toggle('hidden', sub !== 'library');
-            document.getElementById('teacher-subtab-classes').classList.toggle('hidden', sub !== 'classes');
-            document.getElementById('teacher-subtab-grades').classList.toggle('hidden', sub !== 'grades');
-            document.getElementById('teacher-subtab-feedbacks').classList.toggle('hidden', sub !== 'feedbacks');
+            const edSub = document.getElementById('teacher-subtab-editor');
+            const libSub = document.getElementById('teacher-subtab-library');
+            const clsSub = document.getElementById('teacher-subtab-classes');
+            const grdSub = document.getElementById('teacher-subtab-grades');
+            const fbSub = document.getElementById('teacher-subtab-feedbacks');
 
-            document.getElementById('subtab-editor-btn').classList.toggle('active', sub === 'editor');
-            document.getElementById('subtab-library-btn').classList.toggle('active', sub === 'library');
-            document.getElementById('subtab-classes-btn').classList.toggle('active', sub === 'classes');
-            document.getElementById('subtab-grades-btn').classList.toggle('active', sub === 'grades');
-            document.getElementById('subtab-feedbacks-btn').classList.toggle('active', sub === 'feedbacks');
+            if (edSub) edSub.classList.toggle('hidden', sub !== 'editor');
+            if (libSub) libSub.classList.toggle('hidden', sub !== 'library');
+            if (clsSub) clsSub.classList.toggle('hidden', sub !== 'classes');
+            if (grdSub) grdSub.classList.toggle('hidden', sub !== 'grades');
+            if (fbSub) fbSub.classList.toggle('hidden', sub !== 'feedbacks');
 
-            if (sub === 'feedbacks') renderFeedbacksList();
-            if (sub === 'library') renderQuizLibrary();
-            if (sub === 'grades') renderClassSubmissionTracker();
+            const edBtn = document.getElementById('subtab-editor-btn');
+            const libBtn = document.getElementById('subtab-library-btn');
+            const clsBtn = document.getElementById('subtab-classes-btn');
+            const grdBtn = document.getElementById('subtab-grades-btn');
+            const fbBtn = document.getElementById('subtab-feedbacks-btn');
+
+            if (edBtn) edBtn.classList.toggle('active', sub === 'editor');
+            if (libBtn) libBtn.classList.toggle('active', sub === 'library');
+            if (clsBtn) clsBtn.classList.toggle('active', sub === 'classes');
+            if (grdBtn) grdBtn.classList.toggle('active', sub === 'grades');
+            if (fbBtn) fbBtn.classList.toggle('active', sub === 'feedbacks');
+
+            if (sub === 'editor') {
+                renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
+            } else if (sub === 'classes') {
+                renderClassesList();
+                renderClassAssignmentsPanel();
+                updateTargetClassSelectOptions();
+            } else if (sub === 'library') {
+                renderQuizLibrary();
+            } else if (sub === 'grades') {
+                renderClassSubmissionTracker();
+                renderGradesTable();
+            } else if (sub === 'feedbacks') {
+                renderFeedbacksList();
+            }
+
+            updateBadges();
         }
 
         function createNewClass() {
@@ -4369,6 +4395,29 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             setTimeout(() => toast.classList.remove('translate-y-10', 'opacity-0'), 10);
             setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
+
+        // EXPORT ALL TEACHER VIEW FUNCTIONS TO WINDOW GLOBAL SCOPE FOR 100% RELIABILITY
+        window.switchTeacherSubTab = switchTeacherSubTab;
+        window.createNewClass = createNewClass;
+        window.deleteClass = deleteClass;
+        window.addStudentToClass = addStudentToClass;
+        window.deleteStudent = deleteStudent;
+        window.assignActiveQuizToClassTarget = assignActiveQuizToClassTarget;
+        window.removeQuizFromClass = removeQuizFromClass;
+        window.removeAllClassAssignments = removeAllClassAssignments;
+        window.loadAndAssignQuizFromLibrary = loadAndAssignQuizFromLibrary;
+        window.deleteQuizFromLibrary = deleteQuizFromLibrary;
+        window.downloadSpecificQuizTxt = downloadSpecificQuizTxt;
+        window.downloadQuizBackupTxt = downloadQuizBackupTxt;
+        window.generateQuiz = generateQuiz;
+        window.publishQuizToCloud = publishQuizToCloud;
+        window.renderClassesList = renderClassesList;
+        window.renderQuizLibrary = renderQuizLibrary;
+        window.renderClassAssignmentsPanel = renderClassAssignmentsPanel;
+        window.renderClassSubmissionTracker = renderClassSubmissionTracker;
+        window.renderGradesTable = renderGradesTable;
+        window.renderFeedbacksList = renderFeedbacksList;
+        window.showNotification = showNotification;
     </script>
 </body>
 </html>
