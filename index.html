@@ -3841,6 +3841,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     continue;
                 }
 
+                // If line is an explicit Markdown Section Header (starts with ## or #) and is NOT an answer header, turn off inAnswerKey
+                const isExplicitSecHeader = /^#{1,6}\s+/.test(line);
+                if (inAnswerKey && isExplicitSecHeader && !answerHeaderRegex.test(line)) {
+                    inAnswerKey = false;
+                }
+
                 if (answerHeaderRegex.test(line)) {
                     inAnswerKey = true;
                     continue;
