@@ -170,6 +170,52 @@
             }
         };
 
+        window.promptCreateNewClass = function() {
+            const className = prompt("Nhập Tên Lớp Học Mới (Ví dụ: Teen 4 - 04, IELTS K15):");
+            if (!className || !className.trim()) return;
+            
+            const nameInput = document.getElementById('new-class-name');
+            if (nameInput) nameInput.value = className.trim();
+            window.createNewClass();
+        };
+
+        window.repairAndResetClassData = function() {
+            if (typeof appData === 'undefined' || !appData) appData = {};
+            appData.classes = [
+                {
+                    id: 'class_teen403',
+                    name: 'Teen 4 - 03',
+                    desc: 'Lớp Tiếng Anh Khóa Teen 4 (Cơ sở 3)',
+                    students: [
+                        { id: 'HS01', name: 'Nguyễn Văn An' },
+                        { id: 'HS02', name: 'Trần Thị Bích' },
+                        { id: 'HS03', name: 'Lê Hoàng Cường' },
+                        { id: 'HS04', name: 'Phạm Minh Thư' },
+                        { id: 'HS05', name: 'Đỗ Đức Anh' }
+                    ]
+                },
+                {
+                    id: 'class_teen404',
+                    name: 'Teen 4 - 04',
+                    desc: 'Lớp Tiếng Anh Khóa Teen 4 (Cơ sở 4)',
+                    students: []
+                },
+                {
+                    id: 'class_ielts15',
+                    name: 'IELTS K15',
+                    desc: 'Lớp Luyện Thi IELTS Mục Tiêu 7.0',
+                    students: []
+                }
+            ];
+            if (typeof saveStorage === 'function') saveStorage();
+            if (typeof renderClassesList === 'function') renderClassesList();
+            if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
+            if (typeof updateTargetClassSelectOptions === 'function') updateTargetClassSelectOptions();
+            if (typeof renderClassSubmissionTracker === 'function') renderClassSubmissionTracker();
+            if (typeof updateBadges === 'function') updateBadges();
+            if (typeof showNotification === 'function') showNotification('🔧 Đã sửa lỗi & khôi phục dữ liệu danh sách lớp học thành công!', 'success');
+        };
+
         window.quickAddClassPreset = function(className, classDesc) {
             const nameInput = document.getElementById('new-class-name');
             const descInput = document.getElementById('new-class-desc');
@@ -629,9 +675,14 @@
                         <h3 class="font-heading font-bold text-lg text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-plus-circle text-brand-600"></i> Tạo Lớp Học Mới
                         </h3>
-                        <button onclick="openCreateClassModal()" class="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs rounded-xl transition border border-purple-200 flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-window-restore"></i> Mở Hộp Thoại Tạo Lớp Mới
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button onclick="promptCreateNewClass()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-bolt"></i> Tạo Lớp Nhanh (Hộp Thoại Trình Duyệt)
+                            </button>
+                            <button onclick="repairAndResetClassData()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition border border-slate-200 flex items-center gap-1.5">
+                                <i class="fa-solid fa-wrench text-amber-500"></i> Sửa Lỗi Dữ Liệu Lớp
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 1-CLICK QUICK CLASS PRESETS FOR INSTANT CREATION -->
