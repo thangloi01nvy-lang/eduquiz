@@ -50,6 +50,16 @@
 
     <!-- EARLY GLOBAL TAB SWITCHER ENGINE -->
     <script>
+        window.activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
+
+        window.updateTeacherBadgeUI = function() {
+            const name = window.activeTeacherName || sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
+            const tag = document.getElementById('active-teacher-name-tag');
+            if (tag) tag.innerText = name;
+            const input = document.getElementById('teacher-name-edit-input');
+            if (input) input.value = name;
+        };
+
         window.switchTeacherSubTab = function(sub) {
             const subtabs = ['editor', 'library', 'classes', 'grades', 'feedbacks'];
             subtabs.forEach(s => {
@@ -1670,7 +1680,10 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         // TEACHER AUTHENTICATION & PROFILE STATE
         let isTeacherAuthenticated = true;
-        let activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
+        if (typeof window.activeTeacherName === 'undefined') {
+            window.activeTeacherName = sessionStorage.getItem('eduquiz_teacher_name') || localStorage.getItem('eduquiz_teacher_name') || 'Giáo Viên';
+        }
+        var activeTeacherName = window.activeTeacherName;
 
         function formatDateVN(dateStr) {
             if (!dateStr) return '--/--/----';
