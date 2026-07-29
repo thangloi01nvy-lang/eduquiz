@@ -3004,11 +3004,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         } else if (!appData.classAssignments) {
                             appData.classAssignments = {};
                         }
+                        const deletedList = appData.deletedClasses || [];
                         if (Array.isArray(data.classes) && data.classes.length > 0) {
                             if (!appData.classes) appData.classes = [];
                             data.classes.forEach(cloudC => {
                                 if (!cloudC || !cloudC.name) return;
                                 const normCloud = cloudC.name.trim().toLowerCase();
+                                if (deletedList.includes(normCloud)) return;
+
                                 const localC = appData.classes.find(lc => lc && lc.name && lc.name.trim().toLowerCase() === normCloud);
                                 if (!localC) {
                                     appData.classes.push(cloudC);
@@ -3027,6 +3030,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             if (!appData.classes) appData.classes = [];
                             Object.keys(data.classAssignments).forEach(cName => {
                                 const normC = cName.trim().toLowerCase();
+                                if (deletedList.includes(normC)) return;
+
                                 if (!appData.classes.some(lc => lc && lc.name && lc.name.trim().toLowerCase() === normC)) {
                                     appData.classes.push({
                                         id: 'class_' + cName.replace(/\s+/g, '_'),
@@ -3664,12 +3669,33 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         function deleteClass(classId) {
             if (confirm('Bạn có chắc muốn xóa lớp học này?')) {
+                const deletedClassObj = appData.classes ? appData.classes.find(c => c && c.id === classId) : null;
+                const deletedName = deletedClassObj ? deletedClassObj.name : null;
+
+                if (!appData.deletedClasses) appData.deletedClasses = [];
+                if (deletedName) {
+                    const normDeleted = deletedName.trim().toLowerCase();
+                    if (!appData.deletedClasses.includes(normDeleted)) {
+                        appData.deletedClasses.push(normDeleted);
+                    }
+                    if (appData.classAssignments) {
+                        delete appData.classAssignments[deletedName];
+                        for (let k in appData.classAssignments) {
+                            if (k.trim().toLowerCase() === normDeleted) {
+                                delete appData.classAssignments[k];
+                            }
+                        }
+                    }
+                }
+
                 appData.classes = appData.classes.filter(c => c.id !== classId);
                 saveStorage();
                 renderClassesList();
+                renderClassAssignmentsPanel();
                 updateTargetClassSelectOptions();
                 renderClassSubmissionTracker();
                 publishQuizToCloud(appData.currentQuestions, appData.wordBank);
+                showNotification('🗑️ Đã xóa lớp học thành công!', 'info');
             }
         }
 
