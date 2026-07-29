@@ -2736,10 +2736,17 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             if (!line) return false;
             const trimmed = line.trim();
             if (!trimmed) return false;
+            
+            // Explicit markdown headers ## or # are always section headers
             if (trimmed.startsWith('##') || trimmed.startsWith('#')) return true;
 
+            // Numbered question lines (e.g. "1. ", "Câu 1. ", "2) ") are NOT section headers
+            if (/^(?:câu|question|q)?\s*\d+[\.\:\)\/]/i.test(trimmed)) {
+                return false;
+            }
+
             const lower = trimmed.toLowerCase();
-            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('^(?:câu|question|q)?\\s*\\d*[\\.\\:\\)\\ /\\s]*\\b' + p + '\\b', 'i').test(lower))) {
+            if (['exercise', 'part', 'bài', 'phần', 'task', 'section', 'unit'].some(p => new RegExp('^\\s*\\d*[\\.\\:\\)\\ /\\s]*\\b' + p + '\\b', 'i').test(lower))) {
                 return true;
             }
 
@@ -4612,6 +4619,9 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     const parsedQuestions = parseInputToQuestions(rawMarkdownText, false);
                     if (parsedQuestions && parsedQuestions.length > 0) {
                         sec.questions = parsedQuestions;
+                        if (parsedQuestions[0].sectionTitle) {
+                            sec.title = parsedQuestions[0].sectionTitle;
+                        }
                     }
                 }
             } else {
