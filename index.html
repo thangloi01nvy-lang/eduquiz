@@ -50,6 +50,52 @@
 
     <!-- EARLY GLOBAL TAB SWITCHER ENGINE -->
     <script>
+        window.switchTeacherSubTab = function(sub) {
+            const subtabs = ['editor', 'library', 'classes', 'grades', 'feedbacks'];
+            subtabs.forEach(s => {
+                const elem = document.getElementById(`teacher-subtab-${s}`);
+                const btn = document.getElementById(`subtab-${s}-btn`);
+                if (elem) {
+                    if (s === sub) {
+                        elem.classList.remove('hidden');
+                        elem.style.display = 'block';
+                    } else {
+                        elem.classList.add('hidden');
+                        elem.style.display = 'none';
+                    }
+                }
+                if (btn) {
+                    if (s === sub) {
+                        btn.classList.add('active');
+                        btn.style.backgroundColor = '#026fc7';
+                        btn.style.color = '#ffffff';
+                    } else {
+                        btn.classList.remove('active');
+                        btn.style.backgroundColor = '';
+                        btn.style.color = '';
+                    }
+                }
+            });
+
+            if (sub === 'editor') {
+                if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
+                if (typeof updateTargetClassSelectOptions === 'function') updateTargetClassSelectOptions();
+            } else if (sub === 'classes') {
+                if (typeof renderClassesList === 'function') renderClassesList();
+                if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
+                if (typeof updateTargetClassSelectOptions === 'function') updateTargetClassSelectOptions();
+            } else if (sub === 'library') {
+                if (typeof renderQuizLibrary === 'function') renderQuizLibrary();
+            } else if (sub === 'grades') {
+                if (typeof renderClassSubmissionTracker === 'function') renderClassSubmissionTracker();
+                if (typeof renderGradesTable === 'function') renderGradesTable();
+            } else if (sub === 'feedbacks') {
+                if (typeof renderFeedbacksList === 'function') renderFeedbacksList();
+            }
+
+            if (typeof updateBadges === 'function') updateBadges();
+        };
+
         window.quickSwitchToTeacherMode = function() {
             if (typeof isTeacherAuthenticated !== 'undefined') isTeacherAuthenticated = true;
             
@@ -78,10 +124,7 @@
                 studentBtn.style.color = '';
             }
 
-            if (typeof switchTeacherSubTab === 'function') switchTeacherSubTab('editor');
-            if (typeof renderClassSubmissionTracker === 'function') renderClassSubmissionTracker();
-            if (typeof renderClassAssignmentsPanel === 'function') renderClassAssignmentsPanel();
-            if (typeof renderQuizLibrary === 'function') renderQuizLibrary();
+            window.switchTeacherSubTab('editor');
 
             if (teacherView) {
                 teacherView.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2540,6 +2583,16 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const sBtn = document.getElementById('tab-student-btn');
             if (tBtn) tBtn.addEventListener('click', (e) => { e.preventDefault(); window.quickSwitchToTeacherMode(); });
             if (sBtn) sBtn.addEventListener('click', (e) => { e.preventDefault(); window.quickSwitchToStudentMode(); });
+
+            ['editor', 'library', 'classes', 'grades', 'feedbacks'].forEach(sub => {
+                const btn = document.getElementById(`subtab-${sub}-btn`);
+                if (btn) {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        window.switchTeacherSubTab(sub);
+                    });
+                }
+            });
 
             document.getElementById('markdown-input').addEventListener('input', updateInputStats);
             renderClassesList();
