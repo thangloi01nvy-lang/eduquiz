@@ -4601,10 +4601,62 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 appData.currentQuestions = combinedQuestions;
             }
 
+            syncAppDataToMarkdownInput();
             syncAndPublishAllAssignments();
             renderTeacherPreview(false); // DO NOT JUMP SCROLL
             closeBulkSectionModal();
             showNotification(`🚀 Đã lưu và ĐỒNG BỘ CHỈNH SỬA HÀNG LOẠT đến tất cả Học sinh!`, 'success');
+        }
+
+        function syncAppDataToMarkdownInput() {
+            if (!appData.sections || appData.sections.length === 0) return;
+            let lines = [];
+            appData.sections.forEach((sec, sIdx) => {
+                lines.push(`## ${sec.title || ('Bài ' + (sIdx + 1))}`);
+                let secAnsLines = [];
+
+                (sec.questions || []).forEach((q, qIdx) => {
+                    let qTitle = q.title || '';
+                    if (q.inlineBlanks && q.inlineBlanks.length > 0 && q.inlineBlanks[0].choices && q.inlineBlanks[0].choices.length > 0) {
+                        const choicesStr = q.inlineBlanks[0].choices.join(' / ');
+                        if (!qTitle.includes('[') && !qTitle.includes('___')) {
+                            qTitle = `${qTitle} [${choicesStr}]`;
+                        }
+                    } else if (q.options && q.options.length > 0 && q.type !== 'multiple_choice') {
+                        const choicesStr = q.options.map(o => o.text).join(' / ');
+                        if (!qTitle.includes('[') && !qTitle.includes('___')) {
+                            qTitle = `${qTitle} [${choicesStr}]`;
+                        }
+                    }
+
+                    lines.push(`${qIdx + 1}. ${qTitle}`);
+
+                    if (q.options && q.options.length > 0 && q.type === 'multiple_choice') {
+                        q.options.forEach(o => {
+                            lines.push(`   ${o.key}. ${o.text}`);
+                        });
+                    }
+
+                    let ans = q.answer || '';
+                    if (ans) {
+                        secAnsLines.push(`${qIdx + 1}. ${ans}`);
+                    }
+                });
+
+                if (secAnsLines.length > 0) {
+                    lines.push('\nAnswer:');
+                    lines = lines.concat(secAnsLines);
+                }
+
+                lines.push('');
+            });
+
+            const newMarkdown = lines.join('\n').trim();
+            const markdownElem = document.getElementById('markdown-input');
+            if (markdownElem) {
+                markdownElem.value = newMarkdown;
+                if (typeof updateInputStats === 'function') updateInputStats();
+            }
         }
 
         async function syncAndPublishAllAssignments() {
