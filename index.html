@@ -3014,8 +3014,23 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             updateBadges();
         }
 
+        function sanitizeClassesData() {
+            if (typeof appData === 'undefined' || !appData || typeof appData !== 'object') appData = {};
+            if (!Array.isArray(appData.classes)) appData.classes = [];
+            appData.classes.forEach(c => {
+                if (c && typeof c === 'object') {
+                    if (!c.id) c.id = 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                    if (!c.name) c.name = 'Lớp chưa đặt tên';
+                    if (!c.desc) c.desc = 'Lớp học mới';
+                    if (!Array.isArray(c.students)) c.students = [];
+                }
+            });
+        }
+
         function createNewClass(passedName, passedDesc) {
             try {
+                sanitizeClassesData();
+
                 let name = (passedName && typeof passedName === 'string') ? passedName.trim() : '';
                 let desc = (passedDesc && typeof passedDesc === 'string') ? passedDesc.trim() : '';
 
@@ -3026,18 +3041,15 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                 // Get name from input fields if not passed directly
                 if (!name) {
-                    if (nInput && nInput.value.trim()) name = nInput.value.trim();
-                    else if (mInput && mInput.value.trim()) name = mInput.value.trim();
+                    if (nInput && nInput.value && nInput.value.trim()) name = nInput.value.trim();
+                    else if (mInput && mInput.value && mInput.value.trim()) name = mInput.value.trim();
                 }
 
-                // NO prompt() — instead focus the input and show guidance
                 if (!name) {
                     showNotification('✏️ Vui lòng nhập tên lớp học vào ô "Tên lớp" rồi nhấn nút Tạo Lớp Mới!', 'error');
                     if (nInput) { nInput.focus(); nInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                     return;
                 }
-
-                if (!appData.classes || !Array.isArray(appData.classes)) appData.classes = [];
 
                 let finalName = name;
                 const dupCount = appData.classes.filter(c => c && c.name && c.name.toLowerCase().startsWith(name.toLowerCase())).length;
@@ -3046,12 +3058,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 }
 
                 if (!desc) {
-                    if (nDescInput && nDescInput.value.trim()) desc = nDescInput.value.trim();
-                    else if (mDescInput && mDescInput.value.trim()) desc = mDescInput.value.trim();
+                    if (nDescInput && nDescInput.value && nDescInput.value.trim()) desc = nDescInput.value.trim();
+                    else if (mDescInput && mDescInput.value && mDescInput.value.trim()) desc = mDescInput.value.trim();
                 }
 
                 const newClass = {
-                    id: 'class_' + Date.now(),
+                    id: 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                     name: finalName,
                     desc: desc || 'Lớp học mới',
                     students: []
@@ -3059,12 +3071,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
                 appData.classes.unshift(newClass);
                 
-                saveStorage();
-                renderClassesList();
-                renderClassAssignmentsPanel();
-                updateTargetClassSelectOptions();
-                renderClassSubmissionTracker();
-                updateBadges();
+                try { saveStorage(); } catch(e) { console.error("saveStorage error", e); }
+                try { renderClassesList(); } catch(e) { console.error("renderClassesList error", e); }
+                try { renderClassAssignmentsPanel(); } catch(e) { console.error("renderClassAssignmentsPanel error", e); }
+                try { updateTargetClassSelectOptions(); } catch(e) { console.error("updateTargetClassSelectOptions error", e); }
+                try { renderClassSubmissionTracker(); } catch(e) { console.error("renderClassSubmissionTracker error", e); }
+                try { updateBadges(); } catch(e) { console.error("updateBadges error", e); }
 
                 try {
                     publishQuizToCloud(appData.currentQuestions, appData.wordBank);
@@ -3076,11 +3088,23 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 if (mDescInput) mDescInput.value = '';
 
                 showNotification(`🎉 Đã tạo thành công lớp "${finalName}"!`, 'success');
-                alert(`🎉 ĐÃ TẠO THÀNH CÔNG LỚP HỌC MỚI: "${finalName}"!\n\nThẻ lớp học mới đã nảy ngay vị trí đầu tiên trên cùng.`);
+
+                // Smooth scroll and highlight new class card
+                setTimeout(() => {
+                    const container = document.getElementById('classes-list-container');
+                    if (container && container.firstElementChild) {
+                        container.firstElementChild.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        container.firstElementChild.classList.add('ring-4', 'ring-amber-400', 'ring-offset-2');
+                        setTimeout(() => {
+                            if (container.firstElementChild) {
+                                container.firstElementChild.classList.remove('ring-4', 'ring-amber-400', 'ring-offset-2');
+                            }
+                        }, 3500);
+                    }
+                }, 100);
             } catch(err) {
                 console.error("Error creating new class:", err);
                 showNotification("Có lỗi xảy ra khi tạo lớp mới!", "error");
-                alert("❌ CÓ LỖI XẢY RA KHI TẠO LỚP MỚI: " + err.message);
             }
         }
 
@@ -3088,20 +3112,24 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         window.createNewClass = createNewClass;
 
         function renderClassesList() {
+            sanitizeClassesData();
             const container = document.getElementById('classes-list-container');
-            if (!container) return; // Guard: tab may not be visible yet
+            if (!container) return;
             container.innerHTML = '';
 
             appData.classes.forEach(c => {
+                if (!c) return;
+                const studentsList = Array.isArray(c.students) ? c.students : [];
                 const card = document.createElement('div');
-                card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
+                card.className = "bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 transition-all duration-300";
                 
                 let studentsHtml = '';
-                c.students.forEach((st) => {
+                studentsList.forEach((st) => {
+                    if (!st) return;
                     studentsHtml += `
                         <tr class="border-b border-slate-100 text-xs">
-                            <td class="py-2 font-mono font-bold text-brand-700">${st.id}</td>
-                            <td class="py-2 font-medium text-slate-800">${st.name}</td>
+                            <td class="py-2 font-mono font-bold text-brand-700">${st.id || ''}</td>
+                            <td class="py-2 font-medium text-slate-800">${st.name || ''}</td>
                             <td class="py-2 text-right">
                                 <button onclick="deleteStudent('${c.id}', '${st.id}')" class="text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-xmark"></i></button>
                             </td>
@@ -3112,8 +3140,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                         <div>
-                            <h4 class="font-heading font-bold text-lg text-slate-900">${c.name}</h4>
-                            <p class="text-xs text-slate-500">${c.desc} • ${c.students.length} học sinh</p>
+                            <h4 class="font-heading font-bold text-lg text-slate-900">${c.name || 'Lớp mới'}</h4>
+                            <p class="text-xs text-slate-500">${c.desc || 'Chưa có ghi chú'} • ${studentsList.length} học sinh</p>
                         </div>
                         <button onclick="deleteClass('${c.id}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
                     </div>
