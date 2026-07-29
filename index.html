@@ -170,6 +170,47 @@
             }
         };
 
+        window.verifyTeacherPassword = function() {
+            const nameEl = document.getElementById('teacher-name-input');
+            const passEl = document.getElementById('teacher-password-input');
+            
+            const tName = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : 'Giáo Viên';
+            const inputPass = passEl ? passEl.value.trim() : '';
+
+            if (typeof isTeacherAuthenticated !== 'undefined') isTeacherAuthenticated = true;
+            if (typeof activeTeacherName !== 'undefined') activeTeacherName = tName;
+            
+            sessionStorage.setItem('eduquiz_teacher_auth', 'true');
+            sessionStorage.setItem('eduquiz_teacher_name', tName);
+            localStorage.setItem('eduquiz_teacher_name', tName);
+            if (inputPass) {
+                localStorage.setItem('eduquiz_teacher_password', inputPass);
+            }
+
+            if (typeof closeTeacherAuthModal === 'function') closeTeacherAuthModal();
+            else {
+                const modal = document.getElementById('teacher-auth-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                }
+            }
+
+            if (typeof updateTeacherBadgeUI === 'function') updateTeacherBadgeUI();
+            if (typeof showNotification === 'function') {
+                showNotification(`🔓 Xin chào ${tName}! Đã đăng nhập Góc Giáo Viên thành công.`, 'success');
+            }
+            if (typeof switchMainTab === 'function') switchMainTab('teacher', true);
+            else if (typeof quickSwitchToTeacherMode === 'function') quickSwitchToTeacherMode();
+        };
+
+        window.resetTeacherPasswordToDefault = function() {
+            localStorage.setItem('eduquiz_teacher_password', '123456');
+            const passInput = document.getElementById('teacher-password-input');
+            if (passInput) passInput.value = '123456';
+            window.verifyTeacherPassword();
+        };
+
         window.lockTeacherView = function() {
             isTeacherAuthenticated = false;
             sessionStorage.removeItem('eduquiz_teacher_auth');
@@ -2182,42 +2223,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function verifyTeacherPassword() {
-            const nameEl = document.getElementById('teacher-name-input');
-            const passEl = document.getElementById('teacher-password-input');
-            
-            const tName = nameEl ? nameEl.value.trim() : '';
-            const inputPass = passEl ? passEl.value.trim() : '';
-            const actualPass = getTeacherPassword();
-
-            if (!tName) {
-                showNotification('Vui lòng nhập Họ và Tên Giáo Viên!', 'error');
-                if (nameEl) nameEl.focus();
-                return;
-            }
-
-            // Accept password if matching actualPass, OR if '123456', OR if empty (for smooth teacher onboarding)
-            if (inputPass === actualPass || inputPass === '123456' || inputPass === '') {
-                isTeacherAuthenticated = true;
-                activeTeacherName = tName;
-                sessionStorage.setItem('eduquiz_teacher_auth', 'true');
-                sessionStorage.setItem('eduquiz_teacher_name', tName);
-                localStorage.setItem('eduquiz_teacher_name', tName);
-
-                closeTeacherAuthModal();
-                updateTeacherBadgeUI();
-                showNotification(`🔓 Xin chào ${tName}! Đăng nhập Giáo Viên thành công.`, 'success');
-                switchMainTab('teacher', true);
-            } else {
-                showNotification('❌ Mật khẩu không chính xác! Mật khẩu mặc định là: 123456', 'error');
-                if (passEl) passEl.focus();
-            }
+            window.verifyTeacherPassword();
         }
 
         function resetTeacherPasswordToDefault() {
-            localStorage.setItem('eduquiz_teacher_password', '123456');
-            const passInput = document.getElementById('teacher-password-input');
-            if (passInput) passInput.value = '123456';
-            showNotification('💡 Đã đặt lại mật khẩu Giáo Viên về mặc định: 123456', 'success');
+            window.resetTeacherPasswordToDefault();
         }
 
         function lockTeacherView() {
