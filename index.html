@@ -2309,6 +2309,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         function saveCurrentQuizToLibrary() {
+            syncAppDataToMarkdownInput();
             const title = document.getElementById('quiz-title-input').value.trim() || appData.quizTitle || 'Bài Tập Mới';
             const level = document.getElementById('quiz-level-select').value || appData.quizLevel;
             const targetClass = document.getElementById('quiz-target-class-select').value || appData.quizTargetClass || 'all';
@@ -4278,6 +4279,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 q.options = optionsList;
             }
 
+            syncAppDataToMarkdownInput();
             syncAndPublishAllAssignments();
             renderTeacherPreview(false); // DO NOT JUMP SCROLL
             showNotification(`🎯 Đã chuyển Câu ${qIdx + 1} sang loại: ${newType}`, 'success');
@@ -4359,6 +4361,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 }));
             }
 
+            syncAppDataToMarkdownInput();
             syncAndPublishAllAssignments();
             renderTeacherPreview(false); // DO NOT JUMP SCROLL
             closeEditQuestionModal();
