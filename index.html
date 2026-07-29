@@ -422,6 +422,9 @@
                     <button onclick="openChangePasswordModal()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition border border-slate-200 flex items-center gap-1.5">
                         <i class="fa-solid fa-pen-to-square text-amber-500"></i> Đổi Tên / Mật Khẩu
                     </button>
+                    <button onclick="lockTeacherView()" class="px-3.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition border border-rose-200 flex items-center gap-1.5 shadow-sm">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất GV / Đổi tài khoản
+                    </button>
                 </div>
             </div>
 
@@ -2172,8 +2175,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         function lockTeacherView() {
             isTeacherAuthenticated = false;
             sessionStorage.removeItem('eduquiz_teacher_auth');
-            switchMainTab('student');
-            showNotification('🔒 Đã đăng xuất khỏi Góc Giáo Viên!', 'info');
+            sessionStorage.removeItem('eduquiz_teacher_name');
+            activeTeacherName = 'Giáo Viên';
+            if (typeof updateTeacherBadgeUI === 'function') updateTeacherBadgeUI();
+            openTeacherAuthModal();
+            showNotification('🔒 Đã đăng xuất khỏi Góc Giáo Viên! Vui lòng nhập Tên & Mật Khẩu Giáo Viên mới.', 'info');
         }
 
         function openChangePasswordModal() {
@@ -4684,6 +4690,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         // EXPORT ALL TEACHER VIEW FUNCTIONS TO WINDOW GLOBAL SCOPE FOR 100% RELIABILITY
+        window.lockTeacherView = lockTeacherView;
+        window.openTeacherAuthModal = openTeacherAuthModal;
         window.exportSystemBackupJSON = exportSystemBackupJSON;
         window.importSystemBackupJSON = importSystemBackupJSON;
         window.switchTeacherSubTab = switchTeacherSubTab;
