@@ -18,7 +18,7 @@ export interface AIData {
 export interface Question {
   id: number;
   title: string;
-  type: 'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer';
+  type: 'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer' | 'essay';
   options?: Option[];
   answer?: string;
   explanation?: string;
@@ -88,7 +88,8 @@ export interface GradeRecord {
   maxScore: number;
   percentage: number;
   submittedAt: string;
-  userAnswers: Record<string, string>;
+  userAnswers?: Record<string, string>;
+  answers?: Record<string, string>;
 }
 
 export interface FeedbackRecord {

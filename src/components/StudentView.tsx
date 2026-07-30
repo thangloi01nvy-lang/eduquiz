@@ -262,7 +262,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     if (activeStudent) {
       clearStudentDraft(activeStudent.studentId);
 
-      const newGrade = {
+      const newGrade: GradeRecord = {
         id: `g_${Date.now()}`,
         studentId: activeStudent.studentId,
         studentName: activeStudent.studentName,
@@ -272,6 +272,8 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
         maxScore: 10,
         percentage,
         submittedAt: new Date().toISOString(),
+        userAnswers: answers,
+        answers: answers,
       };
 
       onUpdateAppData((prev) => ({
