@@ -12,6 +12,10 @@ interface StudentViewProps {
   onShowNotification: (msg: string, type?: 'success' | 'warning' | 'error') => void;
 }
 
+/**
+ * StudentView Component - EduQuiz Pro
+ * Handles student login, class selection, live cloud sync, and interactive quiz submissions.
+ */
 export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
   const [activeStudent, setActiveStudent] = useState<ActiveStudentInfo | null>(() => {
     try {
