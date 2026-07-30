@@ -2201,16 +2201,23 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     appData.classAssignments[c.name] = JSON.parse(JSON.stringify(quizData));
                 });
             } else if (normTarget !== 'none') {
+                let matched = false;
                 (appData.classes || []).forEach(c => {
                     const normC = c.name.trim().toLowerCase();
                     if (normC === normTarget) {
                         appData.classAssignments[c.name] = JSON.parse(JSON.stringify(quizData));
-                    } else {
-                        delete appData.classAssignments[c.name];
+                        matched = true;
                     }
                 });
-                appData.classAssignments[targetClass] = JSON.parse(JSON.stringify(quizData));
+                if (!matched) {
+                    appData.classAssignments[targetClass] = JSON.parse(JSON.stringify(quizData));
+                }
             }
+        }
+
+        function getClassSelectId(className) {
+            const hexStr = Array.from(className || '').map(ch => ch.charCodeAt(0).toString(16)).join('');
+            return 'select-quiz-for-class-' + hexStr;
         }
 
         function renderClassAssignmentsPanel() {
@@ -2218,36 +2225,54 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             if (!container) return;
             container.innerHTML = '';
 
+            if (!appData.classAssignments) appData.classAssignments = {};
+
+            // Collect active assigned classes
+            const assignedClassEntries = [];
+            for (let className in appData.classAssignments) {
+                const item = appData.classAssignments[className];
+                if (item && item.questions && item.questions.length > 0) {
+                    assignedClassEntries.push({ className, title: item.quizTitle || 'Bài Tập', count: item.questions.length });
+                }
+            }
+
+            if (assignedClassEntries.length === 0 && isQuizPublishedToStudents && appData.currentQuestions && appData.currentQuestions.length > 0 && appData.quizTargetClass === 'all') {
+                assignedClassEntries.push({ className: 'Tất cả các lớp (Global)', title: appData.quizTitle || 'Bài Tập Online', count: appData.currentQuestions.length });
+            }
+
             // GLOBAL QUIZ ASSIGNMENT STATUS BANNER FOR TEACHER
             const summaryBanner = document.createElement('div');
-            if (isQuizPublishedToStudents && appData.currentQuestions && appData.currentQuestions.length > 0) {
-                const targetText = appData.quizTargetClass === 'all' || !appData.quizTargetClass 
-                    ? '🌐 Tất Cả Các Lớp / Toàn Trường' 
-                    : `🏫 Lớp ${appData.quizTargetClass}`;
-                summaryBanner.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4 rounded-2xl shadow-md space-y-1 mb-4 border border-emerald-400";
+            if (assignedClassEntries.length > 0) {
+                let badgeListHtml = assignedClassEntries.map(e => `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 text-white rounded-xl text-xs font-bold border border-white/30">
+                        <i class="fa-solid fa-school text-amber-300"></i> ${e.className}: <b>${e.title}</b> (${e.count} câu)
+                    </span>
+                `).join(' ');
+
+                summaryBanner.className = "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-4.5 rounded-2xl shadow-md space-y-2 mb-5 border border-emerald-400 font-heading";
                 summaryBanner.innerHTML = `
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div class="flex items-center gap-2 font-heading font-bold text-sm">
+                        <div class="flex items-center gap-2 font-bold text-sm">
                             <i class="fa-solid fa-circle-check text-amber-300 text-lg"></i>
-                            <span>🟢 ĐÃ PHÁT HÀNH THÀNH CÔNG LÊN ĐÁM MÂY (LIVE)</span>
+                            <span>🟢 CÁC LỚP ĐANG ĐƯỢC PHÁT HÀNH BÀI TẬP LIVE (${assignedClassEntries.length} lớp)</span>
                         </div>
-                        <span class="px-2.5 py-0.5 bg-white/20 text-white text-[11px] font-bold rounded-full">
-                            Target: ${targetText}
+                        <span class="px-2.5 py-0.5 bg-emerald-800/60 text-emerald-100 text-[11px] font-bold rounded-full">
+                            Tự động đồng bộ Đám mây
                         </span>
                     </div>
-                    <div class="text-xs text-emerald-100 font-medium">
-                        📌 <b>${appData.quizTitle || 'Bài Tập Online'}</b> — ${appData.currentQuestions.length} câu hỏi (${appData.sections ? appData.sections.length : 1} bài tập). Học sinh có thể đăng nhập vào bài ngay lập tức!
+                    <div class="flex flex-wrap items-center gap-2 pt-1">
+                        ${badgeListHtml}
                     </div>
                 `;
             } else {
-                summaryBanner.className = "bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4 rounded-2xl shadow-md space-y-1 mb-4 border border-amber-300";
+                summaryBanner.className = "bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4.5 rounded-2xl shadow-md space-y-1 mb-5 border border-amber-300 font-heading";
                 summaryBanner.innerHTML = `
-                    <div class="flex items-center gap-2 font-heading font-bold text-sm">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-200 text-lg"></i>
-                        <span>🟡 BÀI TẬP HIỆN TẠI ĐANG Ở TRẠNG THÁI BẢN NHÁP (HỌC SINH CHƯA THẤY)</span>
+                    <div class="flex items-center gap-2 font-bold text-sm">
+                        <i class="fa-solid fa-folder-open text-amber-200 text-lg"></i>
+                        <span>🟡 CHƯA CÓ BÀI TẬP NÀO ĐƯỢC PHÁT HÀNH CHO CÁC LỚP</span>
                     </div>
-                    <div class="text-xs text-amber-100 font-medium">
-                        Thầy/Cô vui lòng quay lại <b>Bước 3</b> bấm <i>"🚀 GỬI BÀI CHO HỌC SINH"</i> hoặc bấm nút <i>"Giao bài tập hiện tại cho lớp này"</i> ở bên dưới để học sinh nhận bài.
+                    <div class="text-xs text-amber-100 font-medium leading-relaxed">
+                        Thầy/Cô có thể chọn bài từ <b>Thư viện</b> hoặc <b>Bài tập đang soạn</b> bên dưới để giao riêng từng bài cho từng lớp.
                     </div>
                 `;
             }
@@ -2255,8 +2280,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
             if (!appData.classes || appData.classes.length === 0) {
                 const emptyEl = document.createElement('div');
-                emptyEl.className = "text-center py-6 text-slate-400 text-xs";
-                emptyEl.innerText = "Chưa tạo lớp học nào";
+                emptyEl.className = "text-center py-8 text-slate-400 text-xs bg-white rounded-2xl border border-slate-200";
+                emptyEl.innerText = "Chưa có lớp học nào. Thầy/Cô hãy chuyển sang Tab 'Quản lý lớp học' để thêm lớp mới.";
                 container.appendChild(emptyEl);
                 return;
             }
@@ -2264,48 +2289,109 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             appData.classes.forEach(c => {
                 const assigned = getAssignedQuizForClass(c.name);
                 const card = document.createElement('div');
-                card.className = "bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm hover:bg-white transition";
+                card.className = "bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-md transition space-y-3";
 
                 if (assigned && assigned.questions && assigned.questions.length > 0) {
                     card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white font-bold flex items-center justify-center text-lg shadow-sm">
-                                <i class="fa-solid fa-file-signature"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-slate-900 text-sm">🏫 Lớp: ${c.name}</span>
-                                    <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[10px] rounded-full border border-emerald-300">🟢 Đã giao đề</span>
+                        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-purple-600 text-white font-bold flex items-center justify-center text-lg shadow-sm">
+                                    <i class="fa-solid fa-file-circle-check"></i>
                                 </div>
-                                <div class="text-xs text-slate-700 font-semibold mt-0.5">📌 Đề đang giao: <b class="text-brand-800">${assigned.quizTitle}</b> (${assigned.questions.length} câu)</div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-900 text-base">🏫 Lớp: ${c.name}</span>
+                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-full border border-emerald-300">🟢 Đã giao đề</span>
+                                    </div>
+                                    <div class="text-xs text-slate-600 font-semibold mt-0.5">📌 Đề đang giao: <b class="text-brand-700">${assigned.quizTitle || 'Bài Tập Online'}</b> (${assigned.questions.length} câu)</div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="flex items-center gap-2">
-                            <button onclick="removeQuizFromClass('${c.name}')" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200 flex items-center gap-1.5">
-                                <i class="fa-solid fa-trash"></i> Hủy giao đề cho lớp này
-                            </button>
+                            <div class="flex items-center gap-2">
+                                <button onclick="editAssignedQuizOfClass('${c.name}')" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-pen-to-square text-amber-600"></i> Nạp đề vào Editor sửa
+                                </button>
+                                <button onclick="removeQuizFromClass('${c.name}')" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-xs rounded-xl transition border border-rose-200 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-trash"></i> Hủy giao đề
+                                </button>
+                            </div>
                         </div>
                     `;
                 } else {
+                    const selectId = getClassSelectId(c.name);
+                    let libraryOptionsHtml = `<option value="current">📄 Bài tập đang soạn trong Editor (${appData.quizTitle || 'Bài mới'})</option>`;
+                    if (appData.quizLibrary && appData.quizLibrary.length > 0) {
+                        appData.quizLibrary.forEach(item => {
+                            libraryOptionsHtml += `<option value="${item.id}">📚 [Thư viện] ${item.title} (${item.questionsCount} câu)</option>`;
+                        });
+                    }
+
                     card.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-500 font-bold flex items-center justify-center text-lg">
-                                <i class="fa-solid fa-folder-open"></i>
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-400 font-bold flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-folder-open"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-slate-900 text-base">🏫 Lớp: ${c.name}</span>
+                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-600 font-semibold text-[11px] rounded-full">⚪ Chưa giao bài</span>
+                                    </div>
+                                    <div class="text-xs text-slate-400 mt-0.5">Chọn bài tập từ danh sách bên phải để giao riêng cho lớp này</div>
+                                </div>
                             </div>
-                            <div>
-                                <span class="font-bold text-slate-900 text-sm">🏫 Lớp: ${c.name}</span>
-                                <div class="text-xs text-slate-400">Chưa giao bài tập nào</div>
+
+                            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                                <select id="${selectId}" class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 max-w-xs focus:bg-white">
+                                    ${libraryOptionsHtml}
+                                </select>
+                                <button onclick="assignSelectedQuizToClass('${c.name}')" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-paper-plane"></i> 🚀 GIAO BÀI CHO LỚP NÀY
+                                </button>
                             </div>
                         </div>
-
-                        <button onclick="assignActiveQuizToClassTarget('${c.name}')" class="px-3.5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl transition shadow-sm flex items-center gap-1.5">
-                            <i class="fa-solid fa-paper-plane"></i> Giao bài tập hiện tại cho lớp này
-                        </button>
                     `;
                 }
                 container.appendChild(card);
             });
+        }
+
+        async function assignSelectedQuizToClass(className, quizId = null) {
+            const selectId = getClassSelectId(className);
+            const selectEl = document.getElementById(selectId);
+            const val = quizId || (selectEl ? selectEl.value : 'current');
+
+            if (val === 'current') {
+                await assignActiveQuizToClassTarget(className);
+            } else if (val.startsWith('library_')) {
+                await loadAndAssignQuizFromLibrary(val, className);
+            }
+        }
+
+        function editAssignedQuizOfClass(className) {
+            const assigned = getAssignedQuizForClass(className);
+            if (!assigned || !assigned.questions) {
+                showNotification(`Không tìm thấy bài tập đã giao cho lớp ${className}`, 'error');
+                return;
+            }
+
+            appData.quizTitle = assigned.quizTitle || `Bài Tập Lớp ${className}`;
+            appData.quizLevel = assigned.quizLevel || 'B1';
+            appData.quizTargetClass = className;
+            appData.currentQuestions = assigned.questions;
+            appData.sections = assigned.sections || [];
+            appData.wordBank = assigned.wordBank || [];
+
+            document.getElementById('quiz-title-input').value = appData.quizTitle;
+            document.getElementById('quiz-level-select').value = appData.quizLevel;
+            document.getElementById('quiz-target-class-select').value = className;
+
+            syncAppDataToMarkdownInput();
+            updateInputStats();
+            renderTeacherPreview(true);
+            switchTeacherSubTab('editor');
+
+            showNotification(`✏️ Đã nạp bài tập của lớp "${className}" vào Editor! Thầy/Cô có thể sửa và giao lại.`, 'success');
         }
 
         async function assignActiveQuizToClassTarget(className) {
@@ -2555,11 +2641,12 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             showNotification(`✏️ Đang chỉnh sửa bài tập "${item.title}". Sau khi sửa xong, bấm "💾 LƯU CẬP NHẬT VÀO THƯ VIỆN"!`, 'success');
         }
 
-        async function loadAndAssignQuizFromLibrary(itemId) {
+        async function loadAndAssignQuizFromLibrary(itemId, targetClassName = null) {
             const item = appData.quizLibrary.find(i => i.id === itemId);
             if (!item) return;
 
-            const selectedClass = document.getElementById(`lib-target-class-${itemId}`).value;
+            const selectEl = document.getElementById(`lib-target-class-${itemId}`);
+            const selectedClass = targetClassName || (selectEl ? selectEl.value : (item.targetClass || 'all'));
 
             document.getElementById('quiz-title-input').value = item.title;
             document.getElementById('quiz-level-select').value = item.level;
@@ -2574,7 +2661,14 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             item.targetClass = selectedClass;
 
             isQuizPublishedToStudents = true;
-            appData.currentQuestions = parseInputToQuestions(item.rawText);
+            const parsedQs = parseInputToQuestions(item.rawText);
+            if (parsedQs && parsedQs.length > 0) {
+                appData.currentQuestions = parsedQs;
+            } else if (appData.sections && appData.sections.length > 0) {
+                let allQs = [];
+                appData.sections.forEach(s => { if (s && s.questions) allQs = allQs.concat(s.questions); });
+                appData.currentQuestions = allQs;
+            }
             assignQuizToClassTarget(selectedClass);
 
             saveStorage();
@@ -2983,8 +3077,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     }
                 }
 
-                if (autoAssign && activeQuestions && activeQuestions.length > 0) {
-                    assignQuizToClassTarget(appData.quizTargetClass || 'all');
+                if (autoAssign && activeQuestions && activeQuestions.length > 0 && appData.quizTargetClass && appData.quizTargetClass !== 'none') {
+                    assignQuizToClassTarget(appData.quizTargetClass);
                 }
 
                 const compactQuestions = (activeQuestions || []).map(q => ({
@@ -3070,6 +3164,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
         }
 
         async function fetchQuizFromCloud() {
+            if (window.location.search.includes('test=true') || window.__disable_cloud__) return false;
             try {
                 const activeUrl = localStorage.getItem('eduquiz_active_cloud_url') || CLOUD_QUIZ_URL;
                 const res = await fetch(activeUrl + '?t=' + Date.now(), {
