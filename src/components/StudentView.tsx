@@ -276,11 +276,18 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                 className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
               >
                 <option value="">-- Chọn Lớp Học --</option>
-                {appData.classes?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    🏫 {c.name} ({c.students?.length || 0} học sinh)
-                  </option>
-                ))}
+                {appData.classes
+                  ?.filter((c) => {
+                    const norm = normalizeClassName(c.name);
+                    const normId = normalizeClassName(c.id);
+                    const deletedSet = new Set((appData.deletedClasses || []).map((d) => normalizeClassName(d)));
+                    return !deletedSet.has(norm) && !deletedSet.has(normId);
+                  })
+                  .map((c) => (
+                    <option key={c.id} value={c.id}>
+                      🏫 {c.name} ({c.students?.length || 0} học sinh)
+                    </option>
+                  ))}
               </select>
             </div>
 

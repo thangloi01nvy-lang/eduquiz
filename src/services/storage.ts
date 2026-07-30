@@ -130,7 +130,7 @@ export async function fetchServerData(): Promise<AppData | null> {
     if (res.ok) {
       const result = await res.json();
       if (result && result.data) {
-        result.data.classes = sanitizeClassesData(result.data.classes || []);
+        result.data.classes = sanitizeClassesData(result.data.classes || [], result.data.deletedClasses || []);
         saveLocalData(result.data);
         return result.data;
       }
@@ -143,7 +143,7 @@ export async function fetchServerData(): Promise<AppData | null> {
   try {
     const firestoreData = await fetchFromFirebaseFirestore();
     if (firestoreData) {
-      firestoreData.classes = sanitizeClassesData(firestoreData.classes || []);
+      firestoreData.classes = sanitizeClassesData(firestoreData.classes || [], firestoreData.deletedClasses || []);
       saveLocalData(firestoreData);
       return firestoreData;
     }
@@ -170,8 +170,8 @@ export function importJsonBackup(file: File): Promise<AppData> {
       try {
         const parsed = JSON.parse(e.target?.result as string);
         if (parsed && typeof parsed === 'object') {
-          parsed.classes = sanitizeClassesData(parsed.classes || []);
-          const merged = { ...INITIAL_APP_DATA, ...parsed };
+          parsed.classes = sanitizeClassesData(parsed.classes || [], parsed.deletedClasses || []);
+          const merged = { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes };
           saveLocalData(merged);
           resolve(merged);
         } else {
