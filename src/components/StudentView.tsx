@@ -225,49 +225,99 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
               className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-amber-950 text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>🔄 Tải lại Lớp Teen 4 & Đề mới nhất từ Cloud</span>
+              <span>🔄 Tải lại Lớp & Đề mới nhất từ Cloud</span>
             </button>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">1. Chọn Lớp Học:</label>
-              <select
-                value={selectedClassId}
-                onChange={(e) => {
-                  setSelectedClassId(e.target.value);
-                  setSelectedStudentId('');
-                }}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+            {/* Mode Switcher */}
+            <div className="flex items-center justify-between text-xs font-bold text-slate-600 pt-1">
+              <span>{isManualInput ? 'Chế độ: Tự Nhập Tên & Lớp' : 'Chế độ: Chọn Danh Sách'}</span>
+              <button
+                onClick={() => setIsManualInput(!isManualInput)}
+                className="text-brand-600 hover:text-brand-700 underline"
               >
-                <option value="">-- Chọn Lớp Học --</option>
-                {appData.classes?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    🏫 {c.name} ({c.students?.length || 0} học sinh)
-                  </option>
-                ))}
-              </select>
+                {isManualInput ? 'Chuyển sang Chọn Danh Sách' : '✍️ Tự nhập Tên & Lớp'}
+              </button>
             </div>
 
-            {selectedClassObj && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn Tên Học Sinh:</label>
-                <select
-                  value={selectedStudentId}
-                  onChange={(e) => setSelectedStudentId(e.target.value)}
-                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                >
-                  <option value="">-- Chọn Tên Em --</option>
-                  {selectedClassObj.students?.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      👤 {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {!isManualInput ? (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">1. Chọn Lớp Học:</label>
+                  <select
+                    value={selectedClassId}
+                    onChange={(e) => {
+                      setSelectedClassId(e.target.value);
+                      setSelectedStudentId('');
+                    }}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  >
+                    <option value="">-- Chọn Lớp Học --</option>
+                    {appData.classes?.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        🏫 {c.name} ({c.students?.length || 0} học sinh)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedClassObj && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn Tên Học Sinh:</label>
+                    <select
+                      value={selectedStudentId}
+                      onChange={(e) => setSelectedStudentId(e.target.value)}
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    >
+                      <option value="">-- Chọn Tên Em --</option>
+                      {selectedClassObj.students?.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          👤 {s.name}
+                        </option>
+                      ))}
+                      <option value="manual_st">➕ Tên em không có trong danh sách (Tự nhập)</option>
+                    </select>
+
+                    {selectedStudentId === 'manual_st' && (
+                      <input
+                        type="text"
+                        value={manualStudentName}
+                        onChange={(e) => setManualStudentName(e.target.value)}
+                        placeholder="Nhập tên của em..."
+                        className="w-full mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                      />
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">1. Nhập Tên Lớp Học:</label>
+                  <input
+                    type="text"
+                    value={manualClassName}
+                    onChange={(e) => setManualClassName(e.target.value)}
+                    placeholder="Ví dụ: Teen 4, Teen 1, TOEIC..."
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">2. Nhập Tên Học Sinh:</label>
+                  <input
+                    type="text"
+                    value={manualStudentName}
+                    onChange={(e) => setManualStudentName(e.target.value)}
+                    placeholder="Nhập tên của em..."
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                </div>
+              </>
             )}
 
             <button
               onClick={handleStudentLogin}
-              className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
             >
               <span>Vào Làm Bài Tập</span>
             </button>
