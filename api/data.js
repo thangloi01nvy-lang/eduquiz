@@ -4,7 +4,7 @@ import path from 'path';
 const DB_FILE = '/tmp/database.json';
 
 const DEFAULT_DB = {
-  quizTitle: 'Bài Tập Tiếng Anh Online',
+  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
   quizLevel: 'B1',
   quizTargetClass: 'all',
   currentQuestions: [],
@@ -22,7 +22,21 @@ const DEFAULT_DB = {
       ]
     }
   ],
-  classAssignments: {},
+  classAssignments: {
+    'Teen 4': {
+      quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
+      quizLevel: 'B1',
+      questions: [
+        {
+          id: 1,
+          title: 'His ideas were creative and really innovative so he can obviously ___',
+          type: 'fill_in_blank',
+          answer: 'think outside the box',
+          inlineBlanks: [{ answer: 'think outside the box' }]
+        }
+      ]
+    }
+  },
   quizLibrary: [],
   grades: [],
   feedbacks: []

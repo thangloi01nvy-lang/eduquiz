@@ -5,24 +5,72 @@ import { syncToFirebaseFirestore, fetchFromFirebaseFirestore } from './firebase'
 const STORAGE_KEY = 'eduquiz_pro_data';
 const DRAFT_PREFIX = 'eduquiz_student_draft_';
 
+import { parseMarkdownQuiz } from '../utils/parser';
+
+const SAMPLE_DEFAULT_QUIZ = parseMarkdownQuiz(`## Transferable skills
+
+1 Complete these comments by interviewers using the words and phrases in the box.
+
+can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
+
+1 His ideas were creative and really innovative so he can obviously ___.
+
+2 I liked the way she worked with the other candidates so she is clearly a(n) ___.
+
+3 He has excellent ___. The presentation was first class and he answered the questions really clearly.
+
+4 She used ___ brilliantly. I thought she evaluated the three options in the case study carefully before deciding which one to choose.
+
+5 She has a lot of ___. This is the third time she's applied for a position in Marketing so she hasn't stopped trying.
+
+6 I like the way she has monthly objectives for herself which shows she can ___.
+
+7 I don't think he will complain about work. He seems prepared to try anything. He has a real ___.
+
+8 He is completely honest and straightforward. He shows great ___.
+Answer: 1. think outside the box | 2. team player | 3. communication skills | 4. critical thinking | 5. determination | 6. set goals | 7. can-do attitude | 8. integrity`);
+
+const DEFAULT_ASSIGNMENT = {
+  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
+  quizLevel: 'B1',
+  quizCreatedDate: new Date().toISOString(),
+  questions: SAMPLE_DEFAULT_QUIZ.questions,
+  sections: SAMPLE_DEFAULT_QUIZ.sections,
+  wordBank: SAMPLE_DEFAULT_QUIZ.wordBank,
+};
+
 export const INITIAL_APP_DATA: AppData = {
-  quizTitle: 'Bài Tập Tiếng Anh Online',
+  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
   quizLevel: 'B1',
   quizTargetClass: 'all',
   quizCreatedDate: new Date().toISOString(),
-  currentQuestions: [],
-  sections: [],
-  wordBank: [],
+  currentQuestions: SAMPLE_DEFAULT_QUIZ.questions,
+  sections: SAMPLE_DEFAULT_QUIZ.sections,
+  wordBank: SAMPLE_DEFAULT_QUIZ.wordBank,
   classes: [
     {
       id: 'c_teen4',
       name: 'Teen 4',
-      desc: 'Lớp học mới',
-      students: [{ id: 's1', name: 'Nguyễn Văn A' }]
+      desc: 'Lớp Teen 4',
+      students: [
+        { id: 's1', name: 'Nguyễn Văn A' },
+        { id: 's2', name: 'Trần Thị B' },
+        { id: 's3', name: 'Lê Văn C' }
+      ]
+    },
+    {
+      id: 'c_teen1',
+      name: 'Teen 1',
+      desc: 'Lớp Teen 1',
+      students: [{ id: 's4', name: 'Học sinh 1' }]
     }
   ],
   deletedClasses: [],
-  classAssignments: {},
+  classAssignments: {
+    'Teen 4': DEFAULT_ASSIGNMENT,
+    'Teen 1': DEFAULT_ASSIGNMENT,
+    'all': DEFAULT_ASSIGNMENT,
+  },
   quizLibrary: [],
   grades: [],
   feedbacks: []
@@ -35,6 +83,12 @@ export function loadLocalData(): AppData {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
         parsed.classes = sanitizeClassesData(parsed.classes || []);
+        if (!parsed.classAssignments || Object.keys(parsed.classAssignments).length === 0) {
+          parsed.classAssignments = { 'Teen 4': DEFAULT_ASSIGNMENT, 'all': DEFAULT_ASSIGNMENT };
+        }
+        if (!parsed.classAssignments['Teen 4']) {
+          parsed.classAssignments['Teen 4'] = DEFAULT_ASSIGNMENT;
+        }
         return { ...INITIAL_APP_DATA, ...parsed };
       }
     }

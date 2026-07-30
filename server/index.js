@@ -11,7 +11,7 @@ const DB_FILE = path.join(__dirname, 'database.json');
 
 // Default Database Structure
 const DEFAULT_DB = {
-  quizTitle: 'Bài Tập Tiếng Anh Online',
+  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
   quizLevel: 'B1',
   quizTargetClass: 'all',
   currentQuestions: [],
@@ -21,11 +21,29 @@ const DEFAULT_DB = {
     {
       id: 'c_teen4',
       name: 'Teen 4',
-      desc: 'Lớp học mới',
-      students: [{ id: 's1', name: 'Nguyễn Văn A' }]
+      desc: 'Lớp Teen 4',
+      students: [
+        { id: 's1', name: 'Nguyễn Văn A' },
+        { id: 's2', name: 'Trần Thị B' },
+        { id: 's3', name: 'Lê Văn C' }
+      ]
     }
   ],
-  classAssignments: {},
+  classAssignments: {
+    'Teen 4': {
+      quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
+      quizLevel: 'B1',
+      questions: [
+        {
+          id: 1,
+          title: 'His ideas were creative and really innovative so he can obviously ___',
+          type: 'fill_in_blank',
+          answer: 'think outside the box',
+          inlineBlanks: [{ answer: 'think outside the box' }]
+        }
+      ]
+    }
+  },
   quizLibrary: [],
   grades: [],
   feedbacks: []
