@@ -216,6 +216,14 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           </div>
 
           <div className="space-y-4">
+            <button
+              onClick={handleFetchLatestFromCloud}
+              className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-amber-950 text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>🔄 Tải lại Lớp Teen 4 & Đề mới nhất từ Cloud</span>
+            </button>
+
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">1. Chọn Lớp Học:</label>
               <select
