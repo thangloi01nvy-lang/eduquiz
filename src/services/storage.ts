@@ -109,9 +109,9 @@ export function saveLocalData(data: AppData): void {
 
 export async function syncWithServer(data: AppData): Promise<boolean> {
   saveLocalData(data);
-  let expressSuccess = false;
+  let success = false;
 
-  // 1. Sync to local/Vercel serverless Express endpoint
+  // 1. Same-Origin Cloud Sync (/api/data) - ZERO CORS blockage
   try {
     const res = await fetch('/api/data', {
       method: 'POST',
@@ -119,33 +119,25 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      expressSuccess = true;
+      success = true;
     }
   } catch (e) {
-    console.warn('Express server sync failed, attempting Cloud fallback:', e);
+    console.warn('Same-origin Cloud sync failed, attempting Firebase Firestore fallback:', e);
   }
 
-  // 2. Firebase Firestore Database Cloud Sync
-  syncToFirebaseFirestore(data);
-
-  // 3. Global Cloud Sync Backup Endpoint
+  // 2. Firebase Firestore Realtime Sync
   try {
-    const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
-    await fetch(cloudUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return true;
-  } catch (cloudErr) {
-    console.warn('Cloud sync fallback failed:', cloudErr);
+    const fsSuccess = await syncToFirebaseFirestore(data);
+    if (fsSuccess) success = true;
+  } catch (fsErr) {
+    console.warn('Firebase Firestore sync failed:', fsErr);
   }
 
-  return expressSuccess;
+  return success;
 }
 
 export async function fetchServerData(): Promise<AppData | null> {
-  // 1. Try local/Vercel Express backend server first
+  // 1. Same-Origin Cloud Fetch (/api/data) - ZERO CORS blockage
   try {
     const res = await fetch('/api/data');
     if (res.ok) {
@@ -157,7 +149,7 @@ export async function fetchServerData(): Promise<AppData | null> {
       }
     }
   } catch (e) {
-    console.warn('Could not fetch Express server data, trying Firebase Firestore fallback:', e);
+    console.warn('Same-origin Cloud fetch failed, attempting Firebase Firestore fallback:', e);
   }
 
   // 2. Try Firebase Firestore Database
@@ -169,23 +161,7 @@ export async function fetchServerData(): Promise<AppData | null> {
       return firestoreData;
     }
   } catch (fsErr) {
-    console.warn('Firebase Firestore fetch failed, trying Cloud fallback:', fsErr);
-  }
-
-  // 3. Try global Cloud URL fallback for cross-device fetching
-  try {
-    const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
-    const resCloud = await fetch(cloudUrl, { headers: { 'Accept': 'application/json' } });
-    if (resCloud.ok) {
-      const cloudData = await resCloud.json();
-      if (cloudData && typeof cloudData === 'object') {
-        cloudData.classes = sanitizeClassesData(cloudData.classes || []);
-        saveLocalData(cloudData);
-        return cloudData;
-      }
-    }
-  } catch (cloudErr) {
-    console.warn('Cloud URL fetch failed:', cloudErr);
+    console.warn('Firebase Firestore fetch failed:', fsErr);
   }
 
   return null;
