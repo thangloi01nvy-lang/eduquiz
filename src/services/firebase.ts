@@ -67,17 +67,50 @@ export async function saveAtomicSubmission(gradeRecord: GradeRecord): Promise<bo
 /**
  * Fetch all atomic student submissions for Teacher Gradebook.
  */
-export async function fetchAtomicSubmissions(): Promise<GradeRecord[]> {
+/**
+ * Write Class Rosters & Published Quizzes directly to Firebase Firestore
+ */
+export async function syncToFirebaseFirestore(data: AppData): Promise<boolean> {
   try {
-    const res = await fetch('/api/submissions');
+    const firestoreRestUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/appData/latest`;
+    const firestoreBody = {
+      fields: {
+        payload: { stringValue: JSON.stringify(data) },
+        updatedAt: { stringValue: new Date().toISOString() }
+      }
+    };
+
+    const res = await fetch(firestoreRestUrl, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(firestoreBody),
+    });
+
     if (res.ok) {
-      const data = await res.json();
-      if (data && Array.isArray(data.submissions)) {
-        return data.submissions;
+      return true;
+    }
+  } catch (e) {
+    console.warn('Firebase Firestore sync warning:', e);
+  }
+  return false;
+}
+
+/**
+ * Read Class Rosters & Published Quizzes directly from Firebase Firestore in Real-Time
+ */
+export async function fetchFromFirebaseFirestore(): Promise<AppData | null> {
+  try {
+    const firestoreRestUrl = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/appData/latest`;
+    const res = await fetch(firestoreRestUrl);
+    if (res.ok) {
+      const doc = await res.json();
+      if (doc && doc.fields && doc.fields.payload && doc.fields.payload.stringValue) {
+        const parsed = JSON.parse(doc.fields.payload.stringValue);
+        return parsed;
       }
     }
   } catch (e) {
-    console.warn('Could not fetch atomic submissions:', e);
+    console.warn('Firebase Firestore fetch warning:', e);
   }
-  return [];
+  return null;
 }

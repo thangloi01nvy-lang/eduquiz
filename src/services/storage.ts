@@ -1,5 +1,6 @@
 import { AppData, ActiveStudentInfo } from '../types';
 import { sanitizeClassesData } from '../utils/normalize';
+import { syncToFirebaseFirestore, fetchFromFirebaseFirestore } from './firebase';
 
 const STORAGE_KEY = 'eduquiz_pro_data';
 const DRAFT_PREFIX = 'eduquiz_student_draft_';
@@ -56,6 +57,7 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   saveLocalData(data);
   let expressSuccess = false;
 
+  // 1. Sync to local/Vercel serverless Express endpoint
   try {
     const res = await fetch('/api/data', {
       method: 'POST',
@@ -69,7 +71,10 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
     console.warn('Express server sync failed, attempting Cloud fallback:', e);
   }
 
-  // Cloud fallback sync (jsonblob.com) for cross-device compatibility
+  // 2. Firebase Firestore Database Cloud Sync
+  syncToFirebaseFirestore(data);
+
+  // 3. Global Cloud Sync Backup Endpoint
   try {
     const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
     await fetch(cloudUrl, {
@@ -86,7 +91,7 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
 }
 
 export async function fetchServerData(): Promise<AppData | null> {
-  // 1. Try local Express backend server first
+  // 1. Try local/Vercel Express backend server first
   try {
     const res = await fetch('/api/data');
     if (res.ok) {
@@ -98,10 +103,22 @@ export async function fetchServerData(): Promise<AppData | null> {
       }
     }
   } catch (e) {
-    console.warn('Could not fetch Express server data, trying Cloud fallback:', e);
+    console.warn('Could not fetch Express server data, trying Firebase Firestore fallback:', e);
   }
 
-  // 2. Try global Cloud URL (jsonblob.com) for cross-device fetching
+  // 2. Try Firebase Firestore Database
+  try {
+    const firestoreData = await fetchFromFirebaseFirestore();
+    if (firestoreData) {
+      firestoreData.classes = sanitizeClassesData(firestoreData.classes || []);
+      saveLocalData(firestoreData);
+      return firestoreData;
+    }
+  } catch (fsErr) {
+    console.warn('Firebase Firestore fetch failed, trying Cloud fallback:', fsErr);
+  }
+
+  // 3. Try global Cloud URL fallback for cross-device fetching
   try {
     const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
     const resCloud = await fetch(cloudUrl, { headers: { 'Accept': 'application/json' } });
