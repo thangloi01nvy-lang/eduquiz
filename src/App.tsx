@@ -1,3 +1,4 @@
+// EduQuiz Pro - Production Version 2.0.1 (Vercel Build Verified)
 import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { QuizEditor } from './components/QuizEditor';
