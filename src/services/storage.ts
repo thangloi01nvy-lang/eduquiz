@@ -54,6 +54,8 @@ export function saveLocalData(data: AppData): void {
 
 export async function syncWithServer(data: AppData): Promise<boolean> {
   saveLocalData(data);
+  let expressSuccess = false;
+
   try {
     const res = await fetch('/api/data', {
       method: 'POST',
@@ -61,15 +63,30 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
       body: JSON.stringify(data),
     });
     if (res.ok) {
-      return true;
+      expressSuccess = true;
     }
   } catch (e) {
-    console.warn('Server sync failed, retained in LocalStorage:', e);
+    console.warn('Express server sync failed, attempting Cloud fallback:', e);
   }
-  return false;
+
+  // Cloud fallback sync (jsonblob.com) for cross-device compatibility
+  try {
+    const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
+    await fetch(cloudUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return true;
+  } catch (cloudErr) {
+    console.warn('Cloud sync fallback failed:', cloudErr);
+  }
+
+  return expressSuccess;
 }
 
 export async function fetchServerData(): Promise<AppData | null> {
+  // 1. Try local Express backend server first
   try {
     const res = await fetch('/api/data');
     if (res.ok) {
@@ -81,9 +98,58 @@ export async function fetchServerData(): Promise<AppData | null> {
       }
     }
   } catch (e) {
-    console.warn('Could not fetch server data, fallback to local:', e);
+    console.warn('Could not fetch Express server data, trying Cloud fallback:', e);
   }
+
+  // 2. Try global Cloud URL (jsonblob.com) for cross-device fetching
+  try {
+    const cloudUrl = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
+    const resCloud = await fetch(cloudUrl, { headers: { 'Accept': 'application/json' } });
+    if (resCloud.ok) {
+      const cloudData = await resCloud.json();
+      if (cloudData && typeof cloudData === 'object') {
+        cloudData.classes = sanitizeClassesData(cloudData.classes || []);
+        saveLocalData(cloudData);
+        return cloudData;
+      }
+    }
+  } catch (cloudErr) {
+    console.warn('Cloud URL fetch failed:', cloudErr);
+  }
+
   return null;
+}
+
+export function exportJsonBackup(data: AppData): void {
+  const jsonStr = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `EduQuiz_Full_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+}
+
+export function importJsonBackup(file: File): Promise<AppData> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target?.result as string);
+        if (parsed && typeof parsed === 'object') {
+          parsed.classes = sanitizeClassesData(parsed.classes || []);
+          const merged = { ...INITIAL_APP_DATA, ...parsed };
+          saveLocalData(merged);
+          resolve(merged);
+        } else {
+          reject(new Error('File backup JSON không đúng định dạng!'));
+        }
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsText(file);
+  });
 }
 
 // Student Auto-Draft System

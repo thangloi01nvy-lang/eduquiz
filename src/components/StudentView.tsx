@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload } from '../types';
 import { normalizeClassName, safeParseMarkdown } from '../utils/normalize';
-import { saveStudentDraft, loadStudentDraft, clearStudentDraft } from '../services/storage';
+import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData } from '../services/storage';
 import confetti from 'canvas-confetti';
 
 interface StudentViewProps {
@@ -248,6 +248,17 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     );
   }
 
+  const handleFetchLatestFromCloud = async () => {
+    onShowNotification('🔄 Đang tải bài tập mới nhất từ Giáo viên...', 'warning');
+    const latestData = await fetchServerData();
+    if (latestData) {
+      onUpdateAppData(() => latestData);
+      onShowNotification('🔄 ĐÃ TẢI THÀNH CÔNG BÀI TẬP MỚI NHẤT TỪ GIÁO VIÊN!', 'success');
+    } else {
+      onShowNotification('⚠️ Chưa thể tải bài từ Đám mây. Vui lòng kiểm tra kết nối mạng!', 'error');
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Student Banner */}
@@ -264,12 +275,22 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           </div>
         </div>
 
-        <button
-          onClick={handleStudentLogout}
-          className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-bold rounded-xl transition border border-white/20"
-        >
-          Đổi Học Sinh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleFetchLatestFromCloud}
+            className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-amber-950 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>🔄 LẤY BÀI MỚI TỪ GIÁO VIÊN</span>
+          </button>
+
+          <button
+            onClick={handleStudentLogout}
+            className="px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-xs font-bold rounded-xl transition border border-white/20"
+          >
+            Đổi Học Sinh
+          </button>
+        </div>
       </div>
 
       {/* Quiz Content Container */}

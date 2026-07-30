@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Send, Download, BookPlus, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Send, Download, Upload, Cloud, BookPlus, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
 import { AppData, Question, Section } from '../types';
 import { parseMarkdownQuiz } from '../utils/parser';
 import { safeParseMarkdown } from '../utils/normalize';
 import { generateQuizWithGemini } from '../services/gemini';
+import { exportJsonBackup, importJsonBackup, syncWithServer } from '../services/storage';
 
 interface QuizEditorProps {
   appData: AppData;
@@ -132,6 +133,33 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     }
   };
 
+  const handleExportBackup = () => {
+    exportJsonBackup(appData);
+    onShowNotification('📥 Đã tải file backup toàn bộ dữ liệu (.json) về máy!', 'success');
+  };
+
+  const handleImportBackup = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const imported = await importJsonBackup(file);
+      onUpdateAppData(() => imported);
+      onShowNotification('📤 Đã nạp thành công toàn bộ dữ liệu từ file Backup!', 'success');
+    } catch (err: any) {
+      onShowNotification(`❌ Lỗi nạp file: ${err.message}`, 'error');
+    }
+  };
+
+  const handleForceCloudSync = async () => {
+    onShowNotification('☁️ Đang đồng bộ đề bài và danh sách lớp lên Server Cloud...', 'warning');
+    const success = await syncWithServer(appData);
+    if (success) {
+      onShowNotification('☁️ ĐỒNG BỘ CLOUD THÀNH CÔNG! Học sinh trên thiết bị khác đã có thể nhận đề mới.', 'success');
+    } else {
+      onShowNotification('⚠️ Đồng bộ Cloud thất bại. Vui lòng thử lại!', 'error');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Top Action Bar */}
@@ -147,11 +175,33 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
         <div className="flex flex-wrap items-center gap-3">
           <button
+            onClick={handleForceCloudSync}
+            className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-amber-950 rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5"
+          >
+            <Cloud className="w-4 h-4" />
+            <span>Đồng Bộ Cloud (Server)</span>
+          </button>
+
+          <button
+            onClick={handleExportBackup}
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs shadow transition border border-white/20 flex items-center gap-1.5"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-300" />
+            <span>Tải Backup (.json)</span>
+          </button>
+
+          <label className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs shadow transition border border-white/20 flex items-center gap-1.5 cursor-pointer">
+            <Upload className="w-3.5 h-3.5 text-emerald-300" />
+            <span>Nạp Backup (.json)</span>
+            <input type="file" accept=".json" onChange={handleImportBackup} className="hidden" />
+          </label>
+
+          <button
             onClick={() => setRawText(SAMPLE_TEXT)}
-            className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs shadow transition border border-white/20 flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs shadow transition border border-white/20 flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5 text-amber-300" />
-            <span>Nạp Đề Mẫu Transferable Skills</span>
+            <span>Đề Mẫu</span>
           </button>
 
           <button
