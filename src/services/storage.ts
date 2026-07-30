@@ -40,30 +40,16 @@ const DEFAULT_ASSIGNMENT = {
 };
 
 export const INITIAL_APP_DATA: AppData = {
-  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
+  quizTitle: 'Bài Tập Tiếng Anh Online',
   quizLevel: 'B1',
   quizTargetClass: 'all',
   quizCreatedDate: new Date().toISOString(),
-  currentQuestions: SAMPLE_DEFAULT_QUIZ.questions,
-  sections: SAMPLE_DEFAULT_QUIZ.sections,
-  wordBank: SAMPLE_DEFAULT_QUIZ.wordBank,
-  classes: [
-    {
-      id: 'c_teen4',
-      name: 'Teen 4',
-      desc: 'Lớp Teen 4',
-      students: [
-        { id: 's1', name: 'Nguyễn Văn A' },
-        { id: 's2', name: 'Trần Thị B' },
-        { id: 's3', name: 'Lê Văn C' }
-      ]
-    }
-  ],
+  currentQuestions: [],
+  sections: [],
+  wordBank: [],
+  classes: [],
   deletedClasses: [],
-  classAssignments: {
-    'Teen 4': DEFAULT_ASSIGNMENT,
-    'all': DEFAULT_ASSIGNMENT,
-  },
+  classAssignments: {},
   quizLibrary: [],
   grades: [],
   feedbacks: []
@@ -123,16 +109,59 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   return success;
 }
 
+function mergeAppData(local: AppData, remote: AppData): AppData {
+  const deletedSet = new Set([...(local.deletedClasses || []), ...(remote.deletedClasses || [])].map((d) => d.toLowerCase()));
+
+  const classMap = new Map<string, any>();
+
+  // Remote classes
+  (remote.classes || []).forEach((c) => {
+    const key = (c.name || '').toLowerCase();
+    if (key && !deletedSet.has(key) && !deletedSet.has((c.id || '').toLowerCase())) {
+      classMap.set(key, c);
+    }
+  });
+
+  // Local teacher classes - local data takes top priority!
+  (local.classes || []).forEach((c) => {
+    const key = (c.name || '').toLowerCase();
+    if (key && !deletedSet.has(key) && !deletedSet.has((c.id || '').toLowerCase())) {
+      const existing = classMap.get(key);
+      if (existing) {
+        const studentMap = new Map<string, any>();
+        (existing.students || []).forEach((s: any) => studentMap.set(s.id || s.name, s));
+        (c.students || []).forEach((s: any) => studentMap.set(s.id || s.name, s));
+        classMap.set(key, { ...existing, ...c, students: Array.from(studentMap.values()) });
+      } else {
+        classMap.set(key, c);
+      }
+    }
+  });
+
+  const mergedClasses = Array.from(classMap.values());
+
+  return {
+    ...INITIAL_APP_DATA,
+    ...remote,
+    ...local,
+    classes: mergedClasses,
+    deletedClasses: Array.from(deletedSet),
+    classAssignments: { ...(remote.classAssignments || {}), ...(local.classAssignments || {}) },
+  };
+}
+
 export async function fetchServerData(): Promise<AppData | null> {
-  // 1. Same-Origin Cloud Fetch (/api/data) - ZERO CORS blockage
+  const localData = loadLocalData();
+
+  // 1. Same-Origin Cloud Fetch (/api/data)
   try {
     const res = await fetch('/api/data');
     if (res.ok) {
       const result = await res.json();
       if (result && result.data) {
-        result.data.classes = sanitizeClassesData(result.data.classes || [], result.data.deletedClasses || []);
-        saveLocalData(result.data);
-        return result.data;
+        const merged = mergeAppData(localData, result.data);
+        saveLocalData(merged);
+        return merged;
       }
     }
   } catch (e) {
@@ -143,15 +172,15 @@ export async function fetchServerData(): Promise<AppData | null> {
   try {
     const firestoreData = await fetchFromFirebaseFirestore();
     if (firestoreData) {
-      firestoreData.classes = sanitizeClassesData(firestoreData.classes || [], firestoreData.deletedClasses || []);
-      saveLocalData(firestoreData);
-      return firestoreData;
+      const merged = mergeAppData(localData, firestoreData);
+      saveLocalData(merged);
+      return merged;
     }
   } catch (fsErr) {
     console.warn('Firebase Firestore fetch failed:', fsErr);
   }
 
-  return null;
+  return localData;
 }
 
 export function exportJsonBackup(data: AppData): void {

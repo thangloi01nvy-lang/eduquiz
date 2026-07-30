@@ -4,39 +4,15 @@ import path from 'path';
 const DB_FILE = '/tmp/database.json';
 
 const DEFAULT_DB = {
-  quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
+  quizTitle: 'Bài Tập Tiếng Anh Online',
   quizLevel: 'B1',
   quizTargetClass: 'all',
   currentQuestions: [],
   sections: [],
   wordBank: [],
-  classes: [
-    {
-      id: 'c_teen4',
-      name: 'Teen 4',
-      desc: 'Lớp Teen 4',
-      students: [
-        { id: 's1', name: 'Nguyễn Văn A' },
-        { id: 's2', name: 'Trần Thị B' },
-        { id: 's3', name: 'Lê Văn C' }
-      ]
-    }
-  ],
-  classAssignments: {
-    'Teen 4': {
-      quizTitle: 'Bài Tập Tiếng Anh - Transferable Skills',
-      quizLevel: 'B1',
-      questions: [
-        {
-          id: 1,
-          title: 'His ideas were creative and really innovative so he can obviously ___',
-          type: 'fill_in_blank',
-          answer: 'think outside the box',
-          inlineBlanks: [{ answer: 'think outside the box' }]
-        }
-      ]
-    }
-  },
+  classes: [],
+  deletedClasses: [],
+  classAssignments: {},
   quizLibrary: [],
   grades: [],
   feedbacks: []
