@@ -327,6 +327,29 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <h2 className="text-xl font-heading font-black text-slate-900">{assignedQuiz.quizTitle}</h2>
           </div>
 
+          {/* Conditional Word Bank Box: Render ONLY for drag-and-drop / fill-in-blank exercises with a word bank */}
+          {assignedQuiz.questions?.some((q) => q.type === 'fill_in_blank' || (q.inlineBlanks && q.inlineBlanks.length > 0)) &&
+            assignedQuiz.wordBank &&
+            assignedQuiz.wordBank.length > 0 && (
+              <div className="bg-gradient-to-br from-amber-500/10 to-brand-500/10 border border-amber-300/60 rounded-3xl p-5 shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-600" /> Ngân Hàng Từ Vựng Cho Sẵn (Dành cho bài Kéo Thả / Điền Từ)
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {assignedQuiz.wordBank.map((word, wIdx) => (
+                    <span
+                      key={wIdx}
+                      className="px-3 py-1.5 bg-white border border-amber-300/80 text-amber-950 font-bold text-xs rounded-xl shadow-sm hover:scale-105 transition cursor-pointer"
+                    >
+                      {word}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
           {/* Result Banner if Submitted */}
           {isSubmitted && scoreResult && (
             <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-3xl p-6 shadow-lg space-y-2 text-center animate-bounce-short">
