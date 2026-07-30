@@ -41,10 +41,11 @@ export function safeParseMarkdown(text: string): string {
     .replace(/___/g, '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>');
 }
 
-export function sanitizeClassesData(classes: ClassModel[]): ClassModel[] {
+export function sanitizeClassesData(classes: ClassModel[], deletedClasses: string[] = []): ClassModel[] {
   if (!Array.isArray(classes)) return [];
   const seenNorm = new Set<string>();
   const cleanClasses: ClassModel[] = [];
+  const deletedSet = new Set((deletedClasses || []).map((d) => normalizeClassName(d)));
 
   classes.forEach((c) => {
     if (c && typeof c === 'object') {
@@ -54,6 +55,8 @@ export function sanitizeClassesData(classes: ClassModel[]): ClassModel[] {
       const students = Array.isArray(c.students) ? c.students : [];
 
       const norm = normalizeClassName(className);
+      if (deletedSet.has(norm) || deletedSet.has(normalizeClassName(classId))) return;
+
       if (!seenNorm.has(norm)) {
         seenNorm.add(norm);
         cleanClasses.push({
@@ -86,15 +89,12 @@ export function sanitizeClassesData(classes: ClassModel[]): ClassModel[] {
         { id: 's3', name: 'Lê Văn C' }
       ],
     },
-    { id: 'c_teen1', name: 'Teen 1', desc: 'Lớp Teen 1', students: [{ id: 's4', name: 'Học sinh 1' }] },
-    { id: 'c_teen2', name: 'Teen 2', desc: 'Lớp Teen 2', students: [{ id: 's5', name: 'Học sinh 2' }] },
-    { id: 'c_teen3', name: 'Teen 3', desc: 'Lớp Teen 3', students: [{ id: 's6', name: 'Học sinh 3' }] },
-    { id: 'c_toeic', name: 'TOEIC', desc: 'Lớp TOEIC', students: [{ id: 's7', name: 'Học sinh TOEIC' }] },
     { id: 'c_free', name: 'Học sinh tự do chưa xếp lớp', desc: 'Học sinh tự do', students: [] },
   ];
 
   defaultClasses.forEach((def) => {
-    if (!cleanClasses.some((c) => normalizeClassName(c.name) === normalizeClassName(def.name))) {
+    const norm = normalizeClassName(def.name);
+    if (!deletedSet.has(norm) && !cleanClasses.some((c) => normalizeClassName(c.name) === norm)) {
       cleanClasses.push(def);
     }
   });

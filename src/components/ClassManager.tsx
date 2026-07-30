@@ -53,12 +53,20 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const handleDeleteClass = (classId: string, className: string) => {
     if (!window.confirm(`Bạn có chắc chắn muốn xóa lớp "${className}"?`)) return;
 
-    onUpdateAppData((prev) => ({
-      ...prev,
-      classes: (prev.classes || []).filter((c) => c.id !== classId),
-    }));
+    const normName = normalizeClassName(className);
+    const updatedDeleted = Array.from(new Set([...(appData.deletedClasses || []), classId, className, normName]));
+    const updatedClasses = (appData.classes || []).filter((c) => c.id !== classId && normalizeClassName(c.name) !== normName);
 
-    onShowNotification(`🗑️ Đã xóa lớp "${className}"`, 'success');
+    const updatedData: AppData = {
+      ...appData,
+      classes: updatedClasses,
+      deletedClasses: updatedDeleted,
+    };
+
+    onUpdateAppData(() => updatedData);
+    syncWithServer(updatedData);
+
+    onShowNotification(`🗑️ Đã xóa lớp "${className}" & ĐỒNG BỘ CLOUD thành công!`, 'success');
   };
 
   const handleAddStudent = (classId: string) => {
