@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord } from '../types';
-import { normalizeClassName, safeParseMarkdown } from '../utils/normalize';
+import { normalizeClassName, safeParseMarkdown, smartCompareAnswers } from '../utils/normalize';
 import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
 import { explainQuestionWithGemini } from '../services/gemini';
@@ -217,7 +217,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     let totalEarnedPoints = 0;
     let totalMaxPoints = 0;
     let correctCount = 0;
-    const totalQuestions = assignedQuiz.questions.length;
 
     assignedQuiz.questions.forEach((q) => {
       const points = q.points || 1;
@@ -228,20 +227,18 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       if (q.inlineBlanks && q.inlineBlanks.length > 0) {
         let qAllCorrect = true;
         q.inlineBlanks.forEach((b, bIdx) => {
-          const uAns = (answers[`q_${q.id}_blank_${bIdx}`] || '').trim().toLowerCase();
-          const exp = (b.answer || '').trim().toLowerCase();
-          if (uAns !== exp && !exp.split('/').map((s) => s.trim()).includes(uAns)) {
+          const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
+          const exp = b.answer || '';
+          if (!smartCompareAnswers(uAns, exp)) {
             qAllCorrect = false;
           }
         });
         isCorrect = qAllCorrect;
       } else {
-        const userAns = (answers[`q_${q.id}`] || '').trim().toLowerCase();
-        const expected = (q.answer || '').trim().toLowerCase();
-
+        const userAns = answers[`q_${q.id}`] || '';
+        const expected = q.answer || '';
         if (expected && userAns) {
-          const validOptions = expected.split(/[/|,]/).map((s) => s.trim().toLowerCase());
-          isCorrect = validOptions.includes(userAns) || userAns === expected;
+          isCorrect = smartCompareAnswers(userAns, expected);
         }
       }
 
@@ -265,7 +262,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     if (activeStudent) {
       clearStudentDraft(activeStudent.studentId);
 
-      // Save grade to appData
       const newGrade = {
         id: `g_${Date.now()}`,
         studentId: activeStudent.studentId,
@@ -276,23 +272,32 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
         maxScore: 10,
         percentage,
         submittedAt: new Date().toISOString(),
-        userAnswers: answers,
       };
-
-      // Atomic submission to eliminate Race Condition & Rate Limits
-      saveAtomicSubmission(newGrade);
 
       onUpdateAppData((prev) => ({
         ...prev,
         grades: [newGrade, ...(prev.grades || [])],
       }));
+
+      // Atomic Firebase Submission
+      saveAtomicSubmission({
+        studentId: activeStudent.studentId,
+        studentName: activeStudent.studentName,
+        className: activeStudent.className,
+        quizTitle: assignedQuiz.quizTitle,
+        score: scoreVal,
+        maxScore: 10,
+        percentage,
+        answers,
+        submittedAt: new Date().toISOString(),
+      });
     }
 
     if (percentage >= 80 && typeof confetti === 'function') {
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     }
 
-    onShowNotification(`🎉 Đã nộp bài thành công! Kết quả: ${scoreVal}/10 điểm (${percentage}%)`, 'success');
+    onShowNotification(`🎉 ĐÃ NỘP BÀI THÀNH CÔNG! Kết quả: ${scoreVal}/10 điểm.`, 'success');
   };
 
   const handleExplainAi = async (q: Question) => {
@@ -502,19 +507,18 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                 if (q.inlineBlanks && q.inlineBlanks.length > 0) {
                   let qAllCorrect = true;
                   q.inlineBlanks.forEach((b, bIdx) => {
-                    const uAns = (answers[`q_${q.id}_blank_${bIdx}`] || '').trim().toLowerCase();
-                    const exp = (b.answer || '').trim().toLowerCase();
-                    if (uAns !== exp && !exp.split('/').map((s) => s.trim()).includes(uAns)) {
+                    const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
+                    const exp = b.answer || '';
+                    if (!smartCompareAnswers(uAns, exp)) {
                       qAllCorrect = false;
                     }
                   });
                   isCorrect = qAllCorrect;
                 } else {
-                  const userAns = (answers[`q_${q.id}`] || '').trim().toLowerCase();
-                  const expected = (q.answer || '').trim().toLowerCase();
+                  const userAns = answers[`q_${q.id}`] || '';
+                  const expected = q.answer || '';
                   if (expected && userAns) {
-                    const validOptions = expected.split(/[/|,]/).map((s) => s.trim().toLowerCase());
-                    isCorrect = validOptions.includes(userAns) || userAns === expected;
+                    isCorrect = smartCompareAnswers(userAns, expected);
                   }
                 }
               }
@@ -620,7 +624,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                       </div>
                     )}
 
-                    {/* AI Explanation & Feedback Section after Submission */}
+                    {/* Explanation & Feedback Section after Submission */}
                     {isSubmitted && (
                       <div className="pt-3 border-t border-slate-100 space-y-3">
                         {q.answer && (
@@ -637,16 +641,16 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                             className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-200 shadow-sm"
                           >
                             {loadingAiExplainId === q.id ? (
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin text-indigo-600" />
                             ) : (
                               <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
                             )}
-                            <span>💡 Xem AI Giải Thích Chi Tiết</span>
+                            <span>💡 Xem Giải Thích Chi Tiết</span>
                           </button>
                         ) : (
                           <div className="p-4 bg-gradient-to-br from-indigo-50/90 to-purple-50/90 border border-indigo-200 rounded-2xl text-xs space-y-1.5 text-indigo-950 shadow-sm">
                             <div className="font-bold flex items-center gap-1.5 text-indigo-900">
-                              <Sparkles className="w-4 h-4 text-indigo-600 animate-bounce-short" /> Giải Thích Chi Tiết Bằng Gemini AI:
+                              <Sparkles className="w-4 h-4 text-indigo-600 animate-bounce-short" /> 💡 Lời Giải Thích Chi Tiết:
                             </div>
                             <p className="leading-relaxed font-medium whitespace-pre-wrap">{aiExplanations[q.id]}</p>
                           </div>

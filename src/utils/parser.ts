@@ -212,7 +212,7 @@ function attachAnswerKeys(questions: Question[], answerKeyText: string): void {
 
 function finalizeQuestion(q: Partial<Question>, count: number): Question {
   const title = (q.title || '').trim();
-  let type: Question['type'] = q.type || 'short_answer';
+  let type: Question['type'] = 'short_answer';
 
   // Detect inline blanks e.g. ___ or [option1/option2] or parenthesized choices (choice1 / choice2)
   const inlineBlanks: Question['inlineBlanks'] = [];
@@ -238,11 +238,25 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     }
   }
 
-  if (title.includes('___') || title.includes('_')) {
+  // CLASSIFICATION PRIORITY RULES: essay IS THE VERY LAST FALLBACK!
+  if (q.options && q.options.length > 0) {
+    type = 'multiple_choice';
+  } else if (inlineBlanks.length > 0 || title.includes('___') || title.includes('_')) {
     type = 'fill_in_blank';
     if (inlineBlanks.length === 0) {
       inlineBlanks.push({ answer: q.answer || '' });
     }
+  } else if (
+    title.toLowerCase().includes('đúng/sai') ||
+    title.toLowerCase().includes('true/false') ||
+    title.toLowerCase().includes('đúng hay sai')
+  ) {
+    type = 'true_false';
+  } else if (q.answer || title.length < 150) {
+    type = 'short_answer';
+  } else {
+    // LAST RESORT FALLBACK: essay
+    type = 'essay';
   }
 
   return {

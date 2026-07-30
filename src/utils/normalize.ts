@@ -91,3 +91,45 @@ export function formatDateVN(dateStr?: string): string {
     return dateStr;
   }
 }
+
+export function cleanAnswerText(text: string): string {
+  if (!text) return '';
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/^[.?:;!,"]+|[.?:;!,"]+$/g, '') // remove leading/trailing punctuation
+    .replace(/\s+/g, ' '); // collapse whitespace
+}
+
+export function smartCompareAnswers(userAns: string, expectedAns: string): boolean {
+  const cleanUser = cleanAnswerText(userAns);
+  const cleanExp = cleanAnswerText(expectedAns);
+
+  if (!cleanUser || !cleanExp) return false;
+
+  // 1. Direct exact match
+  if (cleanUser === cleanExp) return true;
+
+  // 2. Multi-option split by /, |, comma, or "or"/"hoặc"
+  const expVariants = cleanExp
+    .split(/[/|,]/)
+    .map((s) => cleanAnswerText(s))
+    .filter(Boolean);
+
+  if (expVariants.includes(cleanUser)) return true;
+
+  // 3. Handle abbreviations (e.g., ID -> independent, DP -> dependent)
+  if (cleanUser === 'id' && (cleanExp.includes('independent') || cleanExp === 'id')) return true;
+  if (cleanUser === 'dp' && (cleanExp.includes('dependent') || cleanExp === 'dp')) return true;
+  if (cleanExp === 'id' && (cleanUser.includes('independent') || cleanUser === 'id')) return true;
+  if (cleanExp === 'dp' && (cleanUser.includes('dependent') || cleanUser === 'dp')) return true;
+
+  // 4. Substring inclusion for multi-word answers
+  for (const variant of expVariants) {
+    if (variant.length > 2 && (cleanUser === variant || cleanUser.includes(variant) || variant.includes(cleanUser))) {
+      return true;
+    }
+  }
+
+  return false;
+}
