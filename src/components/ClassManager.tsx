@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { School, Plus, Trash2, UserPlus, Send, Edit3, Users } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
 import { normalizeClassName, sanitizeClassesData } from '../utils/normalize';
+import { syncWithServer } from '../services/storage';
 
 interface ClassManagerProps {
   appData: AppData;

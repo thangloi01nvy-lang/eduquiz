@@ -23,6 +23,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [isManualInput, setIsManualInput] = useState(false);
+  const [manualClassName, setManualClassName] = useState('Teen 4');
+  const [manualStudentName, setManualStudentName] = useState('');
   const [interactionMode, setInteractionMode] = useState<'drag' | 'dropdown' | 'input'>('drag');
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -31,6 +34,17 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   // Selected class & student objects
   const selectedClassObj = appData.classes?.find((c) => c.id === selectedClassId);
+
+  const handleFetchLatestFromCloud = async () => {
+    onShowNotification('⏳ Đang tải dữ liệu mới nhất từ Cloud...', 'warning');
+    const latest = await fetchServerData();
+    if (latest) {
+      onUpdateAppData(() => latest);
+      onShowNotification('⚡ Đã cập nhật xong dữ liệu từ Cloud!', 'success');
+    } else {
+      onShowNotification('⚠️ Không thể tải dữ liệu từ Cloud, đang dùng dữ liệu bộ nhớ.', 'warning');
+    }
+  };
 
   // Real-time Cloud Auto-Sync Polling for Students
   useEffect(() => {
