@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "check-build": "node scripts/verify-build.js",
     "preview": "vite preview",
     "server": "node server/index.js",
     "start": "node server/index.js"
