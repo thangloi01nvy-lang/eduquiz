@@ -31,6 +31,23 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   // Selected class & student objects
   const selectedClassObj = appData.classes?.find((c) => c.id === selectedClassId);
 
+  // Real-time Cloud Auto-Sync Polling for Students
+  useEffect(() => {
+    fetchServerData().then((latest) => {
+      if (latest) onUpdateAppData(() => latest);
+    });
+
+    const intervalId = setInterval(() => {
+      fetchServerData().then((latest) => {
+        if (latest) {
+          onUpdateAppData(() => latest);
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   // Save student session
   const handleStudentLogin = () => {
     if (!selectedClassObj || !selectedStudentId) {

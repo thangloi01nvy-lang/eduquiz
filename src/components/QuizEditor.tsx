@@ -43,48 +43,56 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
   const parsed = parseMarkdownQuiz(rawText);
 
-  const handleParseAndPublish = (targetClass: string) => {
+  const handleParseAndPublish = async (targetClass: string) => {
     if (parsed.questions.length === 0) {
       onShowNotification('❌ Chưa phát hiện câu hỏi hợp lệ trong nội dung Markdown!', 'warning');
       return;
     }
 
-    onUpdateAppData((prev) => {
-      const title = prev.quizTitle || 'Bài Tập Tiếng Anh Online';
-      const level = prev.quizLevel || 'B1';
+    const title = appData.quizTitle || 'Bài Tập Tiếng Anh Online';
+    const level = appData.quizLevel || 'B1';
 
-      const payload = {
-        quizTitle: title,
-        quizLevel: level,
-        quizCreatedDate: new Date().toISOString(),
-        questions: parsed.questions,
-        sections: parsed.sections,
-        wordBank: parsed.wordBank,
-      };
+    const payload = {
+      quizTitle: title,
+      quizLevel: level,
+      quizCreatedDate: new Date().toISOString(),
+      questions: parsed.questions,
+      sections: parsed.sections,
+      wordBank: parsed.wordBank,
+    };
 
-      const newAssignments = { ...prev.classAssignments };
-      if (targetClass === 'all') {
-        prev.classes.forEach((c) => {
-          newAssignments[c.name] = payload;
-        });
-      } else {
-        newAssignments[targetClass] = payload;
-      }
+    const newAssignments = { ...appData.classAssignments };
+    if (targetClass === 'all') {
+      appData.classes.forEach((c) => {
+        newAssignments[c.name] = payload;
+      });
+    } else {
+      newAssignments[targetClass] = payload;
+    }
 
-      return {
-        ...prev,
-        currentQuestions: parsed.questions,
-        sections: parsed.sections,
-        wordBank: parsed.wordBank,
-        quizTargetClass: targetClass,
-        classAssignments: newAssignments,
-      };
-    });
+    const updatedData: AppData = {
+      ...appData,
+      currentQuestions: parsed.questions,
+      sections: parsed.sections,
+      wordBank: parsed.wordBank,
+      quizTargetClass: targetClass,
+      classAssignments: newAssignments,
+    };
 
-    onShowNotification(
-      `🚀 Đã giao bài tập thành công cho ${targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`}!`,
-      'success'
-    );
+    onUpdateAppData(() => updatedData);
+
+    // REAL-TIME AUTOMATED CLOUD SYNC
+    onShowNotification('☁️ Đang tự động đẩy bài tập lên Cloud Real-Time...', 'warning');
+    const cloudSuccess = await syncWithServer(updatedData);
+
+    if (cloudSuccess) {
+      onShowNotification(
+        `🚀 ĐÃ GIAO BÀI & ĐỒNG BỘ CLOUD THÀNH CÔNG cho ${targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`}! Học sinh mở web sẽ thấy ngay bài mới.`,
+        'success'
+      );
+    } else {
+      onShowNotification(`🚀 Đã phát hành bài tập trên máy local!`, 'success');
+    }
   };
 
   const handleSaveToLibrary = () => {

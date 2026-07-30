@@ -1,5 +1,5 @@
 {
-  "quizTitle": "Đề Ôn Tập Thi Đội Tách React",
+  "quizTitle": "Đề Kiểm Tra Real-Time Auto-Sync Live",
   "quizLevel": "B1",
   "quizTargetClass": "all",
   "currentQuestions": [],
@@ -18,7 +18,18 @@
       ]
     }
   ],
-  "classAssignments": {},
+  "classAssignments": {
+    "Teen 4": {
+      "quizTitle": "Đề Kiểm Tra Real-Time Auto-Sync Live",
+      "questions": [
+        {
+          "id": 1,
+          "title": "Q1 Test Realtime",
+          "type": "short_answer"
+        }
+      ]
+    }
+  },
   "quizLibrary": [],
   "grades": [],
   "feedbacks": []
