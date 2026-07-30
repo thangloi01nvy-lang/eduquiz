@@ -142,8 +142,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
     setActiveStudent(info);
     localStorage.setItem('eduquiz_active_student', JSON.stringify(info));
-    onShowNotification(`🎉 Xin chào học sinh ${finalStudentName}! Đăng nhập thành công.`, 'success');
-  };
 
     // Load auto-draft
     const draft = loadStudentDraft(finalStudentId);
@@ -151,7 +149,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     setIsSubmitted(false);
     setScoreResult(null);
 
-    onShowNotification(`🎒 Xin chào ${finalStudentName} (${finalClassName})!`, 'success');
+    onShowNotification(`🎒 Xin chào ${finalStudentName} (${selectedClassObj.name})! Đăng nhập thành công.`, 'success');
   };
 
   const handleStudentLogout = () => {
