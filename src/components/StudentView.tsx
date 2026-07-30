@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
-import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord } from '../types';
+import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord, GradeRecord } from '../types';
 import { normalizeClassName, safeParseMarkdown, smartCompareAnswers } from '../utils/normalize';
 import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
@@ -282,17 +282,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       }));
 
       // Atomic Firebase Submission
-      saveAtomicSubmission({
-        studentId: activeStudent.studentId,
-        studentName: activeStudent.studentName,
-        className: activeStudent.className,
-        quizTitle: assignedQuiz.quizTitle,
-        score: scoreVal,
-        maxScore: 10,
-        percentage,
-        answers,
-        submittedAt: new Date().toISOString(),
-      });
+      saveAtomicSubmission(newGrade);
     }
 
     if (percentage >= 80 && typeof confetti === 'function') {

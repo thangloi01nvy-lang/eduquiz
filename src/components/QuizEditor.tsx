@@ -201,7 +201,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editAnswer, setEditAnswer] = useState('');
-  const [editType, setEditType] = useState<'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer'>('fill_in_blank');
+  const [editType, setEditType] = useState<Question['type']>('fill_in_blank');
   const [editPoints, setEditPoints] = useState<number>(1);
 
   const handleRecallQuiz = async (targetClass: string) => {
