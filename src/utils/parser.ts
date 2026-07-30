@@ -5,6 +5,30 @@ export function parseMarkdownQuiz(text: string): { questions: Question[]; sectio
     return { questions: [], sections: [], wordBank: [] };
   }
 
+  // 1. Separate Questions Section vs Answer Key Section
+  const answerSectionRegex = /(?:^|\n)#+\s*đáp án|(?:^|\n)đáp án\s*:/i;
+  const answerMatch = text.match(answerSectionRegex);
+
+  let questionsText = text;
+  let answerKeyText = '';
+
+  if (answerMatch && answerMatch.index !== undefined) {
+    questionsText = text.slice(0, answerMatch.index);
+    answerKeyText = text.slice(answerMatch.index + answerMatch[0].length);
+  }
+
+  // Parse raw questions
+  const { questions, sections, wordBank } = parseRawQuestions(questionsText);
+
+  // If Answer Key section exists, extract and attach answers
+  if (answerKeyText.trim()) {
+    attachAnswerKeys(questions, answerKeyText);
+  }
+
+  return { questions, sections, wordBank };
+}
+
+function parseRawQuestions(text: string): { questions: Question[]; sections: Section[]; wordBank: string[] } {
   const lines = text.split(/\r?\n/);
   const questions: Question[] = [];
   const sections: Section[] = [];
@@ -53,7 +77,7 @@ export function parseMarkdownQuiz(text: string): { questions: Question[]; sectio
     if (line.toLowerCase().includes('word bank:') || line.toLowerCase().includes('từ vựng:')) {
       const parts = line.split(/word bank:|từ vựng:/i);
       if (parts[1]) {
-        const words = parts[1].split(/[,;]/).map(w => w.trim()).filter(Boolean);
+        const words = parts[1].split(/[,;]/).map((w) => w.trim()).filter(Boolean);
         globalWordBank.push(...words);
       }
       continue;
@@ -123,6 +147,69 @@ export function parseMarkdownQuiz(text: string): { questions: Question[]; sectio
   return { questions, sections, wordBank: Array.from(new Set(globalWordBank)) };
 }
 
+function attachAnswerKeys(questions: Question[], answerKeyText: string): void {
+  const lines = answerKeyText.split(/\r?\n/);
+  let currentAnsSection = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    // Detect section header in Answer Key block e.g. "Bài 1:", "Bài 2:", "Bài 3:"
+    const secMatch = line.match(/^(bài\s*\d+|phần\s*\d+|part\s*\d+|section\s*\d+)/i);
+    if (secMatch) {
+      currentAnsSection = secMatch[1].toLowerCase();
+      continue;
+    }
+
+    // Detect question number answer line e.g. "1. She was tired, so..." or "1. ... -> DP (Mệnh đề phụ thuộc)"
+    const qAnsMatch = line.match(/^(\d+)[\.\)]\s*(.*)/);
+    if (qAnsMatch) {
+      const qNum = parseInt(qAnsMatch[1]);
+      let ansContent = qAnsMatch[2].trim();
+
+      // Filter questions in current section
+      const sectionQuestions = questions.filter((q) => {
+        if (!currentAnsSection) return true;
+        return (q.sectionTitle || '').toLowerCase().includes(currentAnsSection);
+      });
+
+      const targetQ = sectionQuestions[qNum - 1];
+      if (targetQ) {
+        // Extract answer value from line
+        if (ansContent.includes('→') || ansContent.includes('->') || ansContent.includes('=>')) {
+          const parts = ansContent.split(/→|->|=>/);
+          let extracted = parts[1].trim();
+          // Remove parenthesized explanation e.g. "DP (Mệnh đề phụ thuộc)" -> "DP"
+          extracted = extracted.replace(/\(.*?\)/g, '').trim();
+          targetQ.answer = extracted;
+        } else {
+          // If fill in blank, try to extract filled word
+          if (targetQ.title.includes('___')) {
+            const partsOriginal = targetQ.title.split('___');
+            let filledWord = ansContent;
+            if (partsOriginal[0] && ansContent.startsWith(partsOriginal[0].trim().slice(0, 10))) {
+              const prefix = partsOriginal[0].trim();
+              const suffix = (partsOriginal[1] || '').split('(')[0].trim();
+              let mid = ansContent;
+              if (prefix && mid.includes(prefix)) {
+                mid = mid.split(prefix)[1] || mid;
+              }
+              if (suffix && mid.includes(suffix)) {
+                mid = mid.split(suffix)[0] || mid;
+              }
+              filledWord = mid.trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
+            }
+            targetQ.answer = filledWord || ansContent;
+          } else {
+            targetQ.answer = ansContent;
+          }
+        }
+      }
+    }
+  }
+}
+
 function finalizeQuestion(q: Partial<Question>, count: number): Question {
   const title = (q.title || '').trim();
   let type: Question['type'] = q.type || 'short_answer';
@@ -131,10 +218,10 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
   const inlineBlanks: Question['inlineBlanks'] = [];
   const matches = [...title.matchAll(/\[(.*?)\]/g)];
   if (matches.length > 0) {
-    matches.forEach(m => {
+    matches.forEach((m) => {
       const content = m[1].trim();
       if (content.includes('/')) {
-        const choices = content.split('/').map(c => c.trim());
+        const choices = content.split('/').map((c) => c.trim());
         inlineBlanks.push({ placeholder: m[0], choices, answer: choices[0] });
       } else {
         inlineBlanks.push({ placeholder: m[0], answer: content });

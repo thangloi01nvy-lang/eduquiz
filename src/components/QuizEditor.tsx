@@ -36,7 +36,34 @@ Bài 3: Hãy xác định trong mỗi câu sau đâu là mệnh đề độc l�
 7. Since it was raining heavily.
 8. The teacher gave us homework.
 9. Unless you finish your work.
-10. He enjoys playing football.`;
+10. He enjoys playing football.
+
+## Đáp án
+Bài 1:
+1. She was tired, so she went to bed early.
+2. I don't know if he will come or not.
+3. He is very kind, so everyone likes him.
+4. I will wait here until you come back.
+5. Both she and her brother are studying abroad.
+
+Bài 2:
+1. She didn't go to school because it was raining.
+2. I like chocolate, but my sister likes vanilla.
+3. He must study hard, or he will fail the exam.
+4. We can go to either the beach or the mountains.
+5. Although he is rich, he is not happy.
+
+Bài 3:
+1. Although she was tired. → DP (Mệnh đề phụ thuộc)
+2. She went to bed early. → ID (Mệnh đề độc lập)
+3. Because he didn't study for the test. → DP (Mệnh đề phụ thuộc)
+4. They are watching a movie. → ID (Mệnh đề độc lập)
+5. While I was cooking dinner. → DP (Mệnh đề phụ thuộc)
+6. We will go to the beach tomorrow. → ID (Mệnh đề độc lập)
+7. Since it was raining heavily. → DP (Mệnh đề phụ thuộc)
+8. The teacher gave us homework. → ID (Mệnh đề độc lập)
+9. Unless you finish your work. → DP (Mệnh đề phụ thuộc)
+10. He enjoys playing football. → ID (Mệnh đề độc lập)`;
 
 export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
   const [rawText, setRawText] = useState(SAMPLE_TEXT);
