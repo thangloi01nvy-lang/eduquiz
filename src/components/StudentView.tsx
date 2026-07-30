@@ -481,6 +481,21 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     ))}
                   </div>
                 )}
+
+                {/* Essay / Short Answer Input Field */}
+                {(!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0) && (
+                  <div className="space-y-2 pt-2">
+                    <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
+                    <textarea
+                      rows={3}
+                      disabled={isSubmitted}
+                      value={answers[`q_${q.id}`] || ''}
+                      onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
+                      placeholder="Gõ câu trả lời của em tại đây..."
+                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

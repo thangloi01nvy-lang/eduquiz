@@ -168,16 +168,94 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     }
   };
 
+  const [editingQuestionId, setEditingQuestionId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editAnswer, setEditAnswer] = useState('');
+  const [editType, setEditType] = useState<'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer'>('fill_in_blank');
+
+  const handleRecallQuiz = async (targetClass: string) => {
+    if (
+      !window.confirm(
+        `Bạn có chắc chắn muốn THU HỒI BÀI ĐÃ GIAO cho ${
+          targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`
+        }? Học sinh sẽ không còn làm bài được nữa.`
+      )
+    )
+      return;
+
+    const newAssignments = { ...appData.classAssignments };
+    if (targetClass === 'all') {
+      Object.keys(newAssignments).forEach((k) => delete newAssignments[k]);
+    } else {
+      delete newAssignments[targetClass];
+    }
+
+    const updatedData: AppData = {
+      ...appData,
+      classAssignments: newAssignments,
+    };
+
+    onUpdateAppData(() => updatedData);
+
+    onShowNotification('☁️ Đang đồng bộ lệnh THU HỒI BÀI TẬP lên Cloud...', 'warning');
+    await syncWithServer(updatedData);
+
+    onShowNotification(
+      `🚫 ĐÃ THU HỒI BÀI TẬP THÀNH CÔNG cho ${targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`}!`,
+      'success'
+    );
+  };
+
+  const handleStartInlineEdit = (q: Question) => {
+    setEditingQuestionId(q.id);
+    setEditTitle(q.title);
+    setEditAnswer(q.answer || '');
+    setEditType(q.type);
+  };
+
+  const handleSaveInlineEdit = (qId: number) => {
+    const updatedQuestions = parsed.questions.map((q) => {
+      if (q.id === qId) {
+        return {
+          ...q,
+          title: editTitle,
+          answer: editAnswer,
+          type: editType,
+        };
+      }
+      return q;
+    });
+
+    // Re-generate markdown text from updated questions
+    const mdLines: string[] = [`## ${appData.quizTitle || 'Bài Tập Tiếng Anh'}\n`];
+    updatedQuestions.forEach((q, idx) => {
+      mdLines.push(`${idx + 1}. ${q.title}`);
+      if (q.options && q.options.length > 0) {
+        q.options.forEach((opt) => {
+          mdLines.push(`${opt.key}. ${opt.text}`);
+        });
+      }
+      if (q.answer) {
+        mdLines.push(`Answer: ${q.answer}`);
+      }
+      mdLines.push('');
+    });
+
+    setRawText(mdLines.join('\n'));
+    setEditingQuestionId(null);
+    onShowNotification('✏️ Đã cập nhật câu hỏi trực tiếp trên Bản xem trước!', 'success');
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Top Action Bar */}
       <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-indigo-950 text-white rounded-3xl p-6 shadow-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" /> SOẠN ĐỀ & PHÂN PHÁI TẬP TRUNG
+            <Sparkles className="w-4 h-4" /> SOẠN ĐỀ, CHỈNH SỬA & PHÂN PHÁI TẬP TRUNG
           </div>
           <h2 className="text-xl sm:text-2xl font-heading font-black text-white mt-1">
-            Trình Biên Soạn Bài Tập Tiếng Anh Smart Markdown
+            Trình Biên Soạn Bài Tập Tiếng Anh Smart Markdown & AI Phân Loại
           </h2>
         </div>
 
@@ -229,10 +307,10 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
           <div className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-indigo-500/10 border border-amber-300/40 rounded-3xl p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-amber-600 animate-spin" /> Server Gemini AI Generator
+                <Sparkles className="w-4 h-4 text-amber-600 animate-spin" /> Server Gemini AI - Nhận Diện & Phân Loại Đề Tự Động
               </span>
               <span className="text-[10px] font-bold px-2 py-0.5 bg-amber-200 text-amber-900 rounded-full">
-                Bảo mật Server Side
+                Tự nhận diện dạng bài
               </span>
             </div>
 
@@ -241,7 +319,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                 type="text"
                 value={aiTopic}
                 onChange={(e) => setAiTopic(e.target.value)}
-                placeholder="Nhập chủ đề (VD: Thì Hiện tại hoàn thành, Phrasal Verbs...)"
+                placeholder="Nhập chủ đề hoặc dán văn bản thô để AI tự phân loại..."
                 className="flex-1 px-3 py-2 bg-white border border-amber-300/60 rounded-xl text-xs font-medium focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
               <button
@@ -250,7 +328,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-amber-950 font-bold text-xs rounded-xl shadow transition flex items-center gap-1"
               >
                 {isGeneratingAi ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                <span>Soạn Bằng AI</span>
+                <span>✨ AI Phân Loại Đề</span>
               </button>
             </div>
           </div>
@@ -281,7 +359,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
           {/* Target Class Assignment Panel */}
           <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4">
             <h3 className="font-heading font-bold text-base text-slate-900 flex items-center gap-2">
-              <Send className="w-4 h-4 text-brand-600" /> Giao Bài Cho Lớp Học Target
+              <Send className="w-4 h-4 text-brand-600" /> Giao Bài / Thu Hồi Cho Lớp Học Target
             </h3>
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -300,18 +378,27 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
               <button
                 onClick={() => handleParseAndPublish(selectedTargetClass)}
-                className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
                 <span>PHÁT HÀNH LIVE</span>
               </button>
+
+              <button
+                onClick={() => handleRecallQuiz(selectedTargetClass)}
+                className="w-full sm:w-auto px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-500/20 transition flex items-center justify-center gap-1.5"
+                title="Thu hồi bài tập đã giao cho lớp này"
+              >
+                <span>🚫 THU HỒI BÀI</span>
+              </button>
             </div>
           </div>
 
-          {/* Live Preview Cards */}
+          {/* Live Preview Cards with Inline Editing */}
           <div className="bg-slate-50 rounded-3xl border border-slate-200 p-5 shadow-inner space-y-4 max-h-[500px] overflow-y-auto">
-            <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-500">
-              Xem Trước Giao Diện Học Sinh ({parsed.questions.length} câu)
+            <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center justify-between">
+              <span>Xem Trước Giao Diện Học Sinh ({parsed.questions.length} câu)</span>
+              <span className="text-[10px] text-brand-600 font-bold">✨ Có thể chỉnh sửa trực tiếp từng câu</span>
             </h4>
 
             {parsed.questions.length === 0 ? (
@@ -320,40 +407,100 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
               </div>
             ) : (
               parsed.questions.map((q) => (
-                <div key={q.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+                <div key={q.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-100 pb-2">
                     <span>Câu {q.id}</span>
-                    <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-md uppercase text-[10px]">
-                      {q.type}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-md uppercase text-[10px]">
+                        {q.type}
+                      </span>
+                      <button
+                        onClick={() => handleStartInlineEdit(q)}
+                        className="text-brand-600 hover:text-brand-800 text-[11px] underline font-bold"
+                      >
+                        ✏️ Sửa Nhanh
+                      </button>
+                    </div>
                   </div>
 
-                  <div
-                    className="text-sm font-semibold text-slate-900"
-                    dangerouslySetInnerHTML={{ __html: safeParseMarkdown(q.title) }}
-                  />
+                  {editingQuestionId === q.id ? (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
+                      <label className="block text-[10px] font-bold text-amber-900">Sửa Tiêu đề / Nội dung câu hỏi:</label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-bold"
+                      />
 
-                  {q.options && q.options.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {q.options.map((opt) => (
-                        <div
-                          key={opt.key}
-                          className={`p-2 rounded-xl border text-xs font-medium ${
-                            q.answer === opt.key
-                              ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold'
-                              : 'border-slate-100 bg-slate-50 text-slate-700'
-                          }`}
+                      <div className="flex items-center gap-2 pt-1">
+                        <label className="text-[10px] font-bold text-amber-900">Loại câu hỏi:</label>
+                        <select
+                          value={editType}
+                          onChange={(e) => setEditType(e.target.value as any)}
+                          className="p-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold"
                         >
-                          <b>{opt.key}.</b> {opt.text}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                          <option value="fill_in_blank">Điền từ / Tự luận</option>
+                          <option value="multiple_choice">Trắc nghiệm</option>
+                          <option value="true_false">Đúng / Sai</option>
+                          <option value="short_answer">Tự luận ngắn</option>
+                        </select>
+                      </div>
 
-                  {q.answer && (
-                    <div className="text-xs font-bold text-emerald-600 flex items-center gap-1 pt-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Đáp án: {q.answer}
+                      <label className="block text-[10px] font-bold text-amber-900 pt-1">Đáp án đúng:</label>
+                      <input
+                        type="text"
+                        value={editAnswer}
+                        onChange={(e) => setEditAnswer(e.target.value)}
+                        placeholder="Nhập đáp án chuẩn..."
+                        className="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-bold text-emerald-800"
+                      />
+
+                      <div className="flex justify-end gap-2 pt-2">
+                        <button
+                          onClick={() => setEditingQuestionId(null)}
+                          className="px-3 py-1 bg-slate-200 text-slate-700 text-xs font-bold rounded-lg"
+                        >
+                          Hủy
+                        </button>
+                        <button
+                          onClick={() => handleSaveInlineEdit(q.id)}
+                          className="px-3 py-1 bg-emerald-600 text-white text-xs font-bold rounded-lg shadow"
+                        >
+                          Lưu Cập Nhật
+                        </button>
+                      </div>
                     </div>
+                  ) : (
+                    <>
+                      <div
+                        className="text-sm font-semibold text-slate-900"
+                        dangerouslySetInnerHTML={{ __html: safeParseMarkdown(q.title) }}
+                      />
+
+                      {q.options && q.options.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {q.options.map((opt) => (
+                            <div
+                              key={opt.key}
+                              className={`p-2 rounded-xl border text-xs font-medium ${
+                                q.answer === opt.key
+                                  ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold'
+                                  : 'border-slate-100 bg-slate-50 text-slate-700'
+                              }`}
+                            >
+                              <b>{opt.key}.</b> {opt.text}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {q.answer && (
+                        <div className="text-xs font-bold text-emerald-600 flex items-center gap-1 pt-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Đáp án: {q.answer}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               ))
