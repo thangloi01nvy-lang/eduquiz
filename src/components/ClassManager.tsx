@@ -35,14 +35,18 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
       students: [],
     };
 
-    onUpdateAppData((prev) => ({
-      ...prev,
-      classes: sanitizeClassesData([newClass, ...(prev.classes || [])]),
-    }));
+    const updatedClasses = sanitizeClassesData([newClass, ...(appData.classes || [])]);
+    const updatedData: AppData = {
+      ...appData,
+      classes: updatedClasses,
+    };
+
+    onUpdateAppData(() => updatedData);
+    syncWithServer(updatedData);
 
     setNewClassName('');
     setNewClassDesc('');
-    onShowNotification(`🎉 Đã tạo thành công lớp "${newClass.name}"!`, 'success');
+    onShowNotification(`🎉 Đã tạo lớp "${newClass.name}" & ĐỒNG BỘ CLOUD thành công! Học sinh ở bất cứ đâu mở web sẽ thấy ngay lớp này.`, 'success');
   };
 
   const handleDeleteClass = (classId: string, className: string) => {
@@ -59,23 +63,24 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const handleAddStudent = (classId: string) => {
     if (!studentNameInput.trim()) return;
 
-    onUpdateAppData((prev) => {
-      const updatedClasses = (prev.classes || []).map((c) => {
-        if (c.id === classId) {
-          const newStudent = {
-            id: `st_${Date.now()}`,
-            name: studentNameInput.trim(),
-          };
-          return { ...c, students: [...(c.students || []), newStudent] };
-        }
-        return c;
-      });
-      return { ...prev, classes: updatedClasses };
+    const updatedClasses = (appData.classes || []).map((c) => {
+      if (c.id === classId) {
+        const newStudent = {
+          id: `st_${Date.now()}`,
+          name: studentNameInput.trim(),
+        };
+        return { ...c, students: [...(c.students || []), newStudent] };
+      }
+      return c;
     });
+
+    const updatedData: AppData = { ...appData, classes: updatedClasses };
+    onUpdateAppData(() => updatedData);
+    syncWithServer(updatedData);
 
     setStudentNameInput('');
     setAddingStudentClassId(null);
-    onShowNotification('👤 Đã thêm học sinh mới vào lớp!', 'success');
+    onShowNotification('👤 Đã thêm học sinh mới & ĐỒNG BỘ CLOUD thành công!', 'success');
   };
 
   const handleDeleteStudent = (classId: string, studentId: string) => {
