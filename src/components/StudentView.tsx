@@ -212,35 +212,49 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     });
   };
 
-  // Submit Quiz & Grade
+  // Submit Quiz & Grade ALL question types accurately
   const handleSubmitQuiz = () => {
     if (!assignedQuiz || !assignedQuiz.questions) return;
 
+    let totalEarnedPoints = 0;
+    let totalMaxPoints = 0;
     let correctCount = 0;
-    const totalCount = assignedQuiz.questions.length;
+    const totalQuestions = assignedQuiz.questions.length;
 
     assignedQuiz.questions.forEach((q) => {
-      if (q.type === 'multiple_choice' || q.type === 'true_false') {
-        const userAns = answers[`q_${q.id}`];
-        if (userAns && userAns.toUpperCase() === (q.answer || '').toUpperCase()) {
-          correctCount++;
-        }
-      } else if (q.inlineBlanks && q.inlineBlanks.length > 0) {
+      const points = q.points || 1;
+      totalMaxPoints += points;
+
+      let isCorrect = false;
+
+      if (q.inlineBlanks && q.inlineBlanks.length > 0) {
         let qAllCorrect = true;
         q.inlineBlanks.forEach((b, bIdx) => {
-          const userAns = (answers[`q_${q.id}_blank_${bIdx}`] || '').trim().toLowerCase();
-          const expected = (b.answer || '').trim().toLowerCase();
-
-          if (userAns !== expected && !expected.split('/').map((s) => s.trim()).includes(userAns)) {
+          const uAns = (answers[`q_${q.id}_blank_${bIdx}`] || '').trim().toLowerCase();
+          const exp = (b.answer || '').trim().toLowerCase();
+          if (uAns !== exp && !exp.split('/').map((s) => s.trim()).includes(uAns)) {
             qAllCorrect = false;
           }
         });
-        if (qAllCorrect) correctCount++;
+        isCorrect = qAllCorrect;
+      } else {
+        const userAns = (answers[`q_${q.id}`] || '').trim().toLowerCase();
+        const expected = (q.answer || '').trim().toLowerCase();
+
+        if (expected && userAns) {
+          const validOptions = expected.split(/[/|,]/).map((s) => s.trim().toLowerCase());
+          isCorrect = validOptions.includes(userAns) || userAns === expected;
+        }
+      }
+
+      if (isCorrect) {
+        correctCount++;
+        totalEarnedPoints += points;
       }
     });
 
-    const percentage = Math.round((correctCount / totalCount) * 100);
-    const scoreVal = parseFloat(((correctCount / totalCount) * 10).toFixed(1));
+    const percentage = totalMaxPoints > 0 ? Math.round((totalEarnedPoints / totalMaxPoints) * 100) : 0;
+    const scoreVal = totalMaxPoints > 0 ? parseFloat(((totalEarnedPoints / totalMaxPoints) * 10).toFixed(1)) : 0;
 
     setScoreResult({
       score: scoreVal,
@@ -485,6 +499,30 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                 q.sectionTitle !== 'Bài tập chung' &&
                 (!prevQ || prevQ.sectionTitle !== q.sectionTitle);
 
+              let isCorrect = false;
+              if (isSubmitted) {
+                if (q.inlineBlanks && q.inlineBlanks.length > 0) {
+                  let qAllCorrect = true;
+                  q.inlineBlanks.forEach((b, bIdx) => {
+                    const uAns = (answers[`q_${q.id}_blank_${bIdx}`] || '').trim().toLowerCase();
+                    const exp = (b.answer || '').trim().toLowerCase();
+                    if (uAns !== exp && !exp.split('/').map((s) => s.trim()).includes(uAns)) {
+                      qAllCorrect = false;
+                    }
+                  });
+                  isCorrect = qAllCorrect;
+                } else {
+                  const userAns = (answers[`q_${q.id}`] || '').trim().toLowerCase();
+                  const expected = (q.answer || '').trim().toLowerCase();
+                  if (expected && userAns) {
+                    const validOptions = expected.split(/[/|,]/).map((s) => s.trim().toLowerCase());
+                    isCorrect = validOptions.includes(userAns) || userAns === expected;
+                  }
+                }
+              }
+
+              const isWrong = isSubmitted && !isCorrect;
+
               return (
                 <React.Fragment key={q.id}>
                   {showSectionBanner && (
@@ -495,9 +533,28 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     </div>
                   )}
 
-                  <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <span className="font-heading font-bold text-sm text-brand-900">Câu {qIdx + 1}</span>
+                  <div
+                    className={`rounded-3xl p-6 shadow-sm space-y-4 border transition duration-300 ${
+                      isSubmitted
+                        ? isWrong
+                          ? 'bg-rose-50/80 border-rose-300 ring-2 ring-rose-400/50 shadow-rose-100'
+                          : 'bg-emerald-50/80 border-emerald-300 ring-2 ring-emerald-400/50 shadow-emerald-100'
+                        : 'bg-white border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-heading font-bold text-sm text-brand-900">Câu {qIdx + 1}</span>
+                        {isSubmitted && (
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase flex items-center gap-1 shadow-sm ${
+                              isWrong ? 'bg-rose-600 text-white animate-pulse' : 'bg-emerald-600 text-white'
+                            }`}
+                          >
+                            {isWrong ? '❌ SAI (0 điểm)' : `✅ ĐÚNG (+${q.points || 1} điểm)`}
+                          </span>
+                        )}
+                      </div>
                       <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase">
                         {q.type}
                       </span>
