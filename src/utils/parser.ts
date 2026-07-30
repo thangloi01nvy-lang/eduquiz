@@ -46,13 +46,13 @@ function parseRawQuestions(text: string): { questions: Question[]; sections: Sec
     const line = rawLine.trim();
     if (!line) continue;
 
-    // Recognize Section Headers: e.g. "## Bài 1", "Bài 1:", "Bài 3:", "Phần 1:", "Part 1:"
+    // Recognize Section Headers: e.g. "## Bài 1", "Bài A:", "Bài 3:", "Phần A:", "Part 1:"
     const isSectionHeader =
       line.startsWith('#') ||
-      /^bài\s*\d+/i.test(line) ||
-      /^phần\s*\d+/i.test(line) ||
-      /^part\s*\d+/i.test(line) ||
-      /^section\s*\d+/i.test(line);
+      /^bài\s*[0-9a-z]+/i.test(line) ||
+      /^phần\s*[0-9a-z]+/i.test(line) ||
+      /^part\s*[0-9a-z]+/i.test(line) ||
+      /^section\s*[0-9a-z]+/i.test(line);
 
     if (isSectionHeader && !line.match(/^(\d+)[\.\)]\s*/)) {
       if (currentQ) {
@@ -155,8 +155,8 @@ function attachAnswerKeys(questions: Question[], answerKeyText: string): void {
     const line = lines[i].trim();
     if (!line) continue;
 
-    // Detect section header in Answer Key block e.g. "Bài 1:", "Bài 2:", "Bài 3:"
-    const secMatch = line.match(/^(bài\s*\d+|phần\s*\d+|part\s*\d+|section\s*\d+)/i);
+    // Detect section header in Answer Key block e.g. "Bài 1:", "Bài A:", "Bài 3:"
+    const secMatch = line.match(/^(bài\s*[0-9a-z]+|phần\s*[0-9a-z]+|part\s*[0-9a-z]+|section\s*[0-9a-z]+)/i);
     if (secMatch) {
       currentAnsSection = secMatch[1].toLowerCase();
       continue;

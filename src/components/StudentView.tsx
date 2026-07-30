@@ -4,6 +4,7 @@ import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload } from '../ty
 import { normalizeClassName, safeParseMarkdown } from '../utils/normalize';
 import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
+import { explainQuestionWithGemini } from '../services/gemini';
 import confetti from 'canvas-confetti';
 
 interface StudentViewProps {
@@ -32,7 +33,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [scoreResult, setScoreResult] = useState<{ score: number; maxScore: number; percentage: number } | null>(null);
+  const [scoreResult, setScoreResult] = useState<{ score: number; maxScore: number; percentage: number; aiFeedbacks?: Record<string, string> } | null>(null);
+  const [aiExplanations, setAiExplanations] = useState<Record<number, string>>({});
+  const [loadingAiExplainId, setLoadingAiExplainId] = useState<number | null>(null);
 
   // Selected class & student objects
   const selectedClassObj = appData.classes?.find((c) => c.id === selectedClassId);
@@ -244,6 +247,19 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     onShowNotification(`🎉 Đã nộp bài thành công! Kết quả: ${scoreVal}/10 điểm (${percentage}%)`, 'success');
   };
 
+  const handleExplainAi = async (q: Question) => {
+    setLoadingAiExplainId(q.id);
+    try {
+      const studentAns = answers[`q_${q.id}`] || '';
+      const explanation = await explainQuestionWithGemini(q.title, q.answer || '', studentAns);
+      setAiExplanations((prev) => ({ ...prev, [q.id]: explanation }));
+    } catch (e: any) {
+      onShowNotification('❌ Lỗi AI Giải Thích: ' + (e.message || 'Không thể kết nối Server AI'), 'error');
+    } finally {
+      setLoadingAiExplainId(null);
+    }
+  };
+
   if (!activeStudent) {
     return (
       <div className="max-w-md mx-auto px-4 py-12">
@@ -426,78 +442,130 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
           {/* Question List */}
           <div className="space-y-4">
-            {assignedQuiz.questions?.map((q, qIdx) => (
-              <div key={q.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <span className="font-heading font-bold text-sm text-brand-900">Câu {qIdx + 1}</span>
-                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase">
-                    {q.type}
-                  </span>
-                </div>
+            {assignedQuiz.questions?.map((q, qIdx) => {
+              const prevQ = assignedQuiz.questions[qIdx - 1];
+              const showSectionBanner =
+                q.sectionTitle &&
+                q.sectionTitle !== 'Bài tập chung' &&
+                (!prevQ || prevQ.sectionTitle !== q.sectionTitle);
 
-                <div
-                  className="text-sm font-semibold text-slate-900 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: safeParseMarkdown(q.title) }}
-                />
+              return (
+                <React.Fragment key={q.id}>
+                  {showSectionBanner && (
+                    <div className="bg-gradient-to-r from-brand-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-5 shadow-md mt-6 mb-2 border border-brand-700">
+                      <h3 className="font-heading font-black text-sm sm:text-base flex items-center gap-2 text-amber-300">
+                        📌 {q.sectionTitle}
+                      </h3>
+                    </div>
+                  )}
 
-                {/* Multiple Choice Options */}
-                {q.options && q.options.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    {q.options.map((opt) => {
-                      const isSelected = answers[`q_${q.id}`] === opt.key;
-                      return (
-                        <button
-                          key={opt.key}
+                  <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <span className="font-heading font-bold text-sm text-brand-900">Câu {qIdx + 1}</span>
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md uppercase">
+                        {q.type}
+                      </span>
+                    </div>
+
+                    <div
+                      className="text-sm font-semibold text-slate-900 leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: safeParseMarkdown(q.title) }}
+                    />
+
+                    {/* Multiple Choice Options */}
+                    {q.options && q.options.length > 0 && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        {q.options.map((opt) => {
+                          const isSelected = answers[`q_${q.id}`] === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              disabled={isSubmitted}
+                              onClick={() => handleAnswerChange(`q_${q.id}`, opt.key)}
+                              className={`p-3.5 rounded-2xl border text-left text-xs font-semibold transition ${
+                                isSelected
+                                  ? 'border-brand-500 bg-brand-50 text-brand-900 ring-2 ring-brand-200'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                              }`}
+                            >
+                              <b>{opt.key}.</b> {opt.text}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Inline Blanks */}
+                    {q.inlineBlanks && q.inlineBlanks.length > 0 && (
+                      <div className="space-y-3 pt-2">
+                        {q.inlineBlanks.map((b, bIdx) => (
+                          <div key={bIdx} className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-500">Ô trống {bIdx + 1}:</span>
+                            <input
+                              type="text"
+                              disabled={isSubmitted}
+                              value={answers[`q_${q.id}_blank_${bIdx}`] || ''}
+                              onChange={(e) => handleAnswerChange(`q_${q.id}_blank_${bIdx}`, e.target.value)}
+                              placeholder="Nhập đáp án..."
+                              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-brand-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Essay / Short Answer Input Field */}
+                    {(!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0) && (
+                      <div className="space-y-2 pt-2">
+                        <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
+                        <textarea
+                          rows={3}
                           disabled={isSubmitted}
-                          onClick={() => handleAnswerChange(`q_${q.id}`, opt.key)}
-                          className={`p-3.5 rounded-2xl border text-left text-xs font-semibold transition ${
-                            isSelected
-                              ? 'border-brand-500 bg-brand-50 text-brand-900 ring-2 ring-brand-200'
-                              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
-                        >
-                          <b>{opt.key}.</b> {opt.text}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Inline Blanks */}
-                {q.inlineBlanks && q.inlineBlanks.length > 0 && (
-                  <div className="space-y-3 pt-2">
-                    {q.inlineBlanks.map((b, bIdx) => (
-                      <div key={bIdx} className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500">Ô trống {bIdx + 1}:</span>
-                        <input
-                          type="text"
-                          disabled={isSubmitted}
-                          value={answers[`q_${q.id}_blank_${bIdx}`] || ''}
-                          onChange={(e) => handleAnswerChange(`q_${q.id}_blank_${bIdx}`, e.target.value)}
-                          placeholder="Nhập đáp án..."
-                          className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-brand-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                          value={answers[`q_${q.id}`] || ''}
+                          onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
+                          placeholder="Gõ câu trả lời của em tại đây..."
+                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
                         />
                       </div>
-                    ))}
-                  </div>
-                )}
+                    )}
 
-                {/* Essay / Short Answer Input Field */}
-                {(!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0) && (
-                  <div className="space-y-2 pt-2">
-                    <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
-                    <textarea
-                      rows={3}
-                      disabled={isSubmitted}
-                      value={answers[`q_${q.id}`] || ''}
-                      onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
-                      placeholder="Gõ câu trả lời của em tại đây..."
-                      className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
-                    />
+                    {/* AI Explanation & Feedback Section after Submission */}
+                    {isSubmitted && (
+                      <div className="pt-3 border-t border-slate-100 space-y-3">
+                        {q.answer && (
+                          <div className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl flex items-center justify-between">
+                            <span>✅ Đáp án chuẩn: <b>{q.answer}</b></span>
+                            <span className="text-[10px] font-mono opacity-80">{q.points || 1} điểm</span>
+                          </div>
+                        )}
+
+                        {!aiExplanations[q.id] ? (
+                          <button
+                            onClick={() => handleExplainAi(q)}
+                            disabled={loadingAiExplainId === q.id}
+                            className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-indigo-200 shadow-sm"
+                          >
+                            {loadingAiExplainId === q.id ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                            )}
+                            <span>💡 Xem AI Giải Thích Chi Tiết</span>
+                          </button>
+                        ) : (
+                          <div className="p-4 bg-gradient-to-br from-indigo-50/90 to-purple-50/90 border border-indigo-200 rounded-2xl text-xs space-y-1.5 text-indigo-950 shadow-sm">
+                            <div className="font-bold flex items-center gap-1.5 text-indigo-900">
+                              <Sparkles className="w-4 h-4 text-indigo-600 animate-bounce-short" /> Giải Thích Chi Tiết Bằng Gemini AI:
+                            </div>
+                            <p className="leading-relaxed font-medium whitespace-pre-wrap">{aiExplanations[q.id]}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                </React.Fragment>
+              );
+            })}
           </div>
 
           {/* Submit Button */}
