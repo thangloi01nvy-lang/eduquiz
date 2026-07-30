@@ -12,28 +12,31 @@ interface QuizEditorProps {
   onShowNotification: (msg: string, type?: 'success' | 'warning' | 'error') => void;
 }
 
-const SAMPLE_TEXT = `## Transferable skills
+const SAMPLE_TEXT = `Bài 1: Chọn từ thích hợp điền vào chỗ trống
+1. She was tired, ___ she went to bed early. (but / so / because)
+2. I don't know ___ he will come or not. (if / unless / although)
+3. He is very kind ___ everyone likes him. (so / because / although)
+4. I will wait here ___ you come back. (until / but / nor)
+5. She ___ her brother are studying abroad. (both / either / neither)
 
-1 Complete these comments by interviewers using the words and phrases in the box.
+Bài 2: Nối hai câu sử dụng liên từ thích hợp
+1. She didn't go to school. It was raining. (because)
+2. I like chocolate. My sister likes vanilla. (but)
+3. He must study hard. He will fail the exam. (or)
+4. We can go to the beach. We can go to the mountains. (either...or)
+5. He is rich. He is not happy. (although)
 
-can-do attitude communication skills critical thinking determination integrity set goals team player think outside the box
-
-1 His ideas were creative and really innovative so he can obviously ___.
-
-2 I liked the way she worked with the other candidates so she is clearly a(n) ___.
-
-3 He has excellent ___. The presentation was first class and he answered the questions really clearly.
-
-4 She used ___ brilliantly. I thought she evaluated the three options in the case study carefully before deciding which one to choose.
-
-5 She has a lot of ___. This is the third time she's applied for a position in Marketing so she hasn't stopped trying.
-
-6 I like the way she has monthly objectives for herself which shows she can ___.
-
-7 I don't think he will complain about work. He seems prepared to try anything. He has a real ___.
-
-8 He is completely honest and straightforward. He shows great ___.
-Answer: 1. think outside the box | 2. team player | 3. communication skills | 4. critical thinking | 5. determination | 6. set goals | 7. can-do attitude | 8. integrity`;
+Bài 3: Hãy xác định trong mỗi câu sau đâu là mệnh đề độc lập (viết "ID") và đâu là mệnh đề phụ thuộc (viết "DP").
+1. Although she was tired.
+2. She went to bed early.
+3. Because he didn't study for the test.
+4. They are watching a movie.
+5. While I was cooking dinner.
+6. We will go to the beach tomorrow.
+7. Since it was raining heavily.
+8. The teacher gave us homework.
+9. Unless you finish your work.
+10. He enjoys playing football.`;
 
 export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
   const [rawText, setRawText] = useState(SAMPLE_TEXT);
@@ -172,6 +175,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [editTitle, setEditTitle] = useState('');
   const [editAnswer, setEditAnswer] = useState('');
   const [editType, setEditType] = useState<'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer'>('fill_in_blank');
+  const [editPoints, setEditPoints] = useState<number>(1);
 
   const handleRecallQuiz = async (targetClass: string) => {
     if (
@@ -211,6 +215,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     setEditTitle(q.title);
     setEditAnswer(q.answer || '');
     setEditType(q.type);
+    setEditPoints(q.points || 1);
   };
 
   const handleSaveInlineEdit = (qId: number) => {
@@ -221,6 +226,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
           title: editTitle,
           answer: editAnswer,
           type: editType,
+          points: editPoints,
         };
       }
       return q;
@@ -243,7 +249,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     setRawText(mdLines.join('\n'));
     setEditingQuestionId(null);
-    onShowNotification('✏️ Đã cập nhật câu hỏi trực tiếp trên Bản xem trước!', 'success');
+    onShowNotification('✏️ Đã cập nhật câu hỏi & hệ số điểm trực tiếp trên Bản xem trước!', 'success');
   };
 
   return (
@@ -303,6 +309,21 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Markdown Input & Gemini AI Helper */}
         <div className="space-y-4">
+          {/* Quiz Title Input Field */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-4 shadow-sm space-y-2">
+            <label className="block text-xs font-bold text-slate-800">📌 Tên Bài Tập / Đề Thi:</label>
+            <input
+              type="text"
+              value={appData.quizTitle || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                onUpdateAppData((prev) => ({ ...prev, quizTitle: val }));
+              }}
+              placeholder="Nhập tên bài tập (Ví dụ: Bài Tập Liên Từ & Mệnh Đề)..."
+              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-brand-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+            />
+          </div>
+
           {/* Gemini AI Server Generator Box */}
           <div className="bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-indigo-500/10 border border-amber-300/40 rounded-3xl p-4 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
@@ -433,7 +454,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                         className="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-bold"
                       />
 
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex items-center gap-2 pt-1 flex-wrap">
                         <label className="text-[10px] font-bold text-amber-900">Loại câu hỏi:</label>
                         <select
                           value={editType}
@@ -445,6 +466,16 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                           <option value="true_false">Đúng / Sai</option>
                           <option value="short_answer">Tự luận ngắn</option>
                         </select>
+
+                        <label className="text-[10px] font-bold text-amber-900 ml-2">Điểm câu này:</label>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0.5"
+                          value={editPoints}
+                          onChange={(e) => setEditPoints(parseFloat(e.target.value) || 1)}
+                          className="w-16 p-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-center text-amber-900"
+                        />
                       </div>
 
                       <label className="block text-[10px] font-bold text-amber-900 pt-1">Đáp án đúng:</label>

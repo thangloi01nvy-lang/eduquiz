@@ -20,11 +20,21 @@ export function parseMarkdownQuiz(text: string): { questions: Question[]; sectio
   for (let i = 0; i < lines.length; i++) {
     const rawLine = lines[i];
     const line = rawLine.trim();
+    if (!line) continue;
 
-    // Parse Section Header ## Bài 1: Title
-    if (line.startsWith('## ') || line.startsWith('# ')) {
+    // Recognize Section Headers: e.g. "## Bài 1", "Bài 1:", "Bài 3:", "Phần 1:", "Part 1:"
+    const isSectionHeader =
+      line.startsWith('#') ||
+      /^bài\s*\d+/i.test(line) ||
+      /^phần\s*\d+/i.test(line) ||
+      /^part\s*\d+/i.test(line) ||
+      /^section\s*\d+/i.test(line);
+
+    if (isSectionHeader && !line.match(/^(\d+)[\.\)]\s*/)) {
       if (currentQ) {
-        questions.push(finalizeQuestion(currentQ, qCounter++));
+        const qFinal = finalizeQuestion(currentQ, qCounter++);
+        questions.push(qFinal);
+        currentSectionQuestions.push(qFinal);
         currentQ = null;
       }
       if (currentSectionQuestions.length > 0) {
@@ -64,6 +74,7 @@ export function parseMarkdownQuiz(text: string): { questions: Question[]; sectio
         options: [],
         sectionId: currentSectionId,
         sectionTitle: currentSectionTitle,
+        points: 1,
       };
       continue;
     }
@@ -116,7 +127,7 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
   const title = (q.title || '').trim();
   let type: Question['type'] = q.type || 'short_answer';
 
-  // Detect inline blanks e.g. ___ or [option1/option2]
+  // Detect inline blanks e.g. ___ or [option1/option2] or parenthesized choices (choice1 / choice2)
   const inlineBlanks: Question['inlineBlanks'] = [];
   const matches = [...title.matchAll(/\[(.*?)\]/g)];
   if (matches.length > 0) {
@@ -131,7 +142,16 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     });
   }
 
-  if (title.includes('___')) {
+  // Check parenthesized choices e.g. (but / so / because)
+  const parenMatch = title.match(/\((.*?\/.*?)\)/);
+  if (parenMatch && parenMatch[1]) {
+    const choices = parenMatch[1].split('/').map((c) => c.trim());
+    if (choices.length > 1) {
+      inlineBlanks.push({ placeholder: parenMatch[0], choices, answer: choices[0] });
+    }
+  }
+
+  if (title.includes('___') || title.includes('_')) {
     type = 'fill_in_blank';
     if (inlineBlanks.length === 0) {
       inlineBlanks.push({ answer: q.answer || '' });
@@ -147,5 +167,6 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     inlineBlanks,
     sectionId: q.sectionId || 0,
     sectionTitle: q.sectionTitle || 'Bài tập chung',
+    points: q.points || 1,
   };
 }

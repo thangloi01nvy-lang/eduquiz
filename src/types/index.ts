@@ -27,6 +27,7 @@ export interface Question {
   sectionIndex?: number;
   sectionTitle?: string;
   aiData?: AIData;
+  points?: number;
 }
 
 export interface Section {

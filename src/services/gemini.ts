@@ -52,33 +52,37 @@ export async function gradeQuizWithAI(
     console.warn('AI Grading API fallback:', e);
   }
 
-  // Fallback hybrid grading logic
-  let totalScore = 0;
-  const maxScore = questions.length;
+  // Fallback weighted grading logic (Default 1 point per question, customizable points)
+  let totalEarned = 0;
+  let totalMax = 0;
   const aiFeedbacks: Record<string, string> = {};
 
   questions.forEach((q) => {
-    const userAns = (userAnswers[q.id] || '').trim().toLowerCase();
+    const qWeight = q.points || 1;
+    totalMax += qWeight;
+
+    const userAns = (userAnswers[`q_${q.id}`] || userAnswers[q.id] || '').trim().toLowerCase();
     const correctAns = (q.answer || '').trim().toLowerCase();
 
     if (userAns && correctAns && userAns === correctAns) {
-      totalScore += 1;
-      aiFeedbacks[q.id] = '✅ Hoàn toàn chính xác! Em làm rất tốt!';
+      totalEarned += qWeight;
+      aiFeedbacks[q.id] = `✅ Hoàn toàn chính xác! (+${qWeight} điểm)`;
     } else if (userAns) {
-      // Partial or semantic check fallback
+      // Partial semantic match
       if (correctAns.includes(userAns) || userAns.includes(correctAns)) {
-        totalScore += 0.8;
-        aiFeedbacks[q.id] = `⚠️ Rất gần đúng! Đáp án gợi ý: "${q.answer}".`;
+        const partialEarned = qWeight * 0.8;
+        totalEarned += partialEarned;
+        aiFeedbacks[q.id] = `⚠️ Rất gần đúng! (+${partialEarned} điểm). Đáp án gợi ý: "${q.answer}".`;
       } else {
-        aiFeedbacks[q.id] = `❌ Chưa chính xác. Đáp án đúng là: "${q.answer}".`;
+        aiFeedbacks[q.id] = `❌ Chưa chính xác (0 điểm). Đáp án đúng là: "${q.answer}".`;
       }
     } else {
-      aiFeedbacks[q.id] = `⚪ Chưa trả lời. Đáp án đúng là: "${q.answer}".`;
+      aiFeedbacks[q.id] = `⚪ Chưa trả lời (0 điểm). Đáp án đúng là: "${q.answer}".`;
     }
   });
 
-  const scaledScore = Math.round((totalScore / (maxScore || 1)) * 10 * 10) / 10;
-  const percentage = Math.round((totalScore / (maxScore || 1)) * 100);
+  const percentage = Math.round((totalEarned / (totalMax || 1)) * 100);
+  const scaledScore = Math.round((totalEarned / (totalMax || 1)) * 10 * 10) / 10;
 
   return {
     score: scaledScore,
