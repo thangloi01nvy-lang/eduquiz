@@ -187,6 +187,20 @@
             const tName = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : 'Giáo Viên';
             const inputPass = passEl ? passEl.value.trim() : '';
 
+            const storedPass = localStorage.getItem('eduquiz_teacher_password');
+            if (storedPass && storedPass !== '' && storedPass !== '123456') {
+                if (inputPass !== storedPass) {
+                    if (typeof showNotification === 'function') {
+                        showNotification('❌ Mật khẩu Giáo viên không chính xác!', 'error');
+                    } else {
+                        alert('❌ Mật khẩu Giáo viên không chính xác!');
+                    }
+                    return false;
+                }
+            } else if (inputPass) {
+                localStorage.setItem('eduquiz_teacher_password', inputPass);
+            }
+
             if (typeof isTeacherAuthenticated !== 'undefined') isTeacherAuthenticated = true;
             if (typeof activeTeacherName !== 'undefined') activeTeacherName = tName;
             window.activeTeacherName = tName;
@@ -195,9 +209,6 @@
             sessionStorage.setItem('eduquiz_teacher_name', tName);
             localStorage.setItem('eduquiz_teacher_auth', 'true');
             localStorage.setItem('eduquiz_teacher_name', tName);
-            if (inputPass) {
-                localStorage.setItem('eduquiz_teacher_password', inputPass);
-            }
 
             if (typeof closeTeacherAuthModal === 'function') closeTeacherAuthModal();
             else {
@@ -1707,6 +1718,48 @@
         const BASE_STATIC_CLOUD_URL = 'https://jsonblob.com/api/jsonBlob/019fadc3-e614-7360-a446-7d3d3c3b2c61';
         const CLOUD_QUIZ_URL = localStorage.getItem('eduquiz_active_cloud_url') || BASE_STATIC_CLOUD_URL;
 
+        window.AI_EXPLANATION_DICTIONARY = window.AI_EXPLANATION_DICTIONARY || {
+            1: { grammar: 'Cấu trúc "think outside the box" nghĩa là suy nghĩ sáng tạo, tư duy đột phá.', trans: '1. Ý tưởng của anh ấy rất sáng tạo và đổi mới, vì vậy anh ấy rõ ràng có thể suy nghĩ đột phá (think outside the box).' },
+            2: { grammar: 'Từ "team player" chỉ người có khả năng làm việc nhóm tốt.', trans: '2. Tôi thích cách cô ấy làm việc với các ứng viên khác, vì vậy cô ấy rõ ràng là một người làm việc nhóm tốt (team player).' },
+            3: { grammar: 'Cụm từ "communication skills" dùng để chỉ kỹ năng giao tiếp.', trans: '3. Anh ấy có kỹ năng giao tiếp xuất sắc (communication skills). Bài thuyết trình rất rõ ràng.' },
+            4: { grammar: 'Cụm từ "critical thinking" nghĩa là tư duy phản biện.', trans: '4. Cô ấy đã sử dụng tư duy phản biện (critical thinking) rất tuyệt vời khi đánh giá các lựa chọn.' },
+            5: { grammar: 'Từ "determination" nghĩa là sự quyết tâm, kiên trì.', trans: '5. Cô ấy có rất nhiều sự quyết tâm (determination). Đây là lần thứ ba cô ấy ứng tuyển.' },
+            6: { grammar: 'Cụm từ "set goals" nghĩa là thiết lập mục tiêu.', trans: '6. Tôi thích cách cô ấy có mục tiêu hàng tháng, chứng tỏ cô ấy có thể tự đặt mục tiêu (set goals).' },
+            7: { grammar: 'Cụm từ "can-do attitude" nghĩa là thái độ sẵn sàng làm việc, tích cực.', trans: '7. Cô ấy có thái độ làm việc thực sự tích cực (can-do attitude).' },
+            8: { grammar: 'Từ "integrity" nghĩa là sự liêm chính, trung thực.', trans: '8. Anh ấy thể hiện sự liêm chính (integrity) tuyệt đối trong công việc.' }
+        };
+
+        function safeParseMarkdown(text) {
+            if (!text) return '';
+            try {
+                if (typeof window.marked !== 'undefined' && typeof window.marked.parseInline === 'function') {
+                    return window.marked.parseInline(text);
+                }
+            } catch(e) { console.warn('safeParseMarkdown fallback:', e); }
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/___/g, '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeQuotes(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        }
+
         const SAMPLE_DATASETS = {
             multi_type: `## Transferable skills
 
@@ -2137,8 +2190,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             const studentClass = (activeStudentInfo.className || '').trim();
             if (!studentClass || studentClass.toLowerCase() === 'tự do') return false;
 
-            const normTarget = targetClass.toLowerCase().replace(/\s+/g, ' ');
-            const normStudent = studentClass.toLowerCase().replace(/\s+/g, ' ');
+            const normTarget = normalizeClassName(targetClass);
+            const normStudent = normalizeClassName(studentClass);
 
             return normStudent === normTarget;
         }
@@ -3676,7 +3729,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         function normalizeClassName(name) {
             if (!name || typeof name !== 'string') return '';
-            let norm = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            let norm = name.trim().toLowerCase().replace(/[\s\-_–—]+/g, '');
             norm = norm.replace(/\b0+(\d+)\b/g, '$1');
             return norm;
         }
@@ -5358,7 +5411,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                             </div>
                             <div>
                                 <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">TRANG BÀI TẬP SỐ ${q.sectionIndex + 1} / ${appData.sections.length}</span>
-                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(q.sectionTitle)}</h4>
+                                <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${safeParseMarkdown(q.sectionTitle)}</h4>
                             </div>
                         </div>
                         <button type="button" onclick="openBulkSectionEditorModal(${q.sectionIndex})" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-amber-950 rounded-xl font-bold text-xs shadow transition flex items-center gap-1.5 shrink-0">
@@ -5371,7 +5424,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 const card = document.createElement('div');
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4";
                 
-                let titleHtml = marked.parseInline(q.title || '');
+                let titleHtml = safeParseMarkdown(q.title || '');
 
                 let html = `
                     <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
@@ -5404,7 +5457,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         const isCorrect = q.answer && q.answer.toUpperCase() === opt.key;
                         html += `
                             <div class="p-3.5 rounded-2xl border ${isCorrect ? 'border-emerald-500 bg-emerald-50 text-emerald-900 font-bold ring-2 ring-emerald-200' : 'border-slate-200 bg-white text-slate-700'} flex items-center justify-between text-sm">
-                                <span><b>${opt.key}.</b> ${marked.parseInline(opt.text)}</span>
+                                <span><b>${opt.key}.</b> ${safeParseMarkdown(opt.text)}</span>
                                 ${isCorrect ? '<span class="text-xs bg-emerald-600 text-white px-2 py-0.5 rounded-full"><i class="fa-solid fa-check"></i> Đúng</span>' : ''}
                             </div>
                         `;
@@ -5455,6 +5508,33 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
         // ACCURATE & PEDAGOGICAL GRADING ENGINE
         function gradeSingleQuestion(q, studentAnswersMap) {
+            if (!q) return { isCorrect: false, userVal: '' };
+
+            // MULTI-BLANK ACCURATE EVALUATION ENGINE
+            if (Array.isArray(q.inlineBlanks) && q.inlineBlanks.length > 1) {
+                let allCorrect = true;
+                let userVals = [];
+                for (let i = 0; i < q.inlineBlanks.length; i++) {
+                    const rawVal = studentAnswersMap[`q_${q.id}_blank_${i}`] || studentAnswersMap[`q_${q.id}_${i}`] || '';
+                    const uVal = rawVal.trim();
+                    userVals.push(uVal || '(bỏ trống)');
+
+                    const expVal = q.inlineBlanks[i].answer || '';
+                    const cleanU = uVal.toLowerCase().replace(/[’`']/g, "'").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
+                    const cleanE = expVal.toLowerCase().replace(/[’`']/g, "'").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ").replace(/\s+/g, " ").trim();
+
+                    let blankCorrect = (cleanU !== '' && cleanU === cleanE);
+                    if (!blankCorrect && expVal.includes('/')) {
+                        const slashParts = expVal.split('/').map(p => p.toLowerCase().replace(/[’`']/g, "'").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim());
+                        if (slashParts.includes(cleanU)) blankCorrect = true;
+                    }
+                    if (!blankCorrect) {
+                        allCorrect = false;
+                    }
+                }
+                return { isCorrect: allCorrect, userVal: userVals.join(' | ') };
+            }
+
             const rawUserVal = studentAnswersMap[`q_${q.id}`] || studentAnswersMap[`q_${q.id}_blank_0`] || '';
             const userVal = rawUserVal.trim();
 
@@ -5637,7 +5717,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     </div>
                     <div>
                         <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full uppercase tracking-wider">BÀI TẬP ${activeSectionIndex + 1} / ${appData.sections.length} (${currentSec.questions ? currentSec.questions.length : 0} câu)</span>
-                        <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${marked.parseInline(currentSec.title)}</h4>
+                        <h4 class="font-heading font-bold text-base sm:text-lg text-white mt-0.5">${safeParseMarkdown(currentSec.title)}</h4>
                     </div>
                 </div>
                 ${currentSecWords.length > 0 ? `
@@ -5657,7 +5737,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 card.className = "question-card bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4 transition duration-200";
                 card.id = `question-card-${q.id}`;
 
-                let titleHtml = marked.parseInline(q.title || '');
+                let titleHtml = safeParseMarkdown(q.title || '');
 
                 // DYNAMIC RECONSTRUCTION SAFETY NET FOR INLINE BLANKS & SLASH OPTIONS (E.G. ID/DP)
                 if ((!q.inlineBlanks || q.inlineBlanks.length === 0) && q.title) {
@@ -5667,7 +5747,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         if (q.title.includes('/')) {
                             q.title = q.title.replace(/(\b[a-zA-Z-]+\s*\/\s*[a-zA-Z-]+\b)/g, '[$1]');
                         }
-                        titleHtml = marked.parseInline(q.title);
+                        titleHtml = safeParseMarkdown(q.title);
                     }
                     const matches = [...q.title.matchAll(/\[(.*?)\]/g)];
                     if (matches.length > 0) {
@@ -5691,7 +5771,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                     }];
                     if (!q.title.includes('[ID/DP]') && !q.title.includes('[ID / DP]')) {
                         q.title += ' [ID/DP]';
-                        titleHtml = marked.parseInline(q.title);
+                        titleHtml = safeParseMarkdown(q.title);
                     }
                 }
 
@@ -5794,7 +5874,7 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         html += `
                             <button onclick="selectOption(${q.id}, '${opt.key}')" ${isSubmitted ? 'disabled' : ''}
                                 class="choice-card text-left p-4 rounded-2xl border ${isSelected ? 'border-brand-500 bg-brand-50 font-semibold text-brand-900 ring-2 ring-brand-200' : 'border-slate-200 bg-white text-slate-700'} flex items-center justify-between w-full">
-                                <span><b>${opt.key}.</b> ${marked.parseInline(opt.text)}</span>
+                                <span><b>${opt.key}.</b> ${safeParseMarkdown(opt.text)}</span>
                             </button>
                         `;
                     });
