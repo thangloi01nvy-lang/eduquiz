@@ -830,8 +830,8 @@
                             <p class="text-xs text-brand-100">Nhấp chuột 1 chạm vào bất kỳ nút nào bên dưới, lớp mới sẽ tự động nảy ra ngay trước mắt Thầy/Cô!</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button onclick="createNewClass('Lớp Teen 4 - 04', 'Khóa Teen 4')" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold text-xs rounded-xl shadow-md transition">
-                                <i class="fa-solid fa-plus mr-1"></i> + Lớp Teen 4 - 04
+                            <button onclick="createNewClass('Lớp Teen 4', 'Khóa Teen 4')" class="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-amber-950 font-bold text-xs rounded-xl shadow-md transition">
+                                <i class="fa-solid fa-plus mr-1"></i> + Lớp Teen 4
                             </button>
                             <button onclick="createNewClass('Lớp IELTS K15', 'Lớp IELTS')" class="px-4 py-2 bg-white hover:bg-slate-100 text-brand-900 font-bold text-xs rounded-xl shadow-md transition">
                                 <i class="fa-solid fa-plus mr-1"></i> + Lớp IELTS K15
@@ -2087,11 +2087,11 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                 return appData.classAssignments[rawName];
             }
 
-            // Level 2: Normalized match (lowercase & single-space trimmed)
+            // Level 2: Normalized match (lowercase, single-space trimmed, and zero-padded number normalized)
             if (rawName) {
-                const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+                const normStudent = normalizeClassName(rawName);
                 for (let key in appData.classAssignments) {
-                    const normKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
+                    const normKey = normalizeClassName(key);
                     if (normKey === normStudent && appData.classAssignments[key] && appData.classAssignments[key].questions && appData.classAssignments[key].questions.length > 0) {
                         return appData.classAssignments[key];
                     }
@@ -2113,8 +2113,8 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
 
             // Level 4: Check if targetClass matches studentClassName
             if (rawName && appData.quizTargetClass) {
-                const normTarget = appData.quizTargetClass.trim().toLowerCase().replace(/\s+/g, ' ');
-                const normStudent = rawName.toLowerCase().replace(/\s+/g, ' ');
+                const normTarget = normalizeClassName(appData.quizTargetClass);
+                const normStudent = normalizeClassName(rawName);
                 if (normTarget === normStudent && appData.currentQuestions && appData.currentQuestions.length > 0) {
                     return {
                         quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
@@ -3674,17 +3674,45 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
             updateBadges();
         }
 
+        function normalizeClassName(name) {
+            if (!name || typeof name !== 'string') return '';
+            let norm = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            norm = norm.replace(/\b0+(\d+)\b/g, '$1');
+            return norm;
+        }
+
         function sanitizeClassesData() {
             if (typeof appData === 'undefined' || !appData || typeof appData !== 'object') appData = {};
             if (!Array.isArray(appData.classes)) appData.classes = [];
+
+            const seenNorm = new Set();
+            const cleanClasses = [];
+
             appData.classes.forEach(c => {
                 if (c && typeof c === 'object') {
                     if (!c.id) c.id = 'class_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
                     if (!c.name) c.name = 'Lớp chưa đặt tên';
                     if (!c.desc) c.desc = 'Lớp học mới';
                     if (!Array.isArray(c.students)) c.students = [];
+
+                    const norm = normalizeClassName(c.name);
+                    if (!seenNorm.has(norm)) {
+                        seenNorm.add(norm);
+                        cleanClasses.push(c);
+                    } else {
+                        const target = cleanClasses.find(tc => normalizeClassName(tc.name) === norm);
+                        if (target && Array.isArray(c.students)) {
+                            if (!Array.isArray(target.students)) target.students = [];
+                            c.students.forEach(st => {
+                                if (st && st.id && !target.students.some(ts => ts.id === st.id)) {
+                                    target.students.push(st);
+                                }
+                            });
+                        }
+                    }
                 }
             });
+            appData.classes = cleanClasses;
         }
 
         function createNewClass(passedName, passedDesc) {
