@@ -341,17 +341,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     );
   }
 
-  const handleFetchLatestFromCloud = async () => {
-    onShowNotification('🔄 Đang tải bài tập mới nhất từ Giáo viên...', 'warning');
-    const latestData = await fetchServerData();
-    if (latestData) {
-      onUpdateAppData(() => latestData);
-      onShowNotification('🔄 ĐÃ TẢI THÀNH CÔNG BÀI TẬP MỚI NHẤT TỪ GIÁO VIÊN!', 'success');
-    } else {
-      onShowNotification('⚠️ Chưa thể tải bài từ Đám mây. Vui lòng kiểm tra kết nối mạng!', 'error');
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Student Banner */}
