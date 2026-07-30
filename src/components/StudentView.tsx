@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
-import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload } from '../types';
+import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord } from '../types';
 import { normalizeClassName, safeParseMarkdown } from '../utils/normalize';
-import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData } from '../services/storage';
+import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
 import { explainQuestionWithGemini } from '../services/gemini';
 import confetti from 'canvas-confetti';
@@ -47,11 +47,11 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       return;
     }
 
-    const newFeedback = {
+    const newFeedback: FeedbackRecord = {
       id: `fb_${Date.now()}`,
-      author: feedbackName.trim() || activeStudent?.studentName || 'Học sinh',
+      studentName: feedbackName.trim() || activeStudent?.studentName || 'Học sinh',
       className: activeStudent?.className || 'Chưa rõ',
-      content: feedbackContent.trim(),
+      message: feedbackContent.trim(),
       createdAt: new Date().toISOString(),
     };
 
