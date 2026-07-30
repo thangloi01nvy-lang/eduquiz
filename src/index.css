@@ -1,0 +1,26 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-900 font-body antialiased selection:bg-brand-500 selection:text-white min-h-screen;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes bounceShort {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-bounce-short {
+  animation: bounceShort 1s ease-in-out infinite;
+}

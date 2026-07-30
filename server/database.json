@@ -1,0 +1,25 @@
+{
+  "quizTitle": "Đề Ôn Tập Thi Đội Tách React",
+  "quizLevel": "B1",
+  "quizTargetClass": "all",
+  "currentQuestions": [],
+  "sections": [],
+  "wordBank": [],
+  "classes": [
+    {
+      "id": "c_teen4",
+      "name": "Teen 4",
+      "desc": "Lớp học mới",
+      "students": [
+        {
+          "id": "s1",
+          "name": "Nguyễn Văn A"
+        }
+      ]
+    }
+  ],
+  "classAssignments": {},
+  "quizLibrary": [],
+  "grades": [],
+  "feedbacks": []
+}
