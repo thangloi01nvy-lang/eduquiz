@@ -3176,11 +3176,19 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         if (data.isPublished !== undefined) {
                             isQuizPublishedToStudents = data.isPublished;
                         }
-                        if (data.classAssignments && Object.keys(data.classAssignments).length > 0) {
-                            appData.classAssignments = data.classAssignments;
-                        } else if (!appData.classAssignments) {
-                            appData.classAssignments = {};
+                        if (!appData.classAssignments) appData.classAssignments = {};
+                        if (data.classAssignments && typeof data.classAssignments === 'object') {
+                            for (let cName in data.classAssignments) {
+                                const cloudItem = data.classAssignments[cName];
+                                if (cloudItem && cloudItem.questions && cloudItem.questions.length > 0) {
+                                    // Preserve local assignment if already present and valid; otherwise use cloud item
+                                    if (!appData.classAssignments[cName] || !appData.classAssignments[cName].questions || appData.classAssignments[cName].questions.length === 0) {
+                                        appData.classAssignments[cName] = cloudItem;
+                                    }
+                                }
+                            }
                         }
+
                         if (Array.isArray(data.deletedClasses)) {
                             if (!appData.deletedClasses) appData.deletedClasses = [];
                             data.deletedClasses.forEach(d => {
@@ -3199,39 +3207,28 @@ Explanation: "please let me know" là mệnh đề độc lập chính (ID) th�
                         }
 
                         if (Array.isArray(data.classes)) {
-                            if (!appData.classes) appData.classes = [];
-                            data.classes.forEach(cloudC => {
-                                if (!cloudC || !cloudC.name) return;
-                                const normCloud = cloudC.name.trim().toLowerCase();
-                                if (deletedList.includes(normCloud)) return;
+                            if (!appData.classes || appData.classes.length === 0) {
+                                appData.classes = data.classes.filter(c => c && c.name && !deletedList.includes(c.name.trim().toLowerCase()));
+                            } else {
+                                // Local has classes: only merge student rosters into existing matching local classes
+                                data.classes.forEach(cloudC => {
+                                    if (!cloudC || !cloudC.name) return;
+                                    const normCloud = cloudC.name.trim().toLowerCase();
+                                    if (deletedList.includes(normCloud)) return;
 
-                                const localC = appData.classes.find(lc => lc && lc.name && lc.name.trim().toLowerCase() === normCloud);
-                                if (!localC) {
-                                    appData.classes.push(cloudC);
-                                } else if (Array.isArray(cloudC.students) && cloudC.students.length > 0) {
-                                    if (!Array.isArray(localC.students)) localC.students = [];
-                                    cloudC.students.forEach(cs => {
-                                        if (cs && cs.id && !localC.students.some(ls => ls.id === cs.id)) {
-                                            localC.students.push(cs);
-                                        }
-                                    });
-                                }
-                            });
+                                    const localC = appData.classes.find(lc => lc && lc.name && lc.name.trim().toLowerCase() === normCloud);
+                                    if (localC && Array.isArray(cloudC.students) && cloudC.students.length > 0) {
+                                        if (!Array.isArray(localC.students)) localC.students = [];
+                                        cloudC.students.forEach(cs => {
+                                            if (cs && cs.id && !localC.students.some(ls => ls.id === cs.id)) {
+                                                localC.students.push(cs);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
 
                             appData.classes = appData.classes.filter(c => c && c.name && !deletedList.includes(c.name.trim().toLowerCase()));
-                            saveStorage();
-                            renderClassesList();
-                            updateTargetClassSelectOptions();
-                        } else if (data.classAssignments && Object.keys(data.classAssignments).length > 0) {
-                            const extractedClasses = Object.keys(data.classAssignments)
-                                .filter(cName => !deletedList.includes(cName.trim().toLowerCase()))
-                                .map(cName => ({
-                                    id: 'class_' + cName.replace(/\s+/g, '_'),
-                                    name: cName,
-                                    desc: 'Lớp học từ Giáo viên',
-                                    students: []
-                                }));
-                            appData.classes = extractedClasses;
                             saveStorage();
                             renderClassesList();
                             updateTargetClassSelectOptions();
