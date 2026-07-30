@@ -262,27 +262,27 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
                 {selectedClassObj && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn Tên Học Sinh:</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn hoặc Nhập Tên Học Sinh:</label>
                     <select
                       value={selectedStudentId}
                       onChange={(e) => setSelectedStudentId(e.target.value)}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
-                      <option value="">-- Chọn Tên Em --</option>
+                      <option value="">-- Chọn Tên Em Trong Danh Sách --</option>
                       {selectedClassObj.students?.map((s) => (
                         <option key={s.id} value={s.id}>
                           👤 {s.name}
                         </option>
                       ))}
-                      <option value="manual_st">➕ Tên em không có trong danh sách (Tự nhập)</option>
+                      <option value="manual_st">➕ Tên em không có trong danh sách (Tự gõ tên bên dưới)</option>
                     </select>
 
-                    {selectedStudentId === 'manual_st' && (
+                    {(selectedStudentId === 'manual_st' || !selectedClassObj.students || selectedClassObj.students.length === 0) && (
                       <input
                         type="text"
                         value={manualStudentName}
                         onChange={(e) => setManualStudentName(e.target.value)}
-                        placeholder="Nhập tên của em..."
+                        placeholder="✍️ Nhập họ và tên của em (Ví dụ: Nguyễn Văn A)..."
                         className="w-full mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                       />
                     )}

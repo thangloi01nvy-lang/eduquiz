@@ -75,8 +75,8 @@ export function sanitizeClassesData(classes: ClassModel[]): ClassModel[] {
     }
   });
 
-  if (!cleanClasses.some((c) => normalizeClassName(c.name) === 'teen4')) {
-    cleanClasses.unshift({
+  const defaultClasses: ClassModel[] = [
+    {
       id: 'c_teen4',
       name: 'Teen 4',
       desc: 'Lớp Teen 4',
@@ -85,8 +85,19 @@ export function sanitizeClassesData(classes: ClassModel[]): ClassModel[] {
         { id: 's2', name: 'Trần Thị B' },
         { id: 's3', name: 'Lê Văn C' }
       ],
-    });
-  }
+    },
+    { id: 'c_teen1', name: 'Teen 1', desc: 'Lớp Teen 1', students: [{ id: 's4', name: 'Học sinh 1' }] },
+    { id: 'c_teen2', name: 'Teen 2', desc: 'Lớp Teen 2', students: [{ id: 's5', name: 'Học sinh 2' }] },
+    { id: 'c_teen3', name: 'Teen 3', desc: 'Lớp Teen 3', students: [{ id: 's6', name: 'Học sinh 3' }] },
+    { id: 'c_toeic', name: 'TOEIC', desc: 'Lớp TOEIC', students: [{ id: 's7', name: 'Học sinh TOEIC' }] },
+    { id: 'c_free', name: 'Học sinh tự do chưa xếp lớp', desc: 'Học sinh tự do', students: [] },
+  ];
+
+  defaultClasses.forEach((def) => {
+    if (!cleanClasses.some((c) => normalizeClassName(c.name) === normalizeClassName(def.name))) {
+      cleanClasses.push(def);
+    }
+  });
 
   return cleanClasses;
 }
