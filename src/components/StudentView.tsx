@@ -37,6 +37,37 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   const [aiExplanations, setAiExplanations] = useState<Record<number, string>>({});
   const [loadingAiExplainId, setLoadingAiExplainId] = useState<number | null>(null);
 
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackName, setFeedbackName] = useState('');
+  const [feedbackContent, setFeedbackContent] = useState('');
+
+  const handleSubmitFeedback = async () => {
+    if (!feedbackContent.trim()) {
+      onShowNotification('⚠️ Vui lòng nhập nội dung góp ý!', 'warning');
+      return;
+    }
+
+    const newFeedback = {
+      id: `fb_${Date.now()}`,
+      author: feedbackName.trim() || activeStudent?.studentName || 'Học sinh',
+      className: activeStudent?.className || 'Chưa rõ',
+      content: feedbackContent.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedData: AppData = {
+      ...appData,
+      feedbacks: [newFeedback, ...(appData.feedbacks || [])],
+    };
+
+    onUpdateAppData(() => updatedData);
+    await syncWithServer(updatedData);
+
+    setFeedbackContent('');
+    setShowFeedbackModal(false);
+    onShowNotification('💬 Đã gửi góp ý / phản hồi thành công! Cảm ơn ý kiến của em.', 'success');
+  };
+
   // Selected class & student objects
   const selectedClassObj = appData.classes?.find((c) => c.id === selectedClassId);
 
@@ -68,46 +99,51 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     return () => clearInterval(intervalId);
   }, []);
 
-  // Save student session
+  // Save student session with STRICT STUDENT CODE VERIFICATION
   const handleStudentLogin = () => {
-    let finalClassName = '';
-    let finalStudentName = '';
-    let finalClassId = '';
-    let finalStudentId = '';
-
     if (!selectedClassObj) {
-      onShowNotification('⚠️ Vui lòng chọn Lớp học do Giáo viên tạo!', 'warning');
+      onShowNotification('⚠️ Vui lòng chọn Lớp học của em!', 'warning');
       return;
     }
-    finalClassName = selectedClassObj.name;
-    finalClassId = selectedClassObj.id;
 
-    if (selectedStudentId === 'manual_st' || !selectedStudentId) {
-      if (!studentCodeInput.trim()) {
-        onShowNotification('⚠️ Vui lòng nhập Mã Học Sinh hoặc Tên của em!', 'warning');
-        return;
-      }
-      finalStudentName = studentCodeInput.trim();
-      finalStudentId = `st_${finalStudentName.toLowerCase().replace(/\s+/g, '_')}`;
-    } else {
-      const stObj = selectedClassObj.students?.find((s) => s.id === selectedStudentId);
-      if (!stObj) {
-        onShowNotification('⚠️ Vui lòng chọn hoặc nhập Mã Học Sinh của em!', 'warning');
-        return;
-      }
-      finalStudentName = stObj.name;
-      finalStudentId = stObj.id;
+    const inputClean = studentCodeInput.trim().toLowerCase();
+    if (!inputClean) {
+      onShowNotification('⚠️ Vui lòng nhập đúng Mã Số Học Viên do Giáo viên cấp!', 'warning');
+      return;
     }
 
+    // Verify if studentCodeInput matches a student in the class roster
+    const roster = selectedClassObj.students || [];
+    const matchedStudent = roster.find((s) => {
+      const sCode = (s.code || '').trim().toLowerCase();
+      const sId = (s.id || '').trim().toLowerCase();
+      const sName = (s.name || '').trim().toLowerCase();
+      return (sCode && sCode === inputClean) || (sId && sId === inputClean) || (sName && sName === inputClean);
+    });
+
+    // IF ROSTER HAS STUDENTS: REQUIRE EXACT CODE MATCH!
+    if (roster.length > 0 && !matchedStudent) {
+      onShowNotification(
+        `❌ MÃ SỐ HỌC VIÊN KHÔNG CHÍNH XÁC! Lớp "${selectedClassObj.name}" không có mã học viên này. Vui lòng kiểm tra mã số do Giáo viên cấp.`,
+        'error'
+      );
+      return;
+    }
+
+    const finalStudentName = matchedStudent ? matchedStudent.name : studentCodeInput.trim();
+    const finalStudentId = matchedStudent ? matchedStudent.id : `st_${Date.now()}`;
+
     const info: ActiveStudentInfo = {
-      classId: finalClassId,
-      className: finalClassName,
+      classId: selectedClassObj.id,
+      className: selectedClassObj.name,
       studentId: finalStudentId,
       studentName: finalStudentName,
     };
 
     setActiveStudent(info);
     localStorage.setItem('eduquiz_active_student', JSON.stringify(info));
+    onShowNotification(`🎉 Xin chào học sinh ${finalStudentName}! Đăng nhập thành công.`, 'success');
+  };
 
     // Load auto-draft
     const draft = loadStudentDraft(finalStudentId);
@@ -578,6 +614,72 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
               <span>NỘP BÀI TẬP</span>
             </button>
           )}
+        </div>
+      )}
+
+      {/* Floating Feedback Button */}
+      <button
+        onClick={() => setShowFeedbackModal(true)}
+        className="fixed bottom-6 right-6 z-30 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-bold text-xs rounded-full shadow-2xl flex items-center gap-2 border border-amber-300 transition hover:scale-105"
+      >
+        <span>💬 Góp Ý & Phản Hồi</span>
+      </button>
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full shadow-2xl space-y-4 animate-scale-up">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="font-heading font-black text-base text-slate-900 flex items-center gap-2">
+                💬 Gửi Ý Kiến Góp Ý / Phản Hồi
+              </h3>
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Tên của em (hoặc Mã số):</label>
+                <input
+                  type="text"
+                  value={feedbackName}
+                  onChange={(e) => setFeedbackName(e.target.value)}
+                  placeholder={activeStudent?.studentName || 'Họ và tên của em...'}
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Nội dung góp ý / phản hồi:</label>
+                <textarea
+                  rows={4}
+                  value={feedbackContent}
+                  onChange={(e) => setFeedbackContent(e.target.value)}
+                  placeholder="Gõ ý kiến góp ý của em cho Giáo viên hoặc Trung tâm tại đây..."
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => setShowFeedbackModal(false)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSubmitFeedback}
+                className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-amber-950 rounded-xl font-bold text-xs shadow"
+              >
+                Gửi Góp Ý
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

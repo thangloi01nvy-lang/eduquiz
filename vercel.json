@@ -4,6 +4,7 @@
   "rewrites": [
     { "source": "/api/data", "destination": "/api/data.js" },
     { "source": "/api/submissions", "destination": "/api/submissions.js" },
+    { "source": "/api/ai/explain-question", "destination": "/api/ai/explain-question.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
