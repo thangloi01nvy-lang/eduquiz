@@ -15,6 +15,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const [newClassDesc, setNewClassDesc] = useState('');
   const [addingStudentClassId, setAddingStudentClassId] = useState<string | null>(null);
   const [studentNameInput, setStudentNameInput] = useState('');
+  const [studentCodeInput, setStudentCodeInput] = useState('');
 
   const handleCreateClass = () => {
     if (!newClassName.trim()) {
@@ -36,7 +37,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
       students: [],
     };
 
-    const updatedClasses = sanitizeClassesData([newClass, ...(appData.classes || [])]);
+    const updatedClasses = sanitizeClassesData([newClass, ...(appData.classes || [])], appData.deletedClasses || []);
     const updatedData: AppData = {
       ...appData,
       classes: updatedClasses,
@@ -47,7 +48,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
 
     setNewClassName('');
     setNewClassDesc('');
-    onShowNotification(`🎉 Đã tạo lớp "${newClass.name}" & ĐỒNG BỘ CLOUD thành công! Học sinh ở bất cứ đâu mở web sẽ thấy ngay lớp này.`, 'success');
+    onShowNotification(`🎉 Đã tạo lớp "${newClass.name}" & ĐỒNG BỘ CLOUD thành công!`, 'success');
   };
 
   const handleDeleteClass = (classId: string, className: string) => {
@@ -72,11 +73,15 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const handleAddStudent = (classId: string) => {
     if (!studentNameInput.trim()) return;
 
+    const autoCode = `HV${Math.floor(100 + Math.random() * 900)}`;
+    const finalCode = studentCodeInput.trim() || autoCode;
+
     const updatedClasses = (appData.classes || []).map((c) => {
       if (c.id === classId) {
         const newStudent = {
           id: `st_${Date.now()}`,
           name: studentNameInput.trim(),
+          code: finalCode,
         };
         return { ...c, students: [...(c.students || []), newStudent] };
       }
@@ -88,20 +93,21 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
     syncWithServer(updatedData);
 
     setStudentNameInput('');
+    setStudentCodeInput('');
     setAddingStudentClassId(null);
-    onShowNotification('👤 Đã thêm học sinh mới & ĐỒNG BỘ CLOUD thành công!', 'success');
+    onShowNotification(`👤 Đã thêm học sinh (${finalCode}) & ĐỒNG BỘ CLOUD thành công!`, 'success');
   };
 
   const handleDeleteStudent = (classId: string, studentId: string) => {
-    onUpdateAppData((prev) => {
-      const updatedClasses = (prev.classes || []).map((c) => {
-        if (c.id === classId) {
-          return { ...c, students: (c.students || []).filter((st) => st.id !== studentId) };
-        }
-        return c;
-      });
-      return { ...prev, classes: updatedClasses };
+    const updatedClasses = (appData.classes || []).map((c) => {
+      if (c.id === classId) {
+        return { ...c, students: (c.students || []).filter((st) => st.id !== studentId) };
+      }
+      return c;
     });
+    const updatedData: AppData = { ...appData, classes: updatedClasses };
+    onUpdateAppData(() => updatedData);
+    syncWithServer(updatedData);
   };
 
   return (
@@ -109,74 +115,80 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-indigo-900 via-brand-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl border border-indigo-800 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-indigo-300 font-bold text-xs uppercase tracking-wider">
-            <School className="w-4 h-4" /> QUẢN LÝ DANH SÁCH LỚP HỌC & HỌC SINH
-          </div>
-          <h2 className="text-xl sm:text-2xl font-heading font-black text-white mt-1">
-            Quản Lý Lớp Học Tập Trung ({appData.classes?.length || 0} lớp)
-          </h2>
+          <h1 className="text-2xl font-heading font-black flex items-center gap-2">
+            <School className="w-7 h-7 text-amber-400" /> Quản Lý Danh Sách Lớp Học
+          </h1>
+          <p className="text-xs text-indigo-200 mt-1">
+            Tạo lớp, cấp Mã Học Viên và phân bổ đề thi. Dữ liệu được đồng bộ Cloud thời gian thực.
+          </p>
         </div>
       </div>
 
-      {/* Quick Add Class Form */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4">
-        <h3 className="font-heading font-bold text-sm text-slate-900 flex items-center gap-2">
-          <Plus className="w-4 h-4 text-brand-600" /> Tạo Lớp Học Mới Tức Thời
-        </h3>
-
+      {/* Class Creation Form */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <h2 className="text-sm font-heading font-bold text-slate-800 flex items-center gap-2">
+          <Plus className="w-4 h-4 text-brand-600" /> Thêm Lớp Học Mới
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input
             type="text"
             value={newClassName}
             onChange={(e) => setNewClassName(e.target.value)}
-            placeholder="Tên lớp (VD: Teen 4, TOEIC Sáng...)"
-            className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
+            placeholder="Tên lớp (Ví dụ: Teen 4, TOEIC)..."
+            className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
           />
           <input
             type="text"
             value={newClassDesc}
             onChange={(e) => setNewClassDesc(e.target.value)}
-            placeholder="Ghi chú (tùy chọn)"
-            className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none"
+            placeholder="Mô tả ngắn về lớp..."
+            className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
           />
           <button
             onClick={handleCreateClass}
-            className="py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2"
+            className="py-3 px-5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Tạo Lớp Mới</span>
+            <span>Tạo Lớp & Đồng Bộ Cloud</span>
           </button>
         </div>
       </div>
 
-      {/* Class Cards Grid */}
+      {/* Class List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {appData.classes?.map((c) => {
-          const assignment = appData.classAssignments?.[c.name];
+          const assignedQuiz = appData.classAssignments?.[c.name];
 
           return (
-            <div key={c.id} className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4 flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div key={c.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+              <div className="p-5 space-y-4">
+                <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-heading font-bold text-base text-slate-900">{c.name}</h4>
-                    <p className="text-xs text-slate-500">{c.desc || 'Chưa có ghi chú'} • {c.students?.length || 0} học sinh</p>
+                    <h3 className="text-base font-heading font-bold text-slate-900 flex items-center gap-1.5">
+                      🏫 {c.name}
+                    </h3>
+                    <p className="text-xs text-slate-500">{c.desc || 'Lớp học'}</p>
                   </div>
                   <button
                     onClick={() => handleDeleteClass(c.id, c.name)}
-                    className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                    title="Xóa lớp học"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Assignment Status Badge */}
-                {assignment?.quizTitle ? (
+                {/* Assigned Quiz Badge */}
+                {assignedQuiz ? (
                   <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
-                    <div className="font-bold flex items-center gap-1.5 text-emerald-800">
-                      <Send className="w-3.5 h-3.5" /> Đã phát hành đề:
+                    <div className="font-bold flex items-center justify-between">
+                      <span>🟢 Đã Giao Bài Tập:</span>
+                      <span className="px-2 py-0.5 bg-emerald-200 text-emerald-800 text-[10px] rounded-full font-bold">
+                        {assignedQuiz.quizLevel || 'B1'}
+                      </span>
                     </div>
-                    <div className="font-semibold">{assignment.quizTitle} ({assignment.questions?.length || 0} câu)</div>
+                    <p className="font-medium truncate">{assignedQuiz.quizTitle}</p>
+                    <p className="text-[10px] text-emerald-600">{assignedQuiz.questions?.length || 0} câu hỏi</p>
                   </div>
                 ) : (
                   <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 text-xs">
@@ -199,20 +211,29 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                   </div>
 
                   {addingStudentClassId === c.id && (
-                    <div className="flex items-center gap-2 pt-1">
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
                       <input
                         type="text"
                         value={studentNameInput}
                         onChange={(e) => setStudentNameInput(e.target.value)}
-                        placeholder="Tên học sinh mới..."
-                        className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium"
+                        placeholder="Họ và tên học sinh..."
+                        className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium"
                       />
-                      <button
-                        onClick={() => handleAddStudent(c.id)}
-                        className="px-3 py-1.5 bg-brand-600 text-white rounded-lg font-bold text-xs"
-                      >
-                        Thêm
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={studentCodeInput}
+                          onChange={(e) => setStudentCodeInput(e.target.value)}
+                          placeholder="Mã HV (Ví dụ: HV001)..."
+                          className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium"
+                        />
+                        <button
+                          onClick={() => handleAddStudent(c.id)}
+                          className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold text-xs shadow"
+                        >
+                          Thêm
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -221,14 +242,19 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                       <p className="text-[11px] text-slate-400 italic">Chưa có học sinh trong danh sách</p>
                     ) : (
                       c.students?.map((st) => (
-                        <div key={st.id} className="flex items-center justify-between py-1 px-2 hover:bg-slate-50 rounded-lg text-xs">
-                          <span className="font-medium text-slate-800">{st.name}</span>
-                          <button
-                            onClick={() => handleDeleteStudent(c.id, st.id)}
-                            className="text-slate-400 hover:text-rose-600 text-xs"
-                          >
-                            ×
-                          </button>
+                        <div key={st.id} className="flex items-center justify-between py-1.5 px-2.5 hover:bg-slate-50 rounded-xl text-xs border border-slate-100">
+                          <span className="font-bold text-slate-800">{st.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-mono px-2 py-0.5 bg-amber-100 text-amber-900 rounded-full font-bold">
+                              {st.code || `HV${st.id.slice(-3)}`}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteStudent(c.id, st.id)}
+                              className="text-slate-400 hover:text-rose-600 text-xs font-bold"
+                            >
+                              ×
+                            </button>
+                          </div>
                         </div>
                       ))
                     )}

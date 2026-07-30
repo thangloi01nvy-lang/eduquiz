@@ -39,6 +39,7 @@ export interface Section {
 export interface Student {
   id: string;
   name: string;
+  code?: string;
 }
 
 export interface ClassModel {
