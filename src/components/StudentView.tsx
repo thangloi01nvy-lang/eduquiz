@@ -27,9 +27,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   const [selectedClassId, setSelectedClassId] = useState<string>('');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [isManualInput, setIsManualInput] = useState(false);
-  const [manualClassName, setManualClassName] = useState('Teen 4');
-  const [manualStudentName, setManualStudentName] = useState('');
+  const [studentCodeInput, setStudentCodeInput] = useState<string>('');
   const [interactionMode, setInteractionMode] = useState<'drag' | 'dropdown' | 'input'>('drag');
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -69,31 +67,52 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   // Save student session
   const handleStudentLogin = () => {
-    if (!selectedClassObj || !selectedStudentId) {
-      onShowNotification('⚠️ Vui lòng chọn Lớp học và tên Học sinh của em!', 'warning');
+    let finalClassName = '';
+    let finalStudentName = '';
+    let finalClassId = '';
+    let finalStudentId = '';
+
+    if (!selectedClassObj) {
+      onShowNotification('⚠️ Vui lòng chọn Lớp học do Giáo viên tạo!', 'warning');
       return;
     }
+    finalClassName = selectedClassObj.name;
+    finalClassId = selectedClassObj.id;
 
-    const stObj = selectedClassObj.students?.find((s) => s.id === selectedStudentId);
-    if (!stObj) return;
+    if (selectedStudentId === 'manual_st' || !selectedStudentId) {
+      if (!studentCodeInput.trim()) {
+        onShowNotification('⚠️ Vui lòng nhập Mã Học Sinh hoặc Tên của em!', 'warning');
+        return;
+      }
+      finalStudentName = studentCodeInput.trim();
+      finalStudentId = `st_${finalStudentName.toLowerCase().replace(/\s+/g, '_')}`;
+    } else {
+      const stObj = selectedClassObj.students?.find((s) => s.id === selectedStudentId);
+      if (!stObj) {
+        onShowNotification('⚠️ Vui lòng chọn hoặc nhập Mã Học Sinh của em!', 'warning');
+        return;
+      }
+      finalStudentName = stObj.name;
+      finalStudentId = stObj.id;
+    }
 
     const info: ActiveStudentInfo = {
-      classId: selectedClassObj.id,
-      className: selectedClassObj.name,
-      studentId: stObj.id,
-      studentName: stObj.name,
+      classId: finalClassId,
+      className: finalClassName,
+      studentId: finalStudentId,
+      studentName: finalStudentName,
     };
 
     setActiveStudent(info);
     localStorage.setItem('eduquiz_active_student', JSON.stringify(info));
 
     // Load auto-draft
-    const draft = loadStudentDraft(stObj.id);
+    const draft = loadStudentDraft(finalStudentId);
     setAnswers(draft);
     setIsSubmitted(false);
     setScoreResult(null);
 
-    onShowNotification(`🎒 Xin chào ${stObj.name} (${selectedClassObj.name})!`, 'success');
+    onShowNotification(`🎒 Xin chào ${finalStudentName} (${finalClassName})!`, 'success');
   };
 
   const handleStudentLogout = () => {
@@ -246,91 +265,61 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
               <span>🔄 Tải lại Lớp & Đề mới nhất từ Cloud</span>
             </button>
 
-            {/* Mode Switcher */}
-            <div className="flex items-center justify-between text-xs font-bold text-slate-600 pt-1">
-              <span>{isManualInput ? 'Chế độ: Tự Nhập Tên & Lớp' : 'Chế độ: Chọn Danh Sách'}</span>
-              <button
-                onClick={() => setIsManualInput(!isManualInput)}
-                className="text-brand-600 hover:text-brand-700 underline"
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">1. Chọn Lớp Học:</label>
+              <select
+                value={selectedClassId}
+                onChange={(e) => {
+                  setSelectedClassId(e.target.value);
+                  setSelectedStudentId('');
+                }}
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
               >
-                {isManualInput ? 'Chuyển sang Chọn Danh Sách' : '✍️ Tự nhập Tên & Lớp'}
-              </button>
+                <option value="">-- Chọn Lớp Học --</option>
+                {appData.classes?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    🏫 {c.name} ({c.students?.length || 0} học sinh)
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {!isManualInput ? (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">1. Chọn Lớp Học:</label>
-                  <select
-                    value={selectedClassId}
-                    onChange={(e) => {
-                      setSelectedClassId(e.target.value);
-                      setSelectedStudentId('');
-                    }}
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                  >
-                    <option value="">-- Chọn Lớp Học --</option>
-                    {appData.classes?.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        🏫 {c.name} ({c.students?.length || 0} học sinh)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {selectedClassObj && (
+            {selectedClassObj && (
+              <div className="space-y-3">
+                {selectedClassObj.students && selectedClassObj.students.length > 0 && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn hoặc Nhập Tên Học Sinh:</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn Tên Em Trong Danh Sách (Nếu có):</label>
                     <select
                       value={selectedStudentId}
                       onChange={(e) => setSelectedStudentId(e.target.value)}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
-                      <option value="">-- Chọn Tên Em Trong Danh Sách --</option>
-                      {selectedClassObj.students?.map((s) => (
+                      <option value="">-- Chọn Tên Học Sinh --</option>
+                      {selectedClassObj.students.map((s) => (
                         <option key={s.id} value={s.id}>
                           👤 {s.name}
                         </option>
                       ))}
-                      <option value="manual_st">➕ Tên em không có trong danh sách (Tự gõ tên bên dưới)</option>
+                      <option value="manual_st">➕ Tự nhập Mã / Tên Học Sinh bên dưới</option>
                     </select>
-
-                    {(selectedStudentId === 'manual_st' || !selectedClassObj.students || selectedClassObj.students.length === 0) && (
-                      <input
-                        type="text"
-                        value={manualStudentName}
-                        onChange={(e) => setManualStudentName(e.target.value)}
-                        placeholder="✍️ Nhập họ và tên của em (Ví dụ: Nguyễn Văn A)..."
-                        className="w-full mt-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                      />
-                    )}
                   </div>
                 )}
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">1. Nhập Tên Lớp Học:</label>
-                  <input
-                    type="text"
-                    value={manualClassName}
-                    onChange={(e) => setManualClassName(e.target.value)}
-                    placeholder="Ví dụ: Teen 4, Teen 1, TOEIC..."
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">2. Nhập Tên Học Sinh:</label>
-                  <input
-                    type="text"
-                    value={manualStudentName}
-                    onChange={(e) => setManualStudentName(e.target.value)}
-                    placeholder="Nhập tên của em..."
-                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                  />
-                </div>
-              </>
+                {(selectedStudentId === 'manual_st' || !selectedStudentId || !selectedClassObj.students || selectedClassObj.students.length === 0) && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      {selectedClassObj.students && selectedClassObj.students.length > 0 ? 'Hoặc nhập Mã / Họ Tên của em:' : '2. Nhập Mã Học Sinh hoặc Họ Tên:'}
+                    </label>
+                    <input
+                      type="text"
+                      value={studentCodeInput}
+                      onChange={(e) => setStudentCodeInput(e.target.value)}
+                      placeholder="🏷️ Nhập Mã Học Sinh (Ví dụ: HS001 hoặc Họ và tên)..."
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
             )}
 
             <button

@@ -57,18 +57,11 @@ export const INITIAL_APP_DATA: AppData = {
         { id: 's2', name: 'Trần Thị B' },
         { id: 's3', name: 'Lê Văn C' }
       ]
-    },
-    {
-      id: 'c_teen1',
-      name: 'Teen 1',
-      desc: 'Lớp Teen 1',
-      students: [{ id: 's4', name: 'Học sinh 1' }]
     }
   ],
   deletedClasses: [],
   classAssignments: {
     'Teen 4': DEFAULT_ASSIGNMENT,
-    'Teen 1': DEFAULT_ASSIGNMENT,
     'all': DEFAULT_ASSIGNMENT,
   },
   quizLibrary: [],
@@ -82,14 +75,8 @@ export function loadLocalData(): AppData {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
-        parsed.classes = sanitizeClassesData(parsed.classes || []);
-        if (!parsed.classAssignments || Object.keys(parsed.classAssignments).length === 0) {
-          parsed.classAssignments = { 'Teen 4': DEFAULT_ASSIGNMENT, 'all': DEFAULT_ASSIGNMENT };
-        }
-        if (!parsed.classAssignments['Teen 4']) {
-          parsed.classAssignments['Teen 4'] = DEFAULT_ASSIGNMENT;
-        }
-        return { ...INITIAL_APP_DATA, ...parsed };
+        parsed.classes = sanitizeClassesData(parsed.classes || [], parsed.deletedClasses || []);
+        return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes };
       }
     }
   } catch (e) {

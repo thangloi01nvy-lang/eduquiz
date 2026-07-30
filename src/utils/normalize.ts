@@ -78,27 +78,6 @@ export function sanitizeClassesData(classes: ClassModel[], deletedClasses: strin
     }
   });
 
-  const defaultClasses: ClassModel[] = [
-    {
-      id: 'c_teen4',
-      name: 'Teen 4',
-      desc: 'Lớp Teen 4',
-      students: [
-        { id: 's1', name: 'Nguyễn Văn A' },
-        { id: 's2', name: 'Trần Thị B' },
-        { id: 's3', name: 'Lê Văn C' }
-      ],
-    },
-    { id: 'c_free', name: 'Học sinh tự do chưa xếp lớp', desc: 'Học sinh tự do', students: [] },
-  ];
-
-  defaultClasses.forEach((def) => {
-    const norm = normalizeClassName(def.name);
-    if (!deletedSet.has(norm) && !cleanClasses.some((c) => normalizeClassName(c.name) === norm)) {
-      cleanClasses.push(def);
-    }
-  });
-
   return cleanClasses;
 }
 
