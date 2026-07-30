@@ -31,6 +31,35 @@
     }
   },
   "quizLibrary": [],
-  "grades": [],
+  "grades": [
+    {
+      "id": "g_test_102",
+      "studentId": "s2",
+      "studentName": "Trần Thị B",
+      "className": "Teen 4",
+      "quizTitle": "Đề Ôn Tập Tiếng Anh B1",
+      "score": 9,
+      "maxScore": 10,
+      "percentage": 90,
+      "submittedAt": "2026-07-30T11:58:01Z",
+      "userAnswers": {
+        "q_1": "team player"
+      }
+    },
+    {
+      "id": "g_test_101",
+      "studentId": "s1",
+      "studentName": "Nguyễn Văn A",
+      "className": "Teen 4",
+      "quizTitle": "Đề Ôn Tập Tiếng Anh B1",
+      "score": 10,
+      "maxScore": 10,
+      "percentage": 100,
+      "submittedAt": "2026-07-30T11:58:00Z",
+      "userAnswers": {
+        "q_1": "think outside the box"
+      }
+    }
+  ],
   "feedbacks": []
 }

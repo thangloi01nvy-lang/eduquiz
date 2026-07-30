@@ -3,6 +3,7 @@ import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle,
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload } from '../types';
 import { normalizeClassName, safeParseMarkdown } from '../utils/normalize';
 import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData } from '../services/storage';
+import { saveAtomicSubmission } from '../services/firebase';
 import confetti from 'canvas-confetti';
 
 interface StudentViewProps {
@@ -189,6 +190,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
         submittedAt: new Date().toISOString(),
         userAnswers: answers,
       };
+
+      // Atomic submission to eliminate Race Condition & Rate Limits
+      saveAtomicSubmission(newGrade);
 
       onUpdateAppData((prev) => ({
         ...prev,

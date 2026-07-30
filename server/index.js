@@ -96,6 +96,46 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ATOMIC SUBMISSION ENDPOINTS (RACE-CONDITION FREE)
+  if (pathname === '/api/submissions' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk.toString(); });
+    req.on('end', () => {
+      try {
+        const submission = JSON.parse(body);
+        if (!submission || !submission.studentId) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: false, error: 'Invalid submission payload' }));
+        }
+
+        const currentDb = loadDatabase();
+        if (!Array.isArray(currentDb.grades)) currentDb.grades = [];
+
+        // Atomic append - prevent duplicate submission ids if already exists
+        const existingIdx = currentDb.grades.findIndex(g => g.id === submission.id);
+        if (existingIdx >= 0) {
+          currentDb.grades[existingIdx] = submission;
+        } else {
+          currentDb.grades.unshift(submission);
+        }
+
+        saveDatabase(currentDb);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, message: 'Submission saved atomically', submission }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: 'Failed to process submission' }));
+      }
+    });
+    return;
+  }
+
+  if (pathname === '/api/submissions' && req.method === 'GET') {
+    const currentDb = loadDatabase();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, submissions: currentDb.grades || [] }));
+  }
+
   if (pathname === '/api/ai/generate-quiz' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => { body += chunk.toString(); });
