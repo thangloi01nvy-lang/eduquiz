@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, GraduationCap, School, BookOpen, BarChart3, Lock, ShieldCheck } from 'lucide-react';
 import { AppData } from '../types';
+import { normalizeAssignmentList } from '../services/storage';
 
 interface HeaderProps {
   currentTab: 'teacher' | 'student';
@@ -24,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
   appData,
 }) => {
   const publishedClassesCount = Object.keys(appData.classAssignments || {}).filter(
-    (k) => appData.classAssignments[k]?.questions?.length > 0
+    (k) => normalizeAssignmentList(appData.classAssignments[k]).length > 0
   ).length;
 
   return (
@@ -41,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
                 EduQuiz Pro
               </h1>
               <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
-                v2.2.0
+                v2.2.1
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">

@@ -1,4 +1,4 @@
-import { AppData, ActiveStudentInfo, ClassAssignmentMap } from '../types';
+import { AppData, ActiveStudentInfo, ClassAssignmentMap, AssignedQuizPayload } from '../types';
 import { sanitizeClassesData } from '../utils/normalize';
 import { syncToFirebaseFirestore, fetchFromFirebaseFirestore } from './firebase';
 
