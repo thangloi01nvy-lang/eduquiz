@@ -403,7 +403,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.0.0
+                v3.0.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -792,10 +792,63 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                       </div>
                     )}
 
+                    {/* Error Correction & Word Form 2-Box Dedicated Layout */}
+                    {(() => {
+                      const isTwoBoxExercise =
+                        q.type === 'error_correction' ||
+                        (q.answer && (q.answer.includes('->') || q.answer.includes('→') || q.answer.includes('thành') || q.answer.includes(':'))) ||
+                        (q.sectionTitle && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.sectionTitle)) ||
+                        (q.title && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.title));
+
+                      if (isTwoBoxExercise) {
+                        return (
+                          <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-rose-50/50 via-amber-50/50 to-emerald-50/50 border border-slate-200 space-y-3">
+                            <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                              <span>🔍 Bài tập Tìm & Sửa Lỗi Sai / Word Form - Vui lòng nhập thông tin vào 2 ô bên dưới:</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {/* Box 1: Error */}
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-rose-700 flex items-center gap-1">
+                                  ❌ Ô 1: Từ / Cụm từ bị sai (Từ gốc)
+                                </label>
+                                <input
+                                  type="text"
+                                  disabled={isSubmitted}
+                                  value={answers[`q_${q.id}_blank_0`] || answers[`q_${q.id}_error`] || ''}
+                                  onChange={(e) => {
+                                    handleAnswerChange(`q_${q.id}_blank_0`, e.target.value);
+                                    handleAnswerChange(`q_${q.id}_error`, e.target.value);
+                                  }}
+                                  placeholder="Nhập từ bị sai (Ví dụ: to go)..."
+                                  className="w-full p-3 bg-white border border-rose-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-rose-500 focus:outline-none shadow-sm"
+                                />
+                              </div>
+
+                              {/* Box 2: Correction */}
+                              <div className="space-y-1">
+                                <label className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                                  ✅ Ô 2: Từ / Cụm từ sửa lại đúng (Dạng đúng)
+                                </label>
+                                <input
+                                  type="text"
+                                  disabled={isSubmitted}
+                                  value={answers[`q_${q.id}_blank_1`] || answers[`q_${q.id}_correction`] || ''}
+                                  onChange={(e) => {
+                                    handleAnswerChange(`q_${q.id}_blank_1`, e.target.value);
+                                    handleAnswerChange(`q_${q.id}_correction`, e.target.value);
+                                  }}
+                                  placeholder="Nhập từ sửa lại (Ví dụ: going)..."
+                                  className="w-full p-3 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-sm"
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    )}
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {/* Inline Blanks (for non error_correction fill-in-blank) */}
                     {q.type !== 'multiple_choice' && q.type !== 'error_correction' && q.inlineBlanks && q.inlineBlanks.length > 0 && (
