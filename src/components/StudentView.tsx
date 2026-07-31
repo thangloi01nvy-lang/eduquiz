@@ -239,19 +239,22 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   const [selectedAssignment, setSelectedAssignment] = useState<AssignedQuizPayload | null>(null);
 
-  // Get ALL Assigned Quizzes for active student class
+  // Get ALL Assigned Quizzes for active student class (Auto-recovers from classAssignments AND quizLibrary)
   const getAllAssignedQuizzes = (): AssignedQuizPayload[] => {
     if (!activeStudent) return [];
     const studentClassName = activeStudent.className;
+    const normStudentClass = normalizeClassName(studentClassName);
 
+    const assignMap = new Map<string, AssignedQuizPayload>();
+
+    // 1. Load from classAssignments
     let rawList: any = null;
     if (appData.classAssignments) {
       if (appData.classAssignments[studentClassName]) {
         rawList = appData.classAssignments[studentClassName];
       } else {
-        const normStudent = normalizeClassName(studentClassName);
         for (const key in appData.classAssignments) {
-          if (normalizeClassName(key) === normStudent) {
+          if (normalizeClassName(key) === normStudentClass) {
             rawList = appData.classAssignments[key];
             break;
           }
@@ -259,27 +262,57 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       }
     }
 
-    let list = normalizeAssignmentList(rawList);
+    const assignedFromClass = normalizeAssignmentList(rawList);
+    assignedFromClass.forEach((item) => {
+      const key = item.id || `${item.quizTitle}_${item.quizCreatedDate || ''}`;
+      assignMap.set(key, item);
+    });
 
-    if (list.length === 0 && (appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
-      list = [
-        {
-          id: 'default_active_quiz',
-          quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
-          quizLevel: appData.quizLevel || 'B1',
-          quizCreatedDate: appData.quizCreatedDate || new Date().toISOString(),
-          questions: appData.currentQuestions,
-          sections: appData.sections || [],
-          wordBank: appData.wordBank || [],
-        },
-      ];
+    // 2. Auto-Recover from quizLibrary (Library Quizzes for this class)
+    if (appData.quizLibrary && appData.quizLibrary.length > 0) {
+      appData.quizLibrary.forEach((libItem) => {
+        const normTarget = normalizeClassName(libItem.targetClass || 'all');
+        if (normTarget === 'all' || normTarget === normStudentClass || libItem.targetClass === studentClassName) {
+          if (libItem.questions && libItem.questions.length > 0) {
+            const key = libItem.id || `${libItem.title}_${libItem.createdDate || ''}`;
+            if (!assignMap.has(key)) {
+              assignMap.set(key, {
+                id: libItem.id,
+                quizTitle: libItem.title,
+                quizLevel: libItem.level || 'B1',
+                quizCreatedDate: libItem.createdDate || new Date().toISOString(),
+                questions: libItem.questions,
+                sections: libItem.sections || [],
+                wordBank: libItem.wordBank || [],
+              });
+            }
+          }
+        }
+      });
     }
 
-    return list;
+    // 3. Fallback to active currentQuestions if target is 'all'
+    if (assignMap.size === 0 && (appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
+      assignMap.set('default_active_quiz', {
+        id: 'default_active_quiz',
+        quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
+        quizLevel: appData.quizLevel || 'B1',
+        quizCreatedDate: appData.quizCreatedDate || new Date().toISOString(),
+        questions: appData.currentQuestions,
+        sections: appData.sections || [],
+        wordBank: appData.wordBank || [],
+      });
+    }
+
+    return Array.from(assignMap.values()).sort((a, b) => {
+      const tA = new Date(a.quizCreatedDate || 0).getTime();
+      const tB = new Date(b.quizCreatedDate || 0).getTime();
+      return tB - tA;
+    });
   };
 
   const allAssignedQuizzes = getAllAssignedQuizzes();
-  const activeQuiz = selectedAssignment || (allAssignedQuizzes.length === 1 ? allAssignedQuizzes[0] : null);
+  const activeQuiz = selectedAssignment;
 
   // Auto-Drafting per answer change
   const handleAnswerChange = (questionKey: string, value: string) => {
@@ -389,7 +422,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.3.3
+                v2.3.4
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -617,14 +650,12 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           {/* Header Quiz Title & Back Button */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-xl font-heading font-black text-slate-900">{activeQuiz.quizTitle}</h2>
-            {allAssignedQuizzes.length > 1 && (
-              <button
-                onClick={() => setSelectedAssignment(null)}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto"
-              >
-                ⬅️ Danh sách bài tập
-              </button>
-            )}
+            <button
+              onClick={() => setSelectedAssignment(null)}
+              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto"
+            >
+              ⬅️ Danh sách bài tập ({allAssignedQuizzes.length} bài)
+            </button>
           </div>
 
           {/* Conditional Word Bank Box: Render ONLY for drag-and-drop / fill-in-blank exercises with a word bank */}
