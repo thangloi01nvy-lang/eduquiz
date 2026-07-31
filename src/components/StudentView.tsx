@@ -338,6 +338,36 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     return sections;
   }, [activeQuiz]);
 
+  // Auto-default to Section 1 (Bài 1) when quiz opens
+  useEffect(() => {
+    if (quizSections.length > 1) {
+      setSelectedSectionTab(quizSections[0].title);
+    } else {
+      setSelectedSectionTab('all');
+    }
+  }, [activeQuiz?.id, activeQuiz?.quizTitle, quizSections.length]);
+
+  // Current active section index & boundary indicators
+  const currentSectionIdx = useMemo(() => {
+    if (selectedSectionTab === 'all' || quizSections.length === 0) return 0;
+    const idx = quizSections.findIndex((s) => s.title === selectedSectionTab);
+    return idx >= 0 ? idx : 0;
+  }, [selectedSectionTab, quizSections]);
+
+  const isFirstSection = currentSectionIdx === 0;
+  const isLastSection = quizSections.length <= 1 || currentSectionIdx === quizSections.length - 1 || selectedSectionTab === 'all';
+
+  // Count unanswered questions across all sections
+  const unansweredCount = useMemo(() => {
+    if (!activeQuiz?.questions) return 0;
+    return activeQuiz.questions.filter((q) => {
+      if (q.type === 'error_correction') {
+        return !Boolean(answers[`q_${q.id}_error`] || answers[`q_${q.id}_correction`] || answers[`q_${q.id}_blank_0`]);
+      }
+      return !Boolean(answers[`q_${q.id}`] || answers[`q_${q.id}_blank_0`]);
+    }).length;
+  }, [activeQuiz, answers]);
+
   // Compute student retake alerts from teacher
   const studentRetakeAlerts = useMemo(() => {
     if (!activeStudent || !appData.grades) return [];
@@ -382,6 +412,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   // Submit Quiz & Grade ALL question types accurately
   const handleSubmitQuiz = () => {
     if (!activeQuiz || !activeQuiz.questions) return;
+
+    if (unansweredCount > 0) {
+      const confirmSubmit = window.confirm(
+        `⚠️ Em còn ${unansweredCount} câu chưa hoàn thành!\n\nEm có chắc chắn muốn NỘP BÀI TẬP ngay bây giờ không?`
+      );
+      if (!confirmSubmit) return;
+    }
 
     let totalEarnedPoints = 0;
     let totalMaxPoints = 0;
@@ -484,7 +521,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v4.0.1
+                v4.1.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -857,6 +894,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     }
                     return Boolean(answers[`q_${q.id}`] || answers[`q_${q.id}_blank_0`]);
                   }).length;
+                  const isComplete = answeredCount === sec.questions.length && sec.questions.length > 0;
 
                   return (
                     <button
@@ -864,12 +902,24 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                       onClick={() => setSelectedSectionTab(sec.title)}
                       className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition shrink-0 flex items-center gap-2 border ${
                         isSelected
-                          ? 'bg-amber-500 text-amber-950 border-amber-400 shadow-md shadow-amber-500/20'
+                          ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-amber-950 border-amber-400 shadow-md shadow-amber-500/20'
+                          : isComplete
+                          ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
                           : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                       }`}
                     >
-                      <span>📝 {sec.title}</span>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] ${isSelected ? 'bg-amber-950/15 text-amber-950' : 'bg-slate-100 text-slate-600'}`}>
+                      <span>
+                        {isComplete ? '✅' : `${sIdx + 1}️⃣`} {sec.title}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] ${
+                          isSelected
+                            ? 'bg-amber-950/15 text-amber-950'
+                            : isComplete
+                            ? 'bg-emerald-200 text-emerald-950'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
                         {answeredCount}/{sec.questions.length} câu
                       </span>
                     </button>
@@ -1107,15 +1157,79 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             })}
           </div>
 
-          {/* Submit Button */}
+          {/* Sequential Exercise Stepper & Submit Bar */}
           {!isSubmitted && (
-            <button
-              onClick={handleSubmitQuiz}
-              className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-heading font-black text-base rounded-2xl shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2"
-            >
-              <Send className="w-5 h-5" />
-              <span>NỘP BÀI TẬP</span>
-            </button>
+            <div className="bg-white rounded-3xl border border-slate-200 p-4 shadow-xl space-y-3">
+              {unansweredCount > 0 && (
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-xs font-bold text-amber-900 flex items-center justify-between">
+                  <span>⚠️ Em còn {unansweredCount} câu chưa làm xong!</span>
+                  <span className="text-[11px] font-semibold text-amber-700 opacity-90">Hãy hoàn thành các câu trước khi nộp bài</span>
+                </div>
+              )}
+
+              {quizSections.length > 1 ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {/* Previous Section Button */}
+                  <button
+                    disabled={isFirstSection}
+                    onClick={() => {
+                      if (currentSectionIdx > 0) {
+                        setSelectedSectionTab(quizSections[currentSectionIdx - 1].title);
+                        window.scrollTo({ top: 150, behavior: 'smooth' });
+                      }
+                    }}
+                    className={`px-5 py-3 rounded-2xl font-heading font-bold text-xs transition flex items-center gap-2 ${
+                      isFirstSection
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60'
+                        : 'bg-slate-800 text-white hover:bg-slate-900 shadow-md'
+                    }`}
+                  >
+                    <span>⬅️ Bài Trước ({currentSectionIdx > 0 ? quizSections[currentSectionIdx - 1].title : ''})</span>
+                  </button>
+
+                  {/* Active Step Indicator */}
+                  <div className="text-center">
+                    <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+                      Bài {currentSectionIdx + 1} / {quizSections.length}
+                    </span>
+                    <span className="text-[11px] font-bold text-brand-600">
+                      {quizSections[currentSectionIdx]?.title}
+                    </span>
+                  </div>
+
+                  {/* Next Section OR Submit Button at Final Section */}
+                  {!isLastSection ? (
+                    <button
+                      onClick={() => {
+                        if (currentSectionIdx < quizSections.length - 1) {
+                          setSelectedSectionTab(quizSections[currentSectionIdx + 1].title);
+                          window.scrollTo({ top: 150, behavior: 'smooth' });
+                        }
+                      }}
+                      className="px-6 py-3.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-heading font-black text-xs rounded-2xl shadow-lg shadow-brand-500/20 transition flex items-center gap-2"
+                    >
+                      <span>BÀI TIẾP THEO ➡️</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmitQuiz}
+                      className="px-7 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-heading font-black text-sm rounded-2xl shadow-xl shadow-emerald-500/30 transition flex items-center gap-2 animate-bounce-short"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>NỘP BÀI TẬP 🚀</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={handleSubmitQuiz}
+                  className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-heading font-black text-base rounded-2xl shadow-xl shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+                >
+                  <Send className="w-5 h-5" />
+                  <span>NỘP BÀI TẬP</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
