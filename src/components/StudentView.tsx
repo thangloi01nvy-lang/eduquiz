@@ -521,7 +521,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v4.1.0
+                v4.2.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -925,6 +925,61 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     </button>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Real-time Progress Bar */}
+          {activeQuiz.questions && activeQuiz.questions.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="text-xs font-bold text-slate-800 flex items-center justify-between sm:justify-start gap-2">
+                <span>📊 Tiến độ hoàn thành bài tập:</span>
+                <span className="px-2.5 py-0.5 bg-brand-50 text-brand-700 border border-brand-200 text-xs font-black rounded-full shadow-sm">
+                  {activeQuiz.questions.length - unansweredCount} / {activeQuiz.questions.length} câu (
+                  {Math.round(((activeQuiz.questions.length - unansweredCount) / (activeQuiz.questions.length || 1)) * 100)}%)
+                </span>
+              </div>
+
+              <div className="flex-1 max-w-md h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                <div
+                  className="h-full bg-gradient-to-r from-brand-600 via-indigo-600 to-emerald-500 transition-all duration-500 rounded-full"
+                  style={{
+                    width: `${Math.round(((activeQuiz.questions.length - unansweredCount) / (activeQuiz.questions.length || 1)) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Highlighted Exercise Instruction Banner */}
+          {selectedSectionTab !== 'all' && (
+            <div className="bg-gradient-to-r from-brand-900 via-indigo-900 to-purple-950 text-white rounded-3xl p-6 shadow-xl border border-indigo-700/60 space-y-3 relative overflow-hidden animate-fade-in">
+              <div className="absolute -top-10 -right-10 w-36 h-36 bg-amber-400/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-amber-400 text-amber-950 text-xs font-black rounded-xl uppercase tracking-wider shadow">
+                    📌 YÊU CẦU BÀI {currentSectionIdx + 1} / {quizSections.length}
+                  </span>
+                  <h3 className="font-heading font-black text-base sm:text-lg text-white tracking-tight">
+                    {selectedSectionTab}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-200">
+                  <span className="px-2.5 py-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/10">
+                    📝 {quizSections[currentSectionIdx]?.questions.length || 0} câu hỏi
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 text-xs sm:text-sm font-medium text-amber-100 leading-relaxed shadow-inner">
+                <div className="font-bold text-amber-300 flex items-center gap-1.5 mb-1 text-xs uppercase tracking-wider">
+                  🎯 HƯỚNG DẪN LÀM BÀI:
+                </div>
+                <p className="whitespace-pre-wrap font-bold text-white text-sm">
+                  {selectedSectionTab}
+                </p>
               </div>
             </div>
           )}
