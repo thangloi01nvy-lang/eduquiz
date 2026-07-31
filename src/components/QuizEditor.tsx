@@ -203,6 +203,47 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       newAssignments[targetClass] = [payload, ...existingList];
     }
 
+function syncEditedQuizToAssignments(
+  currentAssignments: Record<string, any> = {},
+  targetId: string,
+  oldTitle: string,
+  newTitle: string,
+  newQuestions: Question[],
+  newSections: Section[],
+  newWordBank: string[],
+  newLevel: string
+): Record<string, any> {
+  const updatedMap: Record<string, any> = {};
+  const oldTitleClean = (oldTitle || '').trim().toLowerCase();
+  const newTitleClean = (newTitle || '').trim().toLowerCase();
+
+  for (const className in currentAssignments) {
+    const list = normalizeAssignmentList(currentAssignments[className]);
+    updatedMap[className] = list.map((assign) => {
+      const aTitleClean = (assign.quizTitle || '').trim().toLowerCase();
+      const isMatch =
+        (assign.id && assign.id === targetId) ||
+        ((assign as any).libraryItemId && (assign as any).libraryItemId === targetId) ||
+        (oldTitleClean && aTitleClean === oldTitleClean) ||
+        (newTitleClean && aTitleClean === newTitleClean);
+
+      if (isMatch) {
+        return {
+          ...assign,
+          quizTitle: newTitle,
+          quizLevel: newLevel,
+          questions: newQuestions,
+          sections: newSections,
+          wordBank: newWordBank,
+        };
+      }
+      return assign;
+    });
+  }
+
+  return updatedMap;
+}
+
     // Also update Quiz Library if editing or matching a library item
     const titleClean = title.trim().toLowerCase();
     const existingList = appData.quizLibrary || [];
@@ -213,6 +254,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     let updatedLibrary = [...existingList];
     const targetId = (editIndex >= 0 && existingList[editIndex]?.id) ? existingList[editIndex].id : (editId && editId.startsWith('lib_') ? editId : `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`);
+    const oldTitle = editIndex >= 0 ? existingList[editIndex].title : title;
 
     const updatedLibItem: LibraryItem = {
       id: targetId,
@@ -234,6 +276,18 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       updatedLibrary = [updatedLibItem, ...existingList];
     }
 
+    // AUTO-SYNC EDITED QUIZ TO ALL ALREADY ASSIGNED CLASSES
+    const autoSyncedAssignments = syncEditedQuizToAssignments(
+      newAssignments,
+      targetId,
+      oldTitle,
+      title,
+      parsed.questions,
+      parsed.sections,
+      parsed.wordBank,
+      level
+    );
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: targetId,
@@ -241,7 +295,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       sections: parsed.sections,
       wordBank: parsed.wordBank,
       quizTargetClass: targetClass,
-      classAssignments: newAssignments,
+      classAssignments: autoSyncedAssignments,
       quizLibrary: updatedLibrary,
     };
 
@@ -253,7 +307,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     if (cloudSuccess) {
       onShowNotification(
-        `🚀 ĐÃ GIAO BÀI & ĐỒNG BỘ CLOUD THÀNH CÔNG cho ${targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`}! Học sinh mở web sẽ thấy ngay bài mới.`,
+        `🚀 ĐÃ GIAO BÀI & TỰ ĐỘNG ĐỒNG BỘ NỘI DUNG MỚI CHO HỌC SINH ĐÃ ĐƯỢC GIAO!`,
         'success'
       );
     } else {
@@ -278,6 +332,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     let updatedLibrary: LibraryItem[] = [...existingList];
     const targetId = (editIndex >= 0 && existingList[editIndex]?.id) ? existingList[editIndex].id : (editId && editId.startsWith('lib_') ? editId : `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`);
+    const oldTitle = editIndex >= 0 ? existingList[editIndex].title : title;
 
     const updatedLibItem: LibraryItem = {
       id: targetId,
@@ -301,19 +356,32 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       updatedLibrary = [updatedLibItem, ...existingList];
     }
 
+    // AUTO-SYNC EDITED QUIZ TO ALL ALREADY ASSIGNED CLASSES
+    const autoSyncedAssignments = syncEditedQuizToAssignments(
+      appData.classAssignments || {},
+      targetId,
+      oldTitle,
+      title,
+      parsed.questions,
+      parsed.sections,
+      parsed.wordBank,
+      appData.quizLevel || 'B1'
+    );
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: targetId,
       quizLibrary: updatedLibrary,
+      classAssignments: autoSyncedAssignments,
     };
 
     onUpdateAppData(() => updatedData);
 
-    onShowNotification('☁️ Đang lưu & đồng bộ Thư viện lên Cloud Real-Time...', 'warning');
+    onShowNotification('☁️ Đang lưu & đồng bộ tự động nội dung mới cho Học sinh...', 'warning');
     const cloudSuccess = await syncWithServer(updatedData);
 
     if (cloudSuccess) {
-      onShowNotification(`📚 ĐÃ CẬP NHẬT & ĐỒNG BỘ THÀNH CÔNG bài tập "${title}" trong Thư Viện!`, 'success');
+      onShowNotification(`📚 ĐÃ CẬP NHẬT THƯ VIỆN & TỰ ĐỘNG CẬP NHẬT NỘI DUNG CHO HỌC SINH ĐÃ ĐƯỢC GIAO!`, 'success');
     } else {
       onShowNotification(`📚 Đã cập nhật bài tập "${title}" trong Thư Viện (Máy local)!`, 'success');
     }
