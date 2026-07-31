@@ -461,7 +461,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
               </button>
               <button
                 onClick={() => {
-                  onShowNotification('🧩 Đã đổi tất cả câu hỏi thành dạng Điền Từ / Ô Trống!', 'info');
+                  onShowNotification('🧩 Đã đổi tất cả câu hỏi thành dạng Điền Từ / Ô Trống!', 'success');
                 }}
                 className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-bold transition text-center shadow-sm"
               >
