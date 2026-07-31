@@ -110,18 +110,25 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   return success;
 }
 
+export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload.filter((p) => p && p.questions && p.questions.length > 0);
+  if (typeof payload === 'object' && (payload as any).questions && (payload as any).questions.length > 0) return [payload as AssignedQuizPayload];
+  return [];
+}
+
 export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
   if (!quiz) return 'empty_quiz';
   if (quiz.id && quiz.id.startsWith('assign_')) return quiz.id;
   const qCount = quiz.questions?.length || 0;
   const title = (quiz.quizTitle || '').trim().toLowerCase();
-  const firstQ = (quiz.questions?.[0]?.question || '').trim().toLowerCase().slice(0, 30);
+  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 30);
   const dateStr = (quiz.quizCreatedDate || '').slice(0, 10);
   return `${title}_${dateStr}_${qCount}_${firstQ}`;
 }
 
-export function deduplicateAssignmentList(list: AssignedQuizPayload[]): AssignedQuizPayload[] {
-  const normalized = normalizeAssignmentList(list);
+export function deduplicateAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
+  const normalized = normalizeAssignmentList(payload);
   const assignMap = new Map<string, AssignedQuizPayload>();
 
   normalized.forEach((item) => {

@@ -199,7 +199,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                     </div>
 
                     <div className="space-y-1.5 pt-1">
-                      {(expandedClassId === c.id ? assignedList : [assignedList[0]]).map((quiz, qIdx) => (
+                      {(expandedClassId === c.id ? assignedList : [assignedList[0]]).map((quiz: any, qIdx: number) => (
                         <div key={quiz.id || qIdx} className="p-2 bg-white rounded-xl border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
                             <p className="font-bold text-xs text-slate-900 truncate">
