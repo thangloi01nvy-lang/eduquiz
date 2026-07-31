@@ -368,7 +368,6 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       appData.quizLevel || 'B1'
     );
 
-    const titleClean = title.trim().toLowerCase();
     const oldTitleClean = oldTitle.trim().toLowerCase();
     const targetIdClean = targetId.trim().toLowerCase();
 
