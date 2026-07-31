@@ -1,7 +1,7 @@
 import React from 'react';
 import { Sparkles, GraduationCap, School, BookOpen, BarChart3, Lock, ShieldCheck } from 'lucide-react';
 import { AppData } from '../types';
-import { normalizeAssignmentList } from '../services/storage';
+import { normalizeAssignmentList, deduplicateAssignmentList } from '../services/storage';
 
 interface HeaderProps {
   currentTab: 'teacher' | 'student';
@@ -24,9 +24,10 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTeacherAuth,
   appData,
 }) => {
-  const publishedClassesCount = Object.keys(appData.classAssignments || {}).filter(
-    (k) => normalizeAssignmentList(appData.classAssignments[k]).length > 0
-  ).length;
+  const publishedClassesCount = Object.values(appData.classAssignments || {}).reduce(
+    (acc, val) => acc + deduplicateAssignmentList(val).length,
+    0
+  );
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
@@ -42,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
                 EduQuiz Pro
               </h1>
               <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
-                v2.4.1
+                v2.4.2
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">

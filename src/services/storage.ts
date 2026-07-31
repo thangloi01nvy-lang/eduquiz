@@ -62,7 +62,8 @@ export function loadLocalData(): AppData {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
         parsed.classes = sanitizeClassesData(parsed.classes || [], parsed.deletedClasses || []);
-        return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes };
+        parsed.classAssignments = sanitizeClassAssignmentsMap(parsed.classAssignments || {});
+        return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes, classAssignments: parsed.classAssignments };
       }
     }
   } catch (e) {
@@ -109,11 +110,40 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   return success;
 }
 
-export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
-  if (!payload) return [];
-  if (Array.isArray(payload)) return payload.filter((p) => p && p.questions && p.questions.length > 0);
-  if (typeof payload === 'object' && (payload as any).questions && (payload as any).questions.length > 0) return [payload as AssignedQuizPayload];
-  return [];
+export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
+  if (!quiz) return 'empty_quiz';
+  if (quiz.id && quiz.id.startsWith('assign_')) return quiz.id;
+  const qCount = quiz.questions?.length || 0;
+  const title = (quiz.quizTitle || '').trim().toLowerCase();
+  const firstQ = (quiz.questions?.[0]?.question || '').trim().toLowerCase().slice(0, 30);
+  const dateStr = (quiz.quizCreatedDate || '').slice(0, 10);
+  return `${title}_${dateStr}_${qCount}_${firstQ}`;
+}
+
+export function deduplicateAssignmentList(list: AssignedQuizPayload[]): AssignedQuizPayload[] {
+  const normalized = normalizeAssignmentList(list);
+  const assignMap = new Map<string, AssignedQuizPayload>();
+
+  normalized.forEach((item) => {
+    const key = getQuizDedupeKey(item);
+    if (!assignMap.has(key)) {
+      assignMap.set(key, item);
+    }
+  });
+
+  return Array.from(assignMap.values()).sort((a, b) => {
+    const tA = new Date(a.quizCreatedDate || 0).getTime();
+    const tB = new Date(b.quizCreatedDate || 0).getTime();
+    return tB - tA;
+  });
+}
+
+export function sanitizeClassAssignmentsMap(map: ClassAssignmentMap = {}): ClassAssignmentMap {
+  const cleaned: ClassAssignmentMap = {};
+  for (const className in map) {
+    cleaned[className] = deduplicateAssignmentList(map[className]);
+  }
+  return cleaned;
 }
 
 function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: ClassAssignmentMap = {}): ClassAssignmentMap {
@@ -121,28 +151,26 @@ function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: Cla
   const allClassNames = new Set([...Object.keys(localMap || {}), ...Object.keys(remoteMap || {})]);
 
   allClassNames.forEach((className) => {
-    const localList = normalizeAssignmentList(localMap[className]);
-    const remoteList = normalizeAssignmentList(remoteMap[className]);
+    const localList = deduplicateAssignmentList(localMap[className]);
+    const remoteList = deduplicateAssignmentList(remoteMap[className]);
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    remoteList.forEach((a, idx) => {
-      const key = a.id || `rem_${a.quizTitle}_${a.quizCreatedDate || ''}_${idx}`;
+    remoteList.forEach((a) => {
+      const key = getQuizDedupeKey(a);
       assignMap.set(key, a);
     });
 
-    localList.forEach((a, idx) => {
-      const key = a.id || `loc_${a.quizTitle}_${a.quizCreatedDate || ''}_${idx}`;
+    localList.forEach((a) => {
+      const key = getQuizDedupeKey(a);
       assignMap.set(key, a);
     });
 
-    const sortedList = Array.from(assignMap.values()).sort((a, b) => {
+    merged[className] = Array.from(assignMap.values()).sort((a, b) => {
       const tA = new Date(a.quizCreatedDate || 0).getTime();
       const tB = new Date(b.quizCreatedDate || 0).getTime();
       return tB - tA;
     });
-
-    merged[className] = sortedList;
   });
 
   return merged;
