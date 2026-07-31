@@ -62,8 +62,9 @@ export function loadLocalData(): AppData {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
         parsed.classes = sanitizeClassesData(parsed.classes || [], parsed.deletedClasses || []);
-        parsed.classAssignments = sanitizeClassAssignmentsMap(parsed.classAssignments || {});
-        return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes, classAssignments: parsed.classAssignments };
+        parsed.recalledAssignments = parsed.recalledAssignments || [];
+        parsed.classAssignments = sanitizeClassAssignmentsMap(parsed.classAssignments || {}, parsed.recalledAssignments);
+        return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes, classAssignments: parsed.classAssignments, recalledAssignments: parsed.recalledAssignments };
       }
     }
   } catch (e) {
@@ -75,6 +76,8 @@ export function loadLocalData(): AppData {
 export function saveLocalData(data: AppData): void {
   try {
     data.classes = sanitizeClassesData(data.classes || []);
+    data.recalledAssignments = data.recalledAssignments || [];
+    data.classAssignments = sanitizeClassAssignmentsMap(data.classAssignments || {}, data.recalledAssignments);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
     console.error('Failed to save data to local storage:', e);
@@ -131,11 +134,20 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
   const key = getQuizDedupeKey(quiz);
-  return (
-    recalledIds.includes(key) ||
-    (quiz.id ? recalledIds.includes(quiz.id) : false) ||
-    recalledIds.includes(`${quiz.quizTitle}_${quiz.quizCreatedDate || ''}`)
-  );
+  const title = (quiz.quizTitle || '').trim().toLowerCase();
+  const id = (quiz.id || '').trim().toLowerCase();
+
+  return recalledIds.some((r) => {
+    if (!r) return false;
+    const rClean = r.trim().toLowerCase();
+    return (
+      rClean === key.toLowerCase() ||
+      (id && rClean === id) ||
+      rClean === title ||
+      rClean.includes(title) ||
+      title.includes(rClean)
+    );
+  });
 }
 
 export function deduplicateAssignmentList(
