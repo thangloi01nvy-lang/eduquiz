@@ -18,7 +18,7 @@ export interface AIData {
 export interface Question {
   id: number;
   title: string;
-  type: 'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer' | 'essay';
+  type: 'multiple_choice' | 'true_false' | 'fill_in_blank' | 'short_answer' | 'essay' | 'error_correction';
   options?: Option[];
   answer?: string;
   explanation?: string;

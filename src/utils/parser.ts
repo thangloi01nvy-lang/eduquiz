@@ -255,9 +255,26 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     }
   }
 
+  const normTitle = title.toLowerCase();
+  const normSec = (q.sectionTitle || '').toLowerCase();
+  const isErrorCorrectionKey =
+    normTitle.includes('sửa lỗi') ||
+    normTitle.includes('tìm lỗi') ||
+    normSec.includes('sửa lỗi') ||
+    normSec.includes('tìm lỗi') ||
+    normTitle.includes('error correction') ||
+    normSec.includes('error correction');
+
   // CLASSIFICATION PRIORITY RULES:
   if (generatedOptions.length > 0) {
     type = 'multiple_choice';
+  } else if (isErrorCorrectionKey) {
+    type = 'error_correction';
+    if (inlineBlanks.length < 2) {
+      inlineBlanks.length = 0;
+      inlineBlanks.push({ placeholder: 'Lỗi sai', answer: '' });
+      inlineBlanks.push({ placeholder: 'Sửa lại', answer: '' });
+    }
   } else if (inlineBlanks.length > 0 || title.includes('___') || title.includes('_')) {
     type = 'fill_in_blank';
     if (inlineBlanks.length === 0) {

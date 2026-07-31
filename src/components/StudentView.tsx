@@ -14,6 +14,25 @@ interface StudentViewProps {
 }
 
 export function checkQuestionCorrectness(q: Question, answers: Record<string, string>): boolean {
+  if (q.type === 'error_correction') {
+    const errInput = answers[`q_${q.id}_blank_0`] || answers[`q_${q.id}_error`] || '';
+    const corrInput = answers[`q_${q.id}_blank_1`] || answers[`q_${q.id}_correction`] || '';
+    const expected = q.answer || '';
+
+    if (expected.includes('->') || expected.includes('→') || expected.includes('/')) {
+      const parts = expected.split(/->|→|\//).map((p) => p.trim());
+      const expErr = parts[0] || '';
+      const expCorr = parts[1] || '';
+
+      const errOk = smartCompareAnswers(errInput, expErr);
+      const corrOk = smartCompareAnswers(corrInput, expCorr);
+      return errOk && corrOk;
+    }
+
+    if (corrInput && smartCompareAnswers(corrInput, expected)) return true;
+    if (errInput && corrInput && (expected.includes(cleanAnswerText(errInput)) || expected.includes(cleanAnswerText(corrInput)))) return true;
+  }
+
   if (q.inlineBlanks && q.inlineBlanks.length > 0 && q.type !== 'multiple_choice') {
     let qAllCorrect = true;
     q.inlineBlanks.forEach((b, bIdx) => {
@@ -370,7 +389,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.2.1
+                v2.3.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -717,8 +736,55 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                       </div>
                     )}
 
-                    {/* Inline Blanks */}
-                    {q.type !== 'multiple_choice' && q.inlineBlanks && q.inlineBlanks.length > 0 && (
+                    {/* Error Correction 2-Box Dedicated Layout */}
+                    {q.type === 'error_correction' && (
+                      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-rose-50/50 via-amber-50/50 to-emerald-50/50 border border-slate-200 space-y-3">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                          <span>🔍 Bài tập Tìm & Sửa Lỗi Sai - Vui lòng nhập thông tin vào 2 ô bên dưới:</span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Box 1: Error */}
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-rose-700 flex items-center gap-1">
+                              ❌ Ô 1: Từ / Cụm từ bị sai
+                            </label>
+                            <input
+                              type="text"
+                              disabled={isSubmitted}
+                              value={answers[`q_${q.id}_blank_0`] || answers[`q_${q.id}_error`] || ''}
+                              onChange={(e) => {
+                                handleAnswerChange(`q_${q.id}_blank_0`, e.target.value);
+                                handleAnswerChange(`q_${q.id}_error`, e.target.value);
+                              }}
+                              placeholder="Nhập từ bị sai (Ví dụ: go)..."
+                              className="w-full p-3 bg-white border border-rose-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-rose-500 focus:outline-none shadow-sm"
+                            />
+                          </div>
+
+                          {/* Box 2: Correction */}
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                              ✅ Ô 2: Từ / Cụm từ sửa lại đúng
+                            </label>
+                            <input
+                              type="text"
+                              disabled={isSubmitted}
+                              value={answers[`q_${q.id}_blank_1`] || answers[`q_${q.id}_correction`] || ''}
+                              onChange={(e) => {
+                                handleAnswerChange(`q_${q.id}_blank_1`, e.target.value);
+                                handleAnswerChange(`q_${q.id}_correction`, e.target.value);
+                              }}
+                              placeholder="Nhập từ đúng (Ví dụ: goes)..."
+                              className="w-full p-3 bg-white border border-emerald-300 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none shadow-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inline Blanks (for non error_correction fill-in-blank) */}
+                    {q.type !== 'multiple_choice' && q.type !== 'error_correction' && q.inlineBlanks && q.inlineBlanks.length > 0 && (
                       <div className="space-y-3 pt-2">
                         {q.inlineBlanks.map((b, bIdx) => (
                           <div key={bIdx} className="flex items-center gap-2">
