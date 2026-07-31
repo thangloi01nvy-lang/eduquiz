@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, Send, Trash2, Download, Layers, HelpCircle, Edit3, Loader2 } from 'lucide-react';
 import { AppData, LibraryItem, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
-import { syncWithServer, normalizeAssignmentList } from '../services/storage';
+import { syncWithServer, normalizeAssignmentList, getQuizDedupeKey } from '../services/storage';
 
 interface LibraryManagerProps {
   appData: AppData;
@@ -55,9 +55,16 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
         newAssignments[targetClass] = [payload, ...existingList];
       }
 
+      // Clean tombstones that might conflict with this new payload
+      const dedupeKey = getQuizDedupeKey(payload);
+      const cleanedRecalled = (appData.recalledAssignments || []).filter(
+        (r) => r !== assignId && r !== dedupeKey && r !== item.id
+      );
+
       const updatedData: AppData = {
         ...appData,
         classAssignments: newAssignments,
+        recalledAssignments: cleanedRecalled,
       };
 
       onUpdateAppData(() => updatedData);

@@ -134,19 +134,14 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
   const key = getQuizDedupeKey(quiz);
-  const title = (quiz.quizTitle || '').trim().toLowerCase();
-  const id = (quiz.id || '').trim().toLowerCase();
+  const id = quiz.id ? quiz.id.trim() : '';
 
   return recalledIds.some((r) => {
     if (!r) return false;
-    const rClean = r.trim().toLowerCase();
-    return (
-      rClean === key.toLowerCase() ||
-      (id && rClean === id) ||
-      rClean === title ||
-      rClean.includes(title) ||
-      title.includes(rClean)
-    );
+    const rTrim = r.trim();
+    if (rTrim === key) return true;
+    if (id && rTrim === id) return true;
+    return false;
   });
 }
 
