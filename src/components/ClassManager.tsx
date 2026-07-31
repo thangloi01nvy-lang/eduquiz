@@ -239,7 +239,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                               {qIdx === 0 ? 'Mới nhất' : 'Bài cũ'}
                             </span>
                             <button
-                              onClick={() => handleRecallAssignment(c.name, quiz.id || getQuizDedupeKey(quiz, qIdx), quiz.quizTitle)}
+                              onClick={() => handleRecallAssignment(c.name, quiz.id || getQuizDedupeKey(quiz), quiz.quizTitle)}
                               className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-lg transition"
                               title="Thu hồi bài tập này khỏi lớp"
                             >

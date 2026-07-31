@@ -117,21 +117,25 @@ export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQ
   return [];
 }
 
-export function getQuizDedupeKey(quiz: AssignedQuizPayload, fallbackIdx: number = 0): string {
-  if (!quiz) return `empty_quiz_${fallbackIdx}`;
-  if (quiz.id) return quiz.id;
-  const qCount = quiz.questions?.length || 0;
+export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
+  if (!quiz) return 'empty_quiz';
   const title = (quiz.quizTitle || '').trim().toLowerCase();
-  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 30);
-  const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 30);
-  const dateStr = (quiz.quizCreatedDate || '').slice(0, 19);
-  return `${title}_${dateStr}_${qCount}_${firstQ}_${lastQ}_${fallbackIdx}`;
+  const level = (quiz.quizLevel || 'B1').trim().toLowerCase();
+  const qCount = quiz.questions?.length || 0;
+  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 40);
+  const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 40);
+  const dateDay = (quiz.quizCreatedDate || '').slice(0, 10);
+  return `${title}_${level}_${dateDay}_${qCount}_${firstQ}_${lastQ}`;
 }
 
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
   const key = getQuizDedupeKey(quiz);
-  return recalledIds.includes(key) || (quiz.id ? recalledIds.includes(quiz.id) : false);
+  return (
+    recalledIds.includes(key) ||
+    (quiz.id ? recalledIds.includes(quiz.id) : false) ||
+    recalledIds.includes(`${quiz.quizTitle}_${quiz.quizCreatedDate || ''}`)
+  );
 }
 
 export function deduplicateAssignmentList(
@@ -141,14 +145,11 @@ export function deduplicateAssignmentList(
   const normalized = normalizeAssignmentList(payload);
   const assignMap = new Map<string, AssignedQuizPayload>();
 
-  normalized.forEach((item, idx) => {
+  normalized.forEach((item) => {
     if (isQuizRecalled(item, recalledIds)) return;
-    const key = item.id || getQuizDedupeKey(item, idx);
+    const key = getQuizDedupeKey(item);
     if (!assignMap.has(key)) {
-      assignMap.set(key, {
-        ...item,
-        id: item.id || `assign_${Date.now()}_${idx}`,
-      });
+      assignMap.set(key, item);
     }
   });
 
