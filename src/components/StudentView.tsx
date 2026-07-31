@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord, GradeRecord } from '../types';
 import { normalizeClassName, isClassMatching, safeParseMarkdown, smartCompareAnswers, cleanAnswerText, formatDateVN } from '../utils/normalize';
@@ -482,7 +482,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.8.0
+                v3.8.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -642,7 +642,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
               </h3>
               <p className="text-xs font-bold text-amber-950 opacity-90 mt-0.5">
                 Thầy/Cô vừa gửi yêu cầu em làm lại bài tập:{' '}
-                <span className="underline">{studentRetakeAlerts.map((g) => g.quizTitle).join(', ')}</span>.
+                <span className="underline">{studentRetakeAlerts.map((g: GradeRecord) => g.quizTitle).join(', ')}</span>.
                 Em hãy bấm nút <b>"🚀 LÀM LẠI NGAY"</b> ở danh sách bài bên dưới!
               </p>
             </div>
@@ -847,9 +847,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                   </span>
                 </button>
 
-                {quizSections.map((sec, sIdx) => {
+                {quizSections.map((sec: { title: string; questions: Question[] }, sIdx: number) => {
                   const isSelected = selectedSectionTab === sec.title;
-                  const answeredCount = sec.questions.filter((q) => {
+                  const answeredCount = sec.questions.filter((q: Question) => {
                     if (q.type === 'error_correction') {
                       return Boolean(answers[`q_${q.id}_error`] || answers[`q_${q.id}_correction`] || answers[`q_${q.id}_blank_0`]);
                     }
