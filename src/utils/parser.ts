@@ -46,15 +46,17 @@ function parseRawQuestions(text: string): { questions: Question[]; sections: Sec
     const line = rawLine.trim();
     if (!line) continue;
 
-    // Recognize Section Headers: e.g. "## Bài 1", "Bài A:", "Bài 3:", "Phần A:", "Part 1:"
+    // Recognize Section Headers: e.g. "## Bài 1", "Bài 1 Complete...", "Bài A:", "Bài 3:", "Phần A:", "Part 1:", "## 2 Choose..."
+    const isQuestionLine = /^(\d+)[\.\)\:\s]\s*[A-Z\w"']/i.test(line) || /^câu\s*\d+/i.test(line);
     const isSectionHeader =
-      line.startsWith('#') ||
-      /^bài\s*[0-9a-z]+/i.test(line) ||
-      /^phần\s*[0-9a-z]+/i.test(line) ||
-      /^part\s*[0-9a-z]+/i.test(line) ||
-      /^section\s*[0-9a-z]+/i.test(line);
+      !isQuestionLine &&
+      (line.startsWith('#') ||
+        /^bài\s*[0-9a-z]+/i.test(line) ||
+        /^phần\s*[0-9a-z]+/i.test(line) ||
+        /^part\s*[0-9a-z]+/i.test(line) ||
+        /^section\s*[0-9a-z]+/i.test(line));
 
-    if (isSectionHeader && !line.match(/^(\d+)[\.\)]\s*/)) {
+    if (isSectionHeader) {
       if (currentQ) {
         const qFinal = finalizeQuestion(currentQ, qCounter++);
         questions.push(qFinal);
@@ -69,22 +71,51 @@ function parseRawQuestions(text: string): { questions: Question[]; sections: Sec
         });
         currentSectionQuestions = [];
       }
-      currentSectionTitle = line.replace(/^#+\s*/, '').trim();
+      let rawTitle = line.replace(/^#+\s*/, '').trim();
+      if (/^\d+\s+/i.test(rawTitle)) {
+        rawTitle = `Bài ${rawTitle}`;
+      }
+      currentSectionTitle = rawTitle;
       continue;
     }
 
-    // Extract Word Bank
+    // Extract Word Bank (Explicit "word bank:" OR lines with multiple phrases in a box line right after instruction)
     if (line.toLowerCase().includes('word bank:') || line.toLowerCase().includes('từ vựng:')) {
       const parts = line.split(/word bank:|từ vựng:/i);
       if (parts[1]) {
-        const words = parts[1].split(/[,;]/).map((w) => w.trim()).filter(Boolean);
+        const words = parts[1].split(/[,;\t]/).map((w) => w.trim()).filter(Boolean);
         globalWordBank.push(...words);
       }
       continue;
     }
 
-    // Check Question Start: e.g. "1.", "1)", "Câu 1:"
-    const qMatch = line.match(/^(\d+)[\.\)]\s*(.*)/) || line.match(/^câu\s*(\d+)[\.\:]\s*(.*)/i);
+    // Auto-detect word bank line (e.g. "can-do attitude communication skills critical thinking...")
+    const isWordBankBoxLine =
+      !currentQ &&
+      !isQuestionLine &&
+      lines[i - 1] &&
+      /in the box|words and phrases|từ trong khung/i.test(lines[i - 1]) &&
+      line.length > 15;
+
+    if (isWordBankBoxLine) {
+      // Split by 2 or more spaces or tabs
+      const phrases = line.split(/\s{2,}|\t/).map((w) => w.trim()).filter(Boolean);
+      if (phrases.length > 1) {
+        globalWordBank.push(...phrases);
+      } else {
+        // Fallback: split common 2-word phrases
+        const tokens = line.split(/\s+/);
+        globalWordBank.push(line);
+      }
+      continue;
+    }
+
+    // Check Question Start: e.g. "1.", "1)", "1 ", "Câu 1:"
+    const qMatch =
+      line.match(/^(\d+)[\.\)\:]\s*(.*)/) ||
+      line.match(/^câu\s*(\d+)[\.\:]\s*(.*)/i) ||
+      line.match(/^(\d+)\s+([A-Z\w"'].*)/);
+
     if (qMatch) {
       if (currentQ) {
         const qFinal = finalizeQuestion(currentQ, qCounter++);
@@ -244,6 +275,26 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
         key: String.fromCharCode(65 + idx),
         text: cStr,
       }));
+    }
+  }
+
+  // Check slash choices inside question body e.g. "confident/independent" or "ambitious / passionate"
+  if (inlineBlanks.length === 0 && generatedOptions.length === 0) {
+    const slashMatch = title.match(/\b([A-Za-z0-9_\-]{2,20})\s*\/\s*([A-Za-z0-9_\-]{2,20})\b/);
+    if (slashMatch && slashMatch[1] && slashMatch[2]) {
+      const choiceA = slashMatch[1].trim();
+      const choiceB = slashMatch[2].trim();
+      if (choiceA && choiceB) {
+        inlineBlanks.push({
+          placeholder: `${choiceA}/${choiceB}`,
+          choices: [choiceA, choiceB],
+          answer: choiceA,
+        });
+        generatedOptions = [
+          { key: 'A', text: choiceA },
+          { key: 'B', text: choiceB },
+        ];
+      }
     }
   }
 
