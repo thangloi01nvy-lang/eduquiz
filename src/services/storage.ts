@@ -129,14 +129,20 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
   return `${title}_${qCount}_${firstQ}_${lastQ}`;
 }
 
-export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
+export function isQuizRecalled(
+  quiz: { id?: string; quizTitle?: string; title?: string; quizId?: string },
+  recalledIds: string[] = []
+): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
-  const id = quiz.id ? quiz.id.trim() : '';
-  if (!id) return false;
+  const id = (quiz.id || quiz.quizId || '').trim();
+  const title = (quiz.quizTitle || quiz.title || '').trim().toLowerCase();
 
   return recalledIds.some((r) => {
     if (!r) return false;
-    return r.trim() === id;
+    const cleanR = r.trim();
+    if (id && cleanR === id) return true;
+    if (title && cleanR.toLowerCase() === title) return true;
+    return false;
   });
 }
 

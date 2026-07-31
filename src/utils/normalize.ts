@@ -159,9 +159,6 @@ export function smartCompareAnswers(userAns: string, expectedAns: string, qTitle
 
   for (const v of expVariants) {
     if (cleanUser === v) return true;
-    if (v.endsWith(cleanUser) || cleanUser.endsWith(v)) {
-      if (Math.abs(cleanUser.length - v.length) <= 30) return true;
-    }
   }
 
   // 4. Handle abbreviations (e.g. ID -> independent, DP -> dependent)

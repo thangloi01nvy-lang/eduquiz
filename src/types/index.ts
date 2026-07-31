@@ -86,6 +86,7 @@ export interface GradeRecord {
   studentName: string;
   className: string;
   quizTitle: string;
+  quizId?: string;
   score: number;
   maxScore: number;
   percentage: number;
