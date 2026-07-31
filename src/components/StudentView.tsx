@@ -239,7 +239,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   const [selectedAssignment, setSelectedAssignment] = useState<AssignedQuizPayload | null>(null);
 
-  // Get ALL Assigned Quizzes for active student class (Auto-recovers from classAssignments AND quizLibrary)
+  // Get ALL Assigned Quizzes for active student class (EXACTLY what teacher published)
   const getAllAssignedQuizzes = (): AssignedQuizPayload[] => {
     if (!activeStudent) return [];
     const studentClassName = activeStudent.className;
@@ -247,44 +247,23 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    // 1. Load from classAssignments (including exact class match, normalized match, and 'all' match)
+    // 1. Load ONLY from classAssignments (Exact class match, normalized match, or 'all')
     if (appData.classAssignments) {
       for (const key in appData.classAssignments) {
         const normKey = normalizeClassName(key);
         if (normKey === normStudentClass || key === studentClassName || normKey === 'all' || key === 'all') {
           const list = normalizeAssignmentList(appData.classAssignments[key]);
           list.forEach((item, idx) => {
-            const mapKey = item.id || `${item.quizTitle}_${item.quizCreatedDate || ''}_${key}_${idx}`;
-            assignMap.set(mapKey, item);
+            if (item && item.questions && item.questions.length > 0) {
+              const mapKey = item.id || `${item.quizTitle}_${item.quizCreatedDate || ''}_${key}_${idx}`;
+              assignMap.set(mapKey, item);
+            }
           });
         }
       }
     }
 
-    // 2. Auto-Recover from quizLibrary (Library Quizzes for this class)
-    if (appData.quizLibrary && appData.quizLibrary.length > 0) {
-      appData.quizLibrary.forEach((libItem, libIdx) => {
-        const normTarget = normalizeClassName(libItem.targetClass || 'all');
-        if (normTarget === 'all' || normTarget === normStudentClass || libItem.targetClass === studentClassName) {
-          if (libItem.questions && libItem.questions.length > 0) {
-            const key = libItem.id || `lib_${libItem.title}_${libItem.createdDate || ''}_${libIdx}`;
-            if (!assignMap.has(key)) {
-              assignMap.set(key, {
-                id: libItem.id || key,
-                quizTitle: libItem.title,
-                quizLevel: libItem.level || 'B1',
-                quizCreatedDate: libItem.createdDate || new Date().toISOString(),
-                questions: libItem.questions,
-                sections: libItem.sections || [],
-                wordBank: libItem.wordBank || [],
-              });
-            }
-          }
-        }
-      });
-    }
-
-    // 3. Fallback to active currentQuestions if target is 'all'
+    // 2. Fallback to active currentQuestions ONLY IF no class assignment exists at all
     if (assignMap.size === 0 && (appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
       assignMap.set('default_active_quiz', {
         id: 'default_active_quiz',
@@ -415,7 +394,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.4.0
+                v2.4.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
