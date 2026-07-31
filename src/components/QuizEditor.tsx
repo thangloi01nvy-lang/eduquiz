@@ -202,30 +202,40 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       newAssignments[targetClass] = [payload, ...existingList];
     }
 
-    // Also update Quiz Library if editing a library item
+    // Also update Quiz Library if editing or matching a library item
+    const titleClean = title.trim().toLowerCase();
     const existingList = appData.quizLibrary || [];
     const editId = appData.editingLibraryId;
-    const editIndex = editId ? existingList.findIndex((item) => item.id === editId) : -1;
+    const editIndex = existingList.findIndex(
+      (item) => (editId && item.id === editId) || (editId && item.title === editId) || (item.title && item.title.trim().toLowerCase() === titleClean)
+    );
 
     let updatedLibrary = [...existingList];
+    const targetId = (editIndex >= 0 && existingList[editIndex]?.id) ? existingList[editIndex].id : (editId && editId.startsWith('lib_') ? editId : `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`);
+
+    const updatedLibItem: LibraryItem = {
+      id: targetId,
+      title,
+      level,
+      targetClass,
+      createdDate: (editIndex >= 0 && existingList[editIndex]?.createdDate) ? existingList[editIndex].createdDate : new Date().toISOString(),
+      questionsCount: parsed.questions.length,
+      sectionsCount: parsed.sections.length,
+      questions: parsed.questions,
+      sections: parsed.sections,
+      wordBank: parsed.wordBank,
+      rawText,
+    };
+
     if (editIndex >= 0) {
-      updatedLibrary[editIndex] = {
-        ...updatedLibrary[editIndex],
-        title,
-        level,
-        targetClass,
-        questionsCount: parsed.questions.length,
-        sectionsCount: parsed.sections.length,
-        questions: parsed.questions,
-        sections: parsed.sections,
-        wordBank: parsed.wordBank,
-        rawText,
-      };
+      updatedLibrary[editIndex] = updatedLibItem;
+    } else {
+      updatedLibrary = [updatedLibItem, ...existingList];
     }
 
     const updatedData: AppData = {
       ...appData,
-      editingLibraryId: undefined,
+      editingLibraryId: targetId,
       currentQuestions: parsed.questions,
       sections: parsed.sections,
       wordBank: parsed.wordBank,
@@ -256,59 +266,56 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       return;
     }
 
-    const title = appData.quizTitle || 'Bài Tập Mới';
+    const title = (appData.quizTitle || 'Bài Tập Mới').trim();
+    const titleClean = title.toLowerCase();
     const editId = appData.editingLibraryId;
 
     const existingList = appData.quizLibrary || [];
-    const editIndex = editId ? existingList.findIndex((item) => item.id === editId) : -1;
+    const editIndex = existingList.findIndex(
+      (item) => (editId && item.id === editId) || (editId && item.title === editId) || (item.title && item.title.trim().toLowerCase() === titleClean)
+    );
 
-    let updatedLibrary: LibraryItem[];
+    let updatedLibrary: LibraryItem[] = [...existingList];
+    const targetId = (editIndex >= 0 && existingList[editIndex]?.id) ? existingList[editIndex].id : (editId && editId.startsWith('lib_') ? editId : `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`);
+
+    const updatedLibItem: LibraryItem = {
+      id: targetId,
+      title,
+      level: appData.quizLevel || 'B1',
+      targetClass: selectedTargetClass,
+      createdDate: (editIndex >= 0 && existingList[editIndex]?.createdDate) ? existingList[editIndex].createdDate : new Date().toISOString(),
+      rawText,
+      questionsCount: parsed.questions.length,
+      sectionsCount: parsed.sections.length,
+      questions: parsed.questions,
+      sections: parsed.sections,
+      wordBank: parsed.wordBank,
+    };
 
     if (editIndex >= 0) {
-      // OVERWRITE EXACT EXISTING LIBRARY ITEM BEING EDITED
-      updatedLibrary = [...existingList];
-      updatedLibrary[editIndex] = {
-        ...updatedLibrary[editIndex],
-        title,
-        level: appData.quizLevel || 'B1',
-        targetClass: selectedTargetClass,
-        questionsCount: parsed.questions.length,
-        sectionsCount: parsed.sections.length,
-        questions: parsed.questions,
-        sections: parsed.sections,
-        wordBank: parsed.wordBank,
-        rawText,
-      };
+      // OVERWRITE EXACT TARGET ITEM IN LIBRARY
+      updatedLibrary[editIndex] = updatedLibItem;
     } else {
-      // CREATE BRAND NEW UNIQUE LIBRARY ITEM
-      const newItem: LibraryItem = {
-        id: `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        title,
-        level: appData.quizLevel || 'B1',
-        targetClass: selectedTargetClass,
-        createdDate: new Date().toISOString(),
-        rawText,
-        questionsCount: parsed.questions.length,
-        sectionsCount: parsed.sections.length,
-        questions: parsed.questions,
-        sections: parsed.sections,
-        wordBank: parsed.wordBank,
-      };
-      updatedLibrary = [newItem, ...existingList];
+      // ADD AS NEW ITEM
+      updatedLibrary = [updatedLibItem, ...existingList];
     }
 
     const updatedData: AppData = {
       ...appData,
-      editingLibraryId: undefined,
+      editingLibraryId: targetId,
       quizLibrary: updatedLibrary,
     };
 
     onUpdateAppData(() => updatedData);
 
     onShowNotification('☁️ Đang lưu & đồng bộ Thư viện lên Cloud Real-Time...', 'warning');
-    await syncWithServer(updatedData);
+    const cloudSuccess = await syncWithServer(updatedData);
 
-    onShowNotification(`📚 Đã cập nhật bài tập "${title}" vào Thư Viện & Đồng bộ Cloud thành công!`, 'success');
+    if (cloudSuccess) {
+      onShowNotification(`📚 ĐÃ CẬP NHẬT & ĐỒNG BỘ THÀNH CÔNG bài tập "${title}" trong Thư Viện!`, 'success');
+    } else {
+      onShowNotification(`📚 Đã cập nhật bài tập "${title}" trong Thư Viện (Máy local)!`, 'success');
+    }
   };
 
   const handleGenerateAi = async () => {
