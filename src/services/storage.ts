@@ -62,7 +62,7 @@ export function loadLocalData(): AppData {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
         parsed.classes = sanitizeClassesData(parsed.classes || [], parsed.deletedClasses || []);
-        parsed.recalledAssignments = parsed.recalledAssignments || [];
+        parsed.recalledAssignments = (parsed.recalledAssignments || []).filter((r: any) => typeof r === 'string' && (r.startsWith('assign_') || r.startsWith('lib_')));
         parsed.classAssignments = sanitizeClassAssignmentsMap(parsed.classAssignments || {}, parsed.recalledAssignments);
         return { ...INITIAL_APP_DATA, ...parsed, classes: parsed.classes, classAssignments: parsed.classAssignments, recalledAssignments: parsed.recalledAssignments };
       }
@@ -122,25 +122,23 @@ export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQ
 
 export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
   if (!quiz) return 'empty_quiz';
+  if (quiz.id) return quiz.id;
   const title = (quiz.quizTitle || '').trim().toLowerCase();
   const level = (quiz.quizLevel || 'B1').trim().toLowerCase();
+  const dateStr = (quiz.quizCreatedDate || '').slice(0, 19);
   const qCount = quiz.questions?.length || 0;
-  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 40);
-  const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 40);
-  return `${title}_${level}_${qCount}_${firstQ}_${lastQ}`;
+  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 30);
+  return `${title}_${level}_${dateStr}_${qCount}_${firstQ}`;
 }
 
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
-  const key = getQuizDedupeKey(quiz);
   const id = quiz.id ? quiz.id.trim() : '';
+  if (!id) return false;
 
   return recalledIds.some((r) => {
     if (!r) return false;
-    const rTrim = r.trim();
-    if (rTrim === key) return true;
-    if (id && rTrim === id) return true;
-    return false;
+    return r.trim() === id;
   });
 }
 
