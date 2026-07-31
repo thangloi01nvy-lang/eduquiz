@@ -488,11 +488,13 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     }));
 
     const typeLabel =
-      newType === 'multiple_choice'
-        ? 'Trắc Nghiệm (Click Chọn A/B/C/D)'
+      newType === 'drag_and_drop'
+        ? '🪢 Dạng 4: Kéo Thả Với Từ Vựng Cho Trước (Drag & Drop)'
+        : newType === 'multiple_choice'
+        ? '🎯 Dạng 1: Trắc Nghiệm (Click Chọn A/B/C/D)'
         : newType === 'fill_in_blank'
-        ? 'Điền Từ / Ô Trống'
-        : 'Tự Luận';
+        ? '🧩 Dạng 2: Điền Từ / Ô Trống'
+        : '✍️ Dạng 3: Tự Luận';
 
     onShowNotification(`⚡ Đã chuyển đổi tất cả câu hỏi thuộc bài "${secTitle}" sang dạng: ${typeLabel}!`, 'success');
   };
@@ -813,19 +815,25 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                             onClick={() => handleSectionBulkChange(secTitle, 'multiple_choice')}
                             className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
                           >
-                            🎯 Bài này ➔ Trắc Nghiệm (Click chọn)
+                            🎯 Dạng 1 ➔ Trắc Nghiệm (Click chọn)
                           </button>
                           <button
                             onClick={() => handleSectionBulkChange(secTitle, 'fill_in_blank')}
                             className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
                           >
-                            🧩 Bài này ➔ Điền Từ / Ô Trống
+                            🧩 Dạng 2 ➔ Điền Từ / Ô Trống
                           </button>
                           <button
                             onClick={() => handleSectionBulkChange(secTitle, 'essay')}
                             className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
                           >
-                            ✍️ Bài này ➔ Tự Luận
+                            ✍️ Dạng 3 ➔ Tự Luận
+                          </button>
+                          <button
+                            onClick={() => handleSectionBulkChange(secTitle, 'drag_and_drop')}
+                            className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
+                          >
+                            🪢 Dạng 4 ➔ Kéo Thả Từ Vựng Cho Trước (Drag & Drop)
                           </button>
                         </div>
                       </div>
@@ -864,10 +872,12 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                           onChange={(e) => setEditType(e.target.value as any)}
                           className="p-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold"
                         >
-                          <option value="fill_in_blank">Điền từ / Tự luận</option>
-                          <option value="multiple_choice">Trắc nghiệm</option>
+                          <option value="drag_and_drop">🪢 Dạng 4: Kéo thả từ vựng cho trước (Drag & Drop)</option>
+                          <option value="fill_in_blank">Dạng 2: Điền từ / Ô trống</option>
+                          <option value="multiple_choice">Dạng 1: Trắc nghiệm</option>
                           <option value="true_false">Đúng / Sai</option>
                           <option value="short_answer">Tự luận ngắn</option>
+                          <option value="essay">Dạng 3: Tự luận dài</option>
                         </select>
 
                         <label className="text-[10px] font-bold text-amber-900 ml-2">Điểm câu này:</label>
