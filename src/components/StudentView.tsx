@@ -246,7 +246,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    // 1. Load from classAssignments using isClassMatching
+    // 1. Load ONLY assigned quizzes from classAssignments matching student class
     if (appData.classAssignments) {
       for (const key in appData.classAssignments) {
         if (isClassMatching(studentClassName, key)) {
@@ -261,33 +261,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       }
     }
 
-    // 2. Also check quizLibrary items matching targetClass or 'all'
-    if (appData.quizLibrary && appData.quizLibrary.length > 0) {
-      appData.quizLibrary.forEach((libItem) => {
-        if (libItem && libItem.questions && libItem.questions.length > 0) {
-          if (isClassMatching(studentClassName, libItem.targetClass || 'all')) {
-            const payload: AssignedQuizPayload = {
-              id: libItem.id,
-              quizTitle: libItem.title,
-              quizLevel: libItem.level || 'B1',
-              quizCreatedDate: libItem.createdDate || new Date().toISOString(),
-              questions: libItem.questions,
-              sections: libItem.sections || [],
-              wordBank: libItem.wordBank || [],
-              status: 'active',
-            };
-            if (!isQuizRecalled(payload, appData.recalledAssignments)) {
-              const mapKey = getQuizDedupeKey(payload);
-              if (!assignMap.has(mapKey)) {
-                assignMap.set(mapKey, payload);
-              }
-            }
-          }
-        }
-      });
-    }
-
-    // 3. Fallback to active currentQuestions IF no class assignment exists
+    // 2. Fallback to active currentQuestions ONLY IF no class assignment exists at all
     if (assignMap.size === 0 && appData.currentQuestions?.length > 0) {
       if (isClassMatching(studentClassName, appData.quizTargetClass || 'all')) {
         assignMap.set('default_active_quiz', {
@@ -420,7 +394,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.6.0
+                v2.6.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>

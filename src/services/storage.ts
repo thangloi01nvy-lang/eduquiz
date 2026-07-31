@@ -127,8 +127,7 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
   const qCount = quiz.questions?.length || 0;
   const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 40);
   const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 40);
-  const dateDay = (quiz.quizCreatedDate || '').slice(0, 10);
-  return `${title}_${level}_${dateDay}_${qCount}_${firstQ}_${lastQ}`;
+  return `${title}_${level}_${qCount}_${firstQ}_${lastQ}`;
 }
 
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
