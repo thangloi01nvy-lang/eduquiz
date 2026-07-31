@@ -135,6 +135,44 @@ function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: Cla
   return merged;
 }
 
+function mergeQuizLibrary(localLib: any[] = [], remoteLib: any[] = []): any[] {
+  const libMap = new Map<string, any>();
+
+  // Add remote items
+  (remoteLib || []).forEach((item) => {
+    if (item && (item.id || item.title)) {
+      libMap.set(item.id || item.title, item);
+    }
+  });
+
+  // Local teacher items take top priority & NEVER get lost!
+  (localLib || []).forEach((item) => {
+    if (item && (item.id || item.title)) {
+      libMap.set(item.id || item.title, item);
+    }
+  });
+
+  return Array.from(libMap.values());
+}
+
+function mergeGradesList(localGrades: any[] = [], remoteGrades: any[] = []): any[] {
+  const gradeMap = new Map<string, any>();
+
+  (remoteGrades || []).forEach((g) => {
+    if (g && (g.id || g.studentId)) {
+      gradeMap.set(g.id || `${g.studentId}_${g.quizTitle}`, g);
+    }
+  });
+
+  (localGrades || []).forEach((g) => {
+    if (g && (g.id || g.studentId)) {
+      gradeMap.set(g.id || `${g.studentId}_${g.quizTitle}`, g);
+    }
+  });
+
+  return Array.from(gradeMap.values());
+}
+
 function mergeAppData(local: AppData, remote: AppData): AppData {
   const deletedSet = new Set([...(local.deletedClasses || []), ...(remote.deletedClasses || [])].map((d) => d.toLowerCase()));
 
@@ -168,11 +206,13 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
 
   return {
     ...INITIAL_APP_DATA,
-    ...local,
     ...remote,
+    ...local,
     classes: mergedClasses,
     deletedClasses: Array.from(deletedSet),
     classAssignments: mergeClassAssignments(local.classAssignments, remote.classAssignments),
+    quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary),
+    grades: mergeGradesList(local.grades, remote.grades),
   };
 }
 
