@@ -675,8 +675,9 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                   )}
                 </div>
               </React.Fragment>
-            ))
-          )}
+            );
+          })
+        )}
           </div>
         </div>
       </div>
