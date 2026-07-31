@@ -314,6 +314,56 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     return updated || selectedAssignment;
   }, [selectedAssignment, allAssignedQuizzes]);
 
+  // Active section tab for breaking exercises apart (Bài 1, Bài 2, Bài 3...)
+  const [selectedSectionTab, setSelectedSectionTab] = useState<string>('all');
+
+  // Compute distinct quiz sections
+  const quizSections = useMemo(() => {
+    if (!activeQuiz || !activeQuiz.questions || activeQuiz.questions.length === 0) return [];
+    
+    const sections: { title: string; questions: Question[] }[] = [];
+    const secMap = new Map<string, Question[]>();
+
+    activeQuiz.questions.forEach((q) => {
+      const title = q.sectionTitle && q.sectionTitle.trim() !== 'Bài tập chung' ? q.sectionTitle.trim() : 'Bài Tập';
+      if (!secMap.has(title)) {
+        secMap.set(title, []);
+        sections.push({ title, questions: secMap.get(title)! });
+      }
+      secMap.get(title)!.push(q);
+    });
+
+    return sections;
+  }, [activeQuiz]);
+
+  // Compute student retake alerts from teacher
+  const studentRetakeAlerts = useMemo(() => {
+    if (!activeStudent || !appData.grades) return [];
+    return appData.grades.filter(
+      (g) =>
+        (g.studentId === activeStudent.studentId || g.studentName === activeStudent.studentName) &&
+        g.retakeRequested === true
+    );
+  }, [activeStudent, appData.grades]);
+
+  // Helper to clear retake request on start/submit
+  const clearRetakeStatus = (quizTitle: string) => {
+    if (!activeStudent || !appData.grades) return;
+    const updatedGrades = appData.grades.map((g) => {
+      if (
+        (g.studentId === activeStudent.studentId || g.studentName === activeStudent.studentName) &&
+        (g.quizTitle || '').trim().toLowerCase() === (quizTitle || '').trim().toLowerCase()
+      ) {
+        return { ...g, retakeRequested: false };
+      }
+      return g;
+    });
+
+    const updatedData: AppData = { ...appData, grades: updatedGrades };
+    onUpdateAppData(() => updatedData);
+    syncWithServer(updatedData);
+  };
+
   // Auto-Drafting per answer change
   const handleAnswerChange = (questionKey: string, value: string) => {
     if (isSubmitted) return;
@@ -357,6 +407,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     });
 
     setIsSubmitted(true);
+    clearRetakeStatus(activeQuiz.quizTitle);
 
     if (activeStudent) {
       clearStudentDraft(activeStudent.studentId);
@@ -431,7 +482,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.7.1
+                v3.8.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -577,6 +628,27 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           </button>
         </div>
       </div>
+
+      {/* Retake Notification Alert Banner from Teacher */}
+      {studentRetakeAlerts.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-amber-950 rounded-3xl p-5 shadow-xl border border-amber-300 space-y-2 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-950 text-amber-300 flex items-center justify-center font-bold shrink-0">
+              🔔
+            </div>
+            <div>
+              <h3 className="font-heading font-black text-sm sm:text-base text-amber-950">
+                📢 THÔNG BÁO TỪ GIÁO VIÊN: YÊU CẦU EM LÀM LẠI BÀI TẬP!
+              </h3>
+              <p className="text-xs font-bold text-amber-950 opacity-90 mt-0.5">
+                Thầy/Cô vừa gửi yêu cầu em làm lại bài tập:{' '}
+                <span className="underline">{studentRetakeAlerts.map((g) => g.quizTitle).join(', ')}</span>.
+                Em hãy bấm nút <b>"🚀 LÀM LẠI NGAY"</b> ở danh sách bài bên dưới!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quiz Content Container */}
       {!activeQuiz ? (
@@ -750,17 +822,79 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             </div>
           )}
 
+          {/* Exercise / Section Tab Bar */}
+          {quizSections.length > 1 && (
+            <div className="bg-white rounded-3xl border border-slate-200 p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  📌 CÁC BÀI TẬP TRONG ĐỀ ({quizSections.length} bài)
+                </span>
+                <span className="text-[11px] font-semibold text-brand-600">Bấm từng bài bên dưới để làm riêng</span>
+              </div>
+
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <button
+                  onClick={() => setSelectedSectionTab('all')}
+                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition shrink-0 flex items-center gap-2 ${
+                    selectedSectionTab === 'all'
+                      ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-md shadow-brand-500/20'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  }`}
+                >
+                  <span>🌐 Tất Cả {quizSections.length} Bài Tập</span>
+                  <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px]">
+                    {activeQuiz.questions.length} câu
+                  </span>
+                </button>
+
+                {quizSections.map((sec, sIdx) => {
+                  const isSelected = selectedSectionTab === sec.title;
+                  const answeredCount = sec.questions.filter((q) => {
+                    if (q.type === 'error_correction') {
+                      return Boolean(answers[`q_${q.id}_error`] || answers[`q_${q.id}_correction`] || answers[`q_${q.id}_blank_0`]);
+                    }
+                    return Boolean(answers[`q_${q.id}`] || answers[`q_${q.id}_blank_0`]);
+                  }).length;
+
+                  return (
+                    <button
+                      key={sIdx}
+                      onClick={() => setSelectedSectionTab(sec.title)}
+                      className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition shrink-0 flex items-center gap-2 border ${
+                        isSelected
+                          ? 'bg-amber-500 text-amber-950 border-amber-400 shadow-md shadow-amber-500/20'
+                          : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                      }`}
+                    >
+                      <span>📝 {sec.title}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] ${isSelected ? 'bg-amber-950/15 text-amber-950' : 'bg-slate-100 text-slate-600'}`}>
+                        {answeredCount}/{sec.questions.length} câu
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Question List */}
           <div className="space-y-4">
-            {activeQuiz.questions?.map((q, qIdx) => {
-              const prevQ = activeQuiz.questions[qIdx - 1];
-              const showSectionBanner =
-                q.sectionTitle &&
-                q.sectionTitle !== 'Bài tập chung' &&
-                (!prevQ || prevQ.sectionTitle !== q.sectionTitle);
+            {activeQuiz.questions
+              ?.filter((q) => {
+                if (selectedSectionTab === 'all') return true;
+                const secTitle = q.sectionTitle && q.sectionTitle.trim() !== 'Bài tập chung' ? q.sectionTitle.trim() : 'Bài Tập';
+                return secTitle === selectedSectionTab;
+              })
+              .map((q, qIdx) => {
+                const prevQ = activeQuiz.questions[qIdx - 1];
+                const showSectionBanner =
+                  selectedSectionTab === 'all' &&
+                  q.sectionTitle &&
+                  q.sectionTitle !== 'Bài tập chung' &&
+                  (!prevQ || prevQ.sectionTitle !== q.sectionTitle);
 
-              const isCorrect = isSubmitted ? checkQuestionCorrectness(q, answers) : false;
-              const isWrong = isSubmitted && !isCorrect;
+                const isCorrect = isSubmitted ? checkQuestionCorrectness(q, answers) : false;
+                const isWrong = isSubmitted && !isCorrect;
 
               return (
                 <React.Fragment key={q.id}>

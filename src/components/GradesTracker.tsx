@@ -103,7 +103,10 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
       setSelectedGrade({ ...selectedGrade, retakeRequested: true });
     }
 
-    onShowNotification(`📢 Đã gửi yêu cầu làm lại bài "${quizTitle}" cho học sinh ${studentName}!`, 'success');
+    onShowNotification(`☁️ Đang gửi thông báo yêu cầu làm lại lên Cloud...`, 'warning');
+    await syncWithServer(updatedData);
+
+    onShowNotification(`📢 Đã gửi thông báo yêu cầu làm lại bài "${quizTitle}" cho học sinh ${studentName}!`, 'success');
   };
 
   // Find target quiz questions for a grade record
