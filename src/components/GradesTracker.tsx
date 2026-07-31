@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles } from 'lucide-react';
-import { AppData, GradeRecord, Question } from '../types';
+import { AppData, GradeRecord, Question, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
+import { normalizeAssignmentList } from '../services/storage';
 import { checkQuestionCorrectness } from './StudentView';
 
 interface GradesTrackerProps {
@@ -48,8 +49,8 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
     // 1. Search in classAssignments
     if (appData.classAssignments) {
       for (const className in appData.classAssignments) {
-        const list = appData.classAssignments[className] || [];
-        const match = list.find((q) => q.quizTitle === g.quizTitle || q.id === g.id);
+        const list = normalizeAssignmentList(appData.classAssignments[className]);
+        const match = list.find((q: AssignedQuizPayload) => q.quizTitle === g.quizTitle || q.id === g.id);
         if (match && match.questions && match.questions.length > 0) {
           return match.questions;
         }
@@ -299,7 +300,7 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                              Câu #{idx + 1} • {q.section || 'Phần bài tập'}
+                              Câu #{idx + 1} • {q.sectionTitle || (q.sectionId ? `Phần ${q.sectionId}` : 'Phần bài tập')}
                             </span>
                             <h5 className="font-heading font-bold text-sm text-slate-900">{q.title}</h5>
                           </div>
