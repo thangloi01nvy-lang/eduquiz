@@ -394,7 +394,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.7.1
+                v2.8.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -573,23 +573,49 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                       <p className="text-xs text-slate-500 font-medium">{quiz.questions?.length || 0} câu hỏi • Có sẵn lời giải AI</p>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div className="pt-3 border-t border-slate-100 space-y-2">
                       {existingGrade ? (
-                        <div className="flex items-center gap-2 w-full justify-between">
-                          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-xl">
-                            ✅ Đã nộp ({existingGrade.score}/10)
-                          </span>
-                          <button
-                            onClick={() => {
-                              setSelectedAssignment(quiz);
-                              const draft = loadStudentDraft(`${activeStudent.studentId}_${quiz.quizTitle}`);
-                              setAnswers(draft);
-                              setIsSubmitted(true);
-                            }}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
-                          >
-                            💡 Xem Lời Giải
-                          </button>
+                        <div className="space-y-2">
+                          {existingGrade.retakeRequested && (
+                            <div className="p-2.5 bg-amber-50 border border-amber-300 rounded-xl text-xs font-bold text-amber-900 flex items-center gap-2 animate-pulse">
+                              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span>⚠️ Giáo viên yêu cầu em làm lại bài tập này!</span>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-2 justify-between">
+                            <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-xl">
+                              ✅ Đã nộp ({existingGrade.score}/10)
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setSelectedAssignment(quiz);
+                                  const draft = loadStudentDraft(`${activeStudent.studentId}_${quiz.quizTitle}`);
+                                  setAnswers(draft);
+                                  setIsSubmitted(true);
+                                }}
+                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                              >
+                                💡 Xem Lời Giải
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  setSelectedAssignment(quiz);
+                                  setAnswers({});
+                                  setIsSubmitted(false);
+                                  setScoreResult(null);
+                                  clearStudentDraft(`${activeStudent.studentId}_${quiz.quizTitle}`);
+                                }}
+                                className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1"
+                              >
+                                <RefreshCw className="w-3.5 h-3.5" />
+                                <span>Làm Lại</span>
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2 w-full justify-between">
@@ -622,12 +648,30 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           {/* Header Quiz Title & Back Button */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-xl font-heading font-black text-slate-900">{activeQuiz.quizTitle}</h2>
-            <button
-              onClick={() => setSelectedAssignment(null)}
-              className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              ⬅️ Danh sách bài tập ({allAssignedQuizzes.length} bài)
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              {isSubmitted && (
+                <button
+                  onClick={() => {
+                    setAnswers({});
+                    setIsSubmitted(false);
+                    setScoreResult(null);
+                    if (activeStudent && activeQuiz) {
+                      clearStudentDraft(`${activeStudent.studentId}_${activeQuiz.quizTitle}`);
+                    }
+                  }}
+                  className="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center gap-1.5"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>🔄 Làm Lại Bài Này</span>
+                </button>
+              )}
+              <button
+                onClick={() => setSelectedAssignment(null)}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5"
+              >
+                ⬅️ Danh sách bài tập ({allAssignedQuizzes.length} bài)
+              </button>
+            </div>
           </div>
 
           {/* Conditional Word Bank Box: Render ONLY for drag-and-drop / fill-in-blank exercises with a word bank */}

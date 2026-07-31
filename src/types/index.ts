@@ -92,6 +92,7 @@ export interface GradeRecord {
   submittedAt: string;
   userAnswers?: Record<string, string>;
   answers?: Record<string, string>;
+  retakeRequested?: boolean;
 }
 
 export interface FeedbackRecord {

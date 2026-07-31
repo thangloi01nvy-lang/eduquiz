@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles } from 'lucide-react';
+import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles, RotateCcw } from 'lucide-react';
 import { AppData, GradeRecord, Question, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
 import { normalizeAssignmentList } from '../services/storage';
@@ -40,6 +40,30 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
     }
 
     onShowNotification(`🗑️ Đã xóa kết quả bài làm của ${studentName}`, 'success');
+  };
+
+  const handleRequestRetake = async (gradeId: string, studentName: string, quizTitle: string) => {
+    if (!window.confirm(`📢 Yêu cầu học sinh "${studentName}" LÀM LẠI bài tập "${quizTitle}"?\n\nHọc sinh sẽ nhận được thông báo yêu cầu làm lại bài khi truy cập ứng dụng.`)) return;
+
+    const updatedGrades = (appData.grades || []).map((g) => {
+      if (g.id === gradeId) {
+        return { ...g, retakeRequested: true };
+      }
+      return g;
+    });
+
+    const updatedData: AppData = {
+      ...appData,
+      grades: updatedGrades,
+    };
+
+    onUpdateAppData(() => updatedData);
+
+    if (selectedGrade?.id === gradeId) {
+      setSelectedGrade({ ...selectedGrade, retakeRequested: true });
+    }
+
+    onShowNotification(`📢 Đã gửi yêu cầu làm lại bài "${quizTitle}" cho học sinh ${studentName}!`, 'success');
   };
 
   // Find target quiz questions for a grade record
@@ -163,6 +187,20 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
                     <td className="py-3.5 px-4 text-slate-500">{formatDateVN(g.submittedAt)}</td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {g.retakeRequested ? (
+                          <span className="px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded-xl border border-amber-300">
+                            ⚠️ Đã báo làm lại
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleRequestRetake(g.id, g.studentName, g.quizTitle)}
+                            className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-xl transition border border-amber-200 flex items-center gap-1 shadow-sm"
+                            title="Yêu cầu học sinh làm lại bài này"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 text-amber-700" />
+                            <span>Yêu Cầu Làm Lại</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => setSelectedGrade(g)}
                           className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl transition border border-brand-200 flex items-center gap-1.5 shadow-sm"
@@ -359,7 +397,22 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-white border-t border-slate-200 flex justify-end">
+            <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between gap-3">
+              {selectedGrade.retakeRequested ? (
+                <div className="px-3 py-1.5 bg-amber-100 text-amber-900 font-bold text-xs rounded-xl border border-amber-300 flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <span>Đã gửi yêu cầu làm lại cho học sinh</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleRequestRetake(selectedGrade.id, selectedGrade.studentName, selectedGrade.quizTitle)}
+                  className="px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-xl transition border border-amber-200 flex items-center gap-1.5 shadow-sm"
+                >
+                  <RotateCcw className="w-4 h-4 text-amber-700" />
+                  <span>📢 Yêu Cầu Học Sinh Làm Lại Bài Này</span>
+                </button>
+              )}
+
               <button
                 onClick={() => setSelectedGrade(null)}
                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition"
