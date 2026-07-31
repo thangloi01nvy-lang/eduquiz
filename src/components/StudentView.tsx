@@ -357,6 +357,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   const isFirstSection = currentSectionIdx === 0;
   const isLastSection = quizSections.length <= 1 || currentSectionIdx === quizSections.length - 1 || selectedSectionTab === 'all';
 
+  // Compute effective Word Bank list
+  const effectiveWordBank = useMemo(() => {
+    if (activeQuiz?.wordBank && activeQuiz.wordBank.length > 0) return activeQuiz.wordBank;
+    if (appData.wordBank && appData.wordBank.length > 0) return appData.wordBank;
+    return [];
+  }, [activeQuiz, appData.wordBank]);
+
   // Count unanswered questions across all sections
   const unansweredCount = useMemo(() => {
     if (!activeQuiz?.questions) return 0;
@@ -521,7 +528,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v4.3.0
+                v4.4.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -984,6 +991,54 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             </div>
           )}
 
+          {/* Interactive Drag-and-Drop Word Bank Bar for Exercise 1 & Word Bank Questions */}
+          {effectiveWordBank.length > 0 && (
+            <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-amber-950 rounded-3xl p-5 shadow-lg border-2 border-amber-300 space-y-3 animate-scale-up">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-amber-950 text-amber-300 flex items-center justify-center font-black text-sm shadow">
+                    🪢
+                  </span>
+                  <div>
+                    <h4 className="font-heading font-black text-xs sm:text-sm text-amber-950 uppercase tracking-wide">
+                      KHUNG TỪ VỰNG KÉO THẢ (WORD BANK - {effectiveWordBank.length} CỤM TỪ)
+                    </h4>
+                    <p className="text-[11px] font-bold text-amber-900 opacity-90">
+                      👉 Kéo cụm từ thả trực tiếp vào ô trống bên dưới hoặc bấm trực tiếp vào gợi ý ở từng câu
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3 py-1 bg-amber-950 text-amber-300 rounded-xl text-[10px] font-black uppercase tracking-wider shadow">
+                  ✨ KÉO & THẢ / DRAG & DROP
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {effectiveWordBank.map((word, wIdx) => {
+                  const isUsed = Object.values(answers).includes(word);
+                  return (
+                    <div
+                      key={wIdx}
+                      draggable={!isSubmitted}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', word);
+                      }}
+                      className={`px-3.5 py-2 rounded-2xl text-xs font-black transition cursor-grab active:cursor-grabbing flex items-center gap-1.5 border shadow-sm select-none ${
+                        isUsed
+                          ? 'bg-amber-200/80 text-amber-900/60 border-amber-300 line-through opacity-75'
+                          : 'bg-white hover:bg-amber-50 text-slate-900 border-amber-300 hover:border-amber-500 hover:scale-105 shadow-md ring-1 ring-black/5'
+                      }`}
+                    >
+                      <span>🏷️ {word}</span>
+                      {isUsed && <span className="text-[10px] bg-amber-300/60 text-amber-950 px-1.5 py-0.5 rounded-md font-bold">✓ Đã dùng</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Question List */}
           <div className="space-y-4">
             {activeQuiz.questions
@@ -1157,16 +1212,64 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
                       if ((!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0)) {
                         return (
-                          <div className="space-y-2 pt-2">
-                            <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
-                            <textarea
-                              rows={3}
+                          <div className="space-y-2.5 pt-2">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-bold text-slate-800">
+                                ✍️ Kéo/Thả từ từ Khung Từ Vựng vào đây hoặc gõ đáp án:
+                              </label>
+                              {answers[`q_${q.id}`] && !isSubmitted && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAnswerChange(`q_${q.id}`, '')}
+                                  className="text-[11px] font-bold text-rose-600 hover:underline flex items-center gap-1"
+                                >
+                                  <span>🗑️ Xóa đáp án</span>
+                                </button>
+                              )}
+                            </div>
+
+                            <input
+                              type="text"
                               disabled={isSubmitted}
                               value={answers[`q_${q.id}`] || ''}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const droppedText = e.dataTransfer.getData('text/plain');
+                                if (droppedText && !isSubmitted) {
+                                  handleAnswerChange(`q_${q.id}`, droppedText);
+                                }
+                              }}
                               onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
-                              placeholder="Gõ câu trả lời của em tại đây..."
-                              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
+                              placeholder="👇 Thả từ từ khung từ vựng trên vào đây hoặc gõ câu trả lời..."
+                              className="w-full p-3.5 bg-slate-50 hover:bg-white border-2 border-dashed border-indigo-300 focus:border-brand-600 focus:bg-white rounded-2xl text-xs font-bold text-slate-900 focus:ring-4 focus:ring-brand-100 focus:outline-none transition shadow-inner"
                             />
+
+                            {/* One-Click Word Suggestion Chips */}
+                            {effectiveWordBank.length > 0 && !isSubmitted && (
+                              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase">Gợi ý từ:</span>
+                                {effectiveWordBank.map((word, wIdx) => {
+                                  const isSelectedForThisQ = answers[`q_${q.id}`] === word;
+
+                                  return (
+                                    <button
+                                      key={wIdx}
+                                      type="button"
+                                      disabled={isSubmitted}
+                                      onClick={() => handleAnswerChange(`q_${q.id}`, word)}
+                                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition flex items-center gap-1 border ${
+                                        isSelectedForThisQ
+                                          ? 'bg-amber-400 text-amber-950 border-amber-500 ring-2 ring-amber-300 shadow-sm font-black'
+                                          : 'bg-white hover:bg-amber-50 text-slate-800 border-slate-200 hover:border-amber-400'
+                                      }`}
+                                    >
+                                      <span>🏷️ {word}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         );
                       }
