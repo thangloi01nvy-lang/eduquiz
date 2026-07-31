@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles, RotateCcw } from 'lucide-react';
+import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles, RotateCcw, AlertCircle } from 'lucide-react';
 import { AppData, GradeRecord, Question, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
 import { normalizeAssignmentList } from '../services/storage';
