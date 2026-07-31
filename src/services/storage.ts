@@ -145,11 +145,18 @@ export function deduplicateAssignmentList(
   recalledIds: string[] = []
 ): AssignedQuizPayload[] {
   const normalized = normalizeAssignmentList(payload);
+  // Sort descending by timestamp first so newest updated quiz is prioritized
+  const sorted = [...normalized].sort((a, b) => {
+    const tA = new Date(a.quizCreatedDate || 0).getTime();
+    const tB = new Date(b.quizCreatedDate || 0).getTime();
+    return tB - tA;
+  });
+
   const assignMap = new Map<string, AssignedQuizPayload>();
 
-  normalized.forEach((item) => {
+  sorted.forEach((item) => {
     if (isQuizRecalled(item, recalledIds)) return;
-    const key = getQuizDedupeKey(item);
+    const key = item.id || getQuizDedupeKey(item);
     if (!assignMap.has(key)) {
       assignMap.set(key, item);
     }

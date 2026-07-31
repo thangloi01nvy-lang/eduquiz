@@ -284,7 +284,18 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   };
 
   const allAssignedQuizzes = getAllAssignedQuizzes();
-  const activeQuiz = selectedAssignment;
+
+  // Dynamic activeQuiz: Always derive the LATEST updated quiz from allAssignedQuizzes
+  const activeQuiz = React.useMemo(() => {
+    if (!selectedAssignment) return null;
+    const updated = allAssignedQuizzes.find(
+      (q) =>
+        (q.id && q.id === selectedAssignment.id) ||
+        (getQuizDedupeKey(q) === getQuizDedupeKey(selectedAssignment)) ||
+        (q.quizTitle && q.quizTitle.trim().toLowerCase() === (selectedAssignment.quizTitle || '').trim().toLowerCase())
+    );
+    return updated || selectedAssignment;
+  }, [selectedAssignment, allAssignedQuizzes]);
 
   // Auto-Drafting per answer change
   const handleAnswerChange = (questionKey: string, value: string) => {
@@ -403,7 +414,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.4.0
+                v3.4.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
