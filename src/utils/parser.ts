@@ -103,16 +103,35 @@ function parseRawQuestions(text: string): { questions: Question[]; sections: Sec
       continue;
     }
 
-    // Check Options A. B. C. D.
-    const optMatch = line.match(/^([A-Da-d])[\.\)]\s*(.*)/);
-    if (optMatch && currentQ) {
-      currentQ.type = 'multiple_choice';
-      if (!currentQ.options) currentQ.options = [];
-      currentQ.options.push({
-        key: optMatch[1].toUpperCase(),
-        text: optMatch[2].trim(),
-      });
-      continue;
+    // Check Options A. B. C. D. (Smart detection for separate lines OR inline options like "A. read  B. reading  C. to read")
+    if (currentQ && /([A-Da-d])[\.\)]\s*/.test(line)) {
+      // Check if line contains multiple options e.g. "A. read  B. reading  C. to read"
+      const inlineMatches = [...line.matchAll(/([A-Da-d])[\.\)]\s*([^A-Da-d\.\)]+?)(?=(?:\s+[A-Da-d][\.\)]|$))/gi)];
+      if (inlineMatches.length > 1) {
+        currentQ.type = 'multiple_choice';
+        if (!currentQ.options) currentQ.options = [];
+        inlineMatches.forEach((m) => {
+          const k = m[1].toUpperCase();
+          const t = m[2].trim();
+          if (t && !currentQ!.options!.some((o) => o.key === k)) {
+            currentQ!.options!.push({ key: k, text: t });
+          }
+        });
+        continue;
+      }
+
+      // Single option line e.g. "A. read" or "A) read"
+      const optMatch = line.match(/^([A-Da-d])[\.\)]\s*(.*)/);
+      if (optMatch) {
+        currentQ.type = 'multiple_choice';
+        if (!currentQ.options) currentQ.options = [];
+        const k = optMatch[1].toUpperCase();
+        const t = optMatch[2].trim();
+        if (!currentQ.options.some((o) => o.key === k)) {
+          currentQ.options.push({ key: k, text: t });
+        }
+        continue;
+      }
     }
 
     // Check Answer: X

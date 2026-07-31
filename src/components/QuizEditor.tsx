@@ -77,11 +77,12 @@ function questionsToMarkdown(questions: Question[]): string {
       lines.push(`\n${currentSection}:`);
     }
 
-    if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
-      const optsStr = q.options.map((o) => `${o.key}. ${o.text}`).join('  ');
-      lines.push(`${idx + 1}. ${q.title}\n   ${optsStr}`);
-    } else {
-      lines.push(`${idx + 1}. ${q.title}`);
+    lines.push(`${idx + 1}. ${q.title}`);
+
+    if (q.options && q.options.length > 0) {
+      q.options.forEach((o) => {
+        lines.push(`   ${o.key}. ${o.text}`);
+      });
     }
   });
 
