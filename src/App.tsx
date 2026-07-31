@@ -6,12 +6,13 @@ import { ClassManager } from './components/ClassManager';
 import { LibraryManager } from './components/LibraryManager';
 import { StudentView } from './components/StudentView';
 import { GradesTracker } from './components/GradesTracker';
+import { FeedbackTracker } from './components/FeedbackTracker';
 import { AppData } from './types';
 import { loadLocalData, syncWithServer, fetchServerData } from './services/storage';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'teacher' | 'student'>('teacher');
-  const [currentTeacherSubTab, setCurrentTeacherSubTab] = useState<'editor' | 'classes' | 'library' | 'grades'>('editor');
+  const [currentTeacherSubTab, setCurrentTeacherSubTab] = useState<'editor' | 'classes' | 'library' | 'grades' | 'feedbacks'>('editor');
 
   const [appData, setAppData] = useState<AppData>(() => loadLocalData());
 
@@ -171,6 +172,13 @@ export const App: React.FC = () => {
               )}
               {currentTeacherSubTab === 'grades' && (
                 <GradesTracker
+                  appData={appData}
+                  onUpdateAppData={handleUpdateAppData}
+                  onShowNotification={handleShowNotification}
+                />
+              )}
+              {currentTeacherSubTab === 'feedbacks' && (
+                <FeedbackTracker
                   appData={appData}
                   onUpdateAppData={handleUpdateAppData}
                   onShowNotification={handleShowNotification}

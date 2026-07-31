@@ -5,9 +5,9 @@ import { normalizeAssignmentList, deduplicateAssignmentList } from '../services/
 
 interface HeaderProps {
   currentTab: 'teacher' | 'student';
-  currentTeacherSubTab: 'editor' | 'classes' | 'library' | 'grades';
+  currentTeacherSubTab: 'editor' | 'classes' | 'library' | 'grades' | 'feedbacks';
   onSwitchMainTab: (tab: 'teacher' | 'student') => void;
-  onSwitchTeacherSubTab: (subTab: 'editor' | 'classes' | 'library' | 'grades') => void;
+  onSwitchTeacherSubTab: (subTab: 'editor' | 'classes' | 'library' | 'grades' | 'feedbacks') => void;
   isTeacherAuthenticated: boolean;
   activeTeacherName: string;
   onOpenTeacherAuth: () => void;
@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
                 EduQuiz Pro
               </h1>
               <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
-                v3.9.1
+                v4.0.0
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">
@@ -160,6 +160,22 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <BarChart3 className="w-3.5 h-3.5 text-brand-500" />
               <span> Bảng Điểm & Bài Nộp ({appData.grades?.length || 0})</span>
+            </button>
+
+            <button
+              onClick={() => onSwitchTeacherSubTab('feedbacks')}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition whitespace-nowrap ${
+                currentTeacherSubTab === 'feedbacks'
+                  ? 'bg-amber-500 text-amber-950 shadow-sm border border-amber-400 font-extrabold'
+                  : 'text-slate-600 hover:bg-amber-100/60'
+              }`}
+            >
+              <span>💬 Góp Ý Học Sinh</span>
+              {appData.feedbacks && appData.feedbacks.length > 0 && (
+                <span className="px-2 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded-full shadow-sm animate-pulse">
+                  {appData.feedbacks.length}
+                </span>
+              )}
             </button>
           </div>
         </div>

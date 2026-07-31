@@ -283,6 +283,25 @@ function mergeGradesList(
   return Array.from(gradeMap.values());
 }
 
+function mergeFeedbacksList(localFeedbacks: any[] = [], remoteFeedbacks: any[] = []): any[] {
+  const map = new Map<string, any>();
+  (remoteFeedbacks || []).forEach((f) => {
+    if (f && (f.id || f.message)) {
+      map.set(f.id || `${f.studentName}_${f.createdAt}`, f);
+    }
+  });
+  (localFeedbacks || []).forEach((f) => {
+    if (f && (f.id || f.message)) {
+      map.set(f.id || `${f.studentName}_${f.createdAt}`, f);
+    }
+  });
+  return Array.from(map.values()).sort((a, b) => {
+    const tA = new Date(a.createdAt || 0).getTime();
+    const tB = new Date(b.createdAt || 0).getTime();
+    return tB - tA;
+  });
+}
+
 function mergeAppData(local: AppData, remote: AppData): AppData {
   const deletedSet = new Set([...(local.deletedClasses || []), ...(remote.deletedClasses || [])].map((d) => d.toLowerCase()));
 
@@ -349,6 +368,7 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
     deletedGradeIds: deletedGradeList,
     quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary, deletedLibList),
     grades: mergeGradesList(local.grades, remote.grades, deletedGradeList, recalledList),
+    feedbacks: mergeFeedbacksList(local.feedbacks, remote.feedbacks),
   };
 }
 

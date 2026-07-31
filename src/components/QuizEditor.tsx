@@ -288,6 +288,17 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       level
     );
 
+    // Clean recalledAssignments tombstones
+    const titleClean = title.trim().toLowerCase();
+    const cleanedRecalled = (appData.recalledAssignments || []).filter((r) => {
+      if (!r) return false;
+      const cleanR = r.trim().toLowerCase();
+      if (cleanR === assignId.trim().toLowerCase()) return false;
+      if (cleanR === targetId.trim().toLowerCase()) return false;
+      if (cleanR === titleClean) return false;
+      return true;
+    });
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: targetId,
@@ -296,6 +307,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       wordBank: parsed.wordBank,
       quizTargetClass: targetClass,
       classAssignments: autoSyncedAssignments,
+      recalledAssignments: cleanedRecalled,
       quizLibrary: updatedLibrary,
     };
 
