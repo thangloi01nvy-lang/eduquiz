@@ -99,8 +99,8 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     return () => clearInterval(intervalId);
   }, []);
 
-  // Save student session with STRICT STUDENT CODE VERIFICATION
-  const handleStudentLogin = () => {
+  // Save student session with REAL-TIME CLOUD FETCH & STRICT STUDENT CODE VERIFICATION
+  const handleStudentLogin = async () => {
     if (!selectedClassObj) {
       onShowNotification('⚠️ Vui lòng chọn Lớp học của em!', 'warning');
       return;
@@ -110,6 +110,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     if (!inputClean) {
       onShowNotification('⚠️ Vui lòng nhập đúng Mã Số Học Viên do Giáo viên cấp!', 'warning');
       return;
+    }
+
+    // REAL-TIME CLOUD SYNC ON LOGIN
+    onShowNotification('☁️ Đang đồng bộ đề bài mới nhất từ Giáo Viên...', 'warning');
+    const latestCloudData = await fetchServerData();
+    if (latestCloudData) {
+      onUpdateAppData(() => latestCloudData);
     }
 
     // Verify if studentCodeInput matches a student in the class roster
@@ -361,37 +368,52 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
             {selectedClassObj && (
               <div className="space-y-3">
-                {selectedClassObj.students && selectedClassObj.students.length > 0 && (
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">2. Chọn Tên Em Trong Danh Sách (Nếu có):</label>
-                    <select
-                      value={selectedStudentId}
-                      onChange={(e) => setSelectedStudentId(e.target.value)}
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                    >
-                      <option value="">-- Chọn Tên Học Sinh --</option>
-                      {selectedClassObj.students.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          👤 {s.name}
-                        </option>
-                      ))}
-                      <option value="manual_st">➕ Tự nhập Mã / Tên Học Sinh bên dưới</option>
-                    </select>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    2. Nhập Mã Số Học Viên do Giáo Viên cấp:
+                  </label>
+                  <input
+                    type="text"
+                    value={studentCodeInput}
+                    onChange={(e) => setStudentCodeInput(e.target.value)}
+                    placeholder="🏷️ Nhập Mã Số Học Viên (Ví dụ: HV001, HV02)..."
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                  />
+                </div>
 
-                {(selectedStudentId === 'manual_st' || !selectedStudentId || !selectedClassObj.students || selectedClassObj.students.length === 0) && (
+                {/* Recognized Student Badge */}
+                {studentCodeInput.trim() && (
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      {selectedClassObj.students && selectedClassObj.students.length > 0 ? 'Hoặc nhập Mã / Họ Tên của em:' : '2. Nhập Mã Học Sinh hoặc Họ Tên:'}
-                    </label>
-                    <input
-                      type="text"
-                      value={studentCodeInput}
-                      onChange={(e) => setStudentCodeInput(e.target.value)}
-                      placeholder="🏷️ Nhập Mã Học Sinh (Ví dụ: HS001 hoặc Họ và tên)..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
-                    />
+                    {selectedClassObj.students?.find((s) => {
+                      const inputClean = studentCodeInput.trim().toLowerCase();
+                      const sCode = (s.code || '').trim().toLowerCase();
+                      const sId = (s.id || '').trim().toLowerCase();
+                      const sName = (s.name || '').trim().toLowerCase();
+                      return (sCode && sCode === inputClean) || (sId && sId === inputClean) || (sName && sName === inputClean);
+                    }) ? (
+                      (() => {
+                        const s = selectedClassObj.students.find((st) => {
+                          const inputClean = studentCodeInput.trim().toLowerCase();
+                          const sCode = (st.code || '').trim().toLowerCase();
+                          const sId = (st.id || '').trim().toLowerCase();
+                          const sName = (st.name || '').trim().toLowerCase();
+                          return (sCode && sCode === inputClean) || (sId && sId === inputClean) || (sName && sName === inputClean);
+                        })!;
+                        return (
+                          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs font-bold text-emerald-900 flex items-center gap-2 shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span>✅ ĐÃ NHẬN DIỆN HỌC VIÊN: <b>[{s.code || s.id}] - {s.name}</b></span>
+                          </div>
+                        );
+                      })()
+                    ) : (
+                      selectedClassObj.students && selectedClassObj.students.length > 0 && (
+                        <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-800 flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                          <span>❌ Mã học viên "{studentCodeInput}" chưa có trong danh sách lớp {selectedClassObj.name}.</span>
+                        </div>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -401,7 +423,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
               onClick={handleStudentLogin}
               className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
             >
-              <span>Vào Làm Bài Tập</span>
+              <span>🚀 XÁC NHẬN MÃ & VÀO LÀM BÀI TẬP</span>
             </button>
           </div>
         </div>
