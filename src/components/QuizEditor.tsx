@@ -288,13 +288,21 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       level
     );
 
-    // Clean recalledAssignments tombstones
+    // Clean recalledAssignments & deletedLibraryIds tombstones
     const cleanedRecalled = (appData.recalledAssignments || []).filter((r) => {
       if (!r) return false;
       const cleanR = r.trim().toLowerCase();
       if (cleanR === assignId.trim().toLowerCase()) return false;
       if (cleanR === targetId.trim().toLowerCase()) return false;
       if (cleanR === titleClean) return false;
+      return true;
+    });
+
+    const cleanedDeletedLibIds = (appData.deletedLibraryIds || []).filter((d) => {
+      if (!d) return false;
+      const cleanD = d.trim().toLowerCase();
+      if (cleanD === targetId.trim().toLowerCase()) return false;
+      if (cleanD === titleClean) return false;
       return true;
     });
 
@@ -307,6 +315,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       quizTargetClass: targetClass,
       classAssignments: autoSyncedAssignments,
       recalledAssignments: cleanedRecalled,
+      deletedLibraryIds: cleanedDeletedLibIds,
       quizLibrary: updatedLibrary,
     };
 
@@ -391,12 +400,22 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       return true;
     });
 
+    const cleanedDeletedLibIds = (appData.deletedLibraryIds || []).filter((d) => {
+      if (!d) return false;
+      const cleanD = d.trim().toLowerCase();
+      if (cleanD === targetIdClean) return false;
+      if (cleanD === titleClean) return false;
+      if (cleanD === oldTitleClean) return false;
+      return true;
+    });
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: targetId,
       quizLibrary: updatedLibrary,
       classAssignments: autoSyncedAssignments,
       recalledAssignments: cleanedRecalled,
+      deletedLibraryIds: cleanedDeletedLibIds,
     };
 
     onUpdateAppData(() => updatedData);
