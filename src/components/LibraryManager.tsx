@@ -1,7 +1,7 @@
 import { BookOpen, Send, Trash2, Download, Layers, HelpCircle, Edit3 } from 'lucide-react';
 import { AppData, LibraryItem, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
-import { normalizeAssignmentList } from '../services/storage';
+import { syncWithServer, normalizeAssignmentList } from '../services/storage';
 
 interface LibraryManagerProps {
   appData: AppData;
@@ -22,23 +22,25 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
     onShowNotification(`🗑️ Đã xóa đề bài "${title}"`, 'success');
   };
 
-  const handleAssignLibraryQuiz = (item: LibraryItem, targetClass: string) => {
-    onUpdateAppData((prev) => {
-      const assignId = `assign_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-      const payload: AssignedQuizPayload = {
-        id: assignId,
-        quizTitle: item.title,
-        quizLevel: item.level || 'B1',
-        quizCreatedDate: new Date().toISOString(),
-        questions: item.questions || [],
-        sections: item.sections || [],
-        wordBank: item.wordBank || [],
-        status: 'active',
-      };
+  const handleAssignLibraryQuiz = async (item: LibraryItem, targetClass: string) => {
+    const assignId = `assign_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const payload: AssignedQuizPayload = {
+      id: assignId,
+      quizTitle: item.title,
+      quizLevel: item.level || 'B1',
+      quizCreatedDate: new Date().toISOString(),
+      questions: item.questions || [],
+      sections: item.sections || [],
+      wordBank: item.wordBank || [],
+      status: 'active',
+    };
 
+    let updatedData: AppData | null = null;
+
+    onUpdateAppData((prev) => {
       const newAssignments = { ...prev.classAssignments };
       if (targetClass === 'all') {
-        prev.classes.forEach((c) => {
+        (prev.classes || []).forEach((c) => {
           const existingList = normalizeAssignmentList(newAssignments[c.name]);
           newAssignments[c.name] = [payload, ...existingList];
         });
@@ -47,13 +49,23 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
         newAssignments[targetClass] = [payload, ...existingList];
       }
 
-      return {
+      updatedData = {
         ...prev,
         classAssignments: newAssignments,
       };
+      return updatedData;
     });
 
-    onShowNotification(`🚀 Đã giao bài "${item.title}" cho lớp ${targetClass === 'all' ? 'TẤT CẢ' : targetClass}!`, 'success');
+    if (updatedData) {
+      onShowNotification('☁️ Đang đồng bộ bài tập từ Thư Viện lên Cloud...', 'warning');
+      await syncWithServer(updatedData);
+      onShowNotification(
+        `🚀 ĐÃ GIAO BÀI & ĐỒNG BỘ THÀNH CÔNG!\nBài "${item.title}" đã được giao cho lớp ${
+          targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `"${targetClass}"`
+        }. Học sinh làm bài được ngay!`,
+        'success'
+      );
+    }
   };
 
   const handleDownloadTxt = (item: LibraryItem) => {
