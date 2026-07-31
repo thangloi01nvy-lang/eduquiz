@@ -238,7 +238,14 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
         const userAns = answers[`q_${q.id}`] || '';
         const expected = q.answer || '';
         if (expected && userAns) {
-          isCorrect = smartCompareAnswers(userAns, expected);
+          let selectedOptText = userAns;
+          if (q.options && q.options.length > 0) {
+            const matchedOpt = q.options.find((o) => o.key === userAns || o.text === userAns);
+            if (matchedOpt) {
+              selectedOptText = matchedOpt.text;
+            }
+          }
+          isCorrect = smartCompareAnswers(userAns, expected) || smartCompareAnswers(selectedOptText, expected);
         }
       }
 
@@ -510,7 +517,14 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                   const userAns = answers[`q_${q.id}`] || '';
                   const expected = q.answer || '';
                   if (expected && userAns) {
-                    isCorrect = smartCompareAnswers(userAns, expected);
+                    let selectedOptText = userAns;
+                    if (q.options && q.options.length > 0) {
+                      const matchedOpt = q.options.find((o) => o.key === userAns || o.text === userAns);
+                      if (matchedOpt) {
+                        selectedOptText = matchedOpt.text;
+                      }
+                    }
+                    isCorrect = smartCompareAnswers(userAns, expected) || smartCompareAnswers(selectedOptText, expected);
                   }
                 }
               }

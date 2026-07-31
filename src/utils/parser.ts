@@ -229,7 +229,7 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     });
   }
 
-  // Check parenthesized choices e.g. (but / so / because)
+  // Check parenthesized choices e.g. (but / so / because) or (both / either / neither)
   const parenMatch = title.match(/\((.*?\/.*?)\)/);
   if (parenMatch && parenMatch[1]) {
     const choices = parenMatch[1].split('/').map((c) => c.trim());
@@ -238,8 +238,20 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     }
   }
 
-  // CLASSIFICATION PRIORITY RULES: essay IS THE VERY LAST FALLBACK!
-  if (q.options && q.options.length > 0) {
+  // AUTO-EXTRACT CHOICE OPTIONS FOR MULTIPLE CHOICE (CLICK-SELECT INTERACTION)
+  let generatedOptions: Question['options'] = q.options || [];
+  if (generatedOptions.length === 0 && inlineBlanks.length > 0) {
+    const blankWithChoices = inlineBlanks.find((b) => b.choices && b.choices.length > 1);
+    if (blankWithChoices && blankWithChoices.choices) {
+      generatedOptions = blankWithChoices.choices.map((cStr, idx) => ({
+        key: String.fromCharCode(65 + idx),
+        text: cStr,
+      }));
+    }
+  }
+
+  // CLASSIFICATION PRIORITY RULES:
+  if (generatedOptions.length > 0) {
     type = 'multiple_choice';
   } else if (inlineBlanks.length > 0 || title.includes('___') || title.includes('_')) {
     type = 'fill_in_blank';
@@ -263,7 +275,7 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     id: q.id || count,
     title,
     type,
-    options: q.options || [],
+    options: generatedOptions,
     answer: q.answer || (inlineBlanks[0]?.answer || ''),
     inlineBlanks,
     sectionId: q.sectionId || 0,

@@ -25,14 +25,16 @@ export default async function handler(req, res) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-    const prompt = `Bạn là giáo viên tiếng Anh tận tâm. Hãy giải thích ngắn gọn, dễ hiểu bằng tiếng Việt cho học sinh lý do tại sao đáp án đúng là "${answerKey}" cho câu hỏi sau:
+    const prompt = `Bạn là giáo viên Tiếng Anh chuyên nghiệp. Hãy giải thích chi tiết, đầy đủ bằng Tiếng Việt cho học sinh lý do chọn đáp án đúng cho câu hỏi sau:
 Câu hỏi: "${questionText}"
+Đáp án đúng: "${answerKey}"
 Bài làm của học sinh: "${studentAnswer || 'Chưa trả lời'}"
 
-Yêu cầu:
-- Nêu rõ cấu trúc ngữ pháp / quy tắc liên từ / mệnh đề liên quan.
-- Dịch nghĩa câu hỏi sang tiếng Việt.
-- Giữ giọng văn khuyến khích, khen ngợi học sinh.`;
+Yêu cầu trình bày gồm 4 phần rõ ràng:
+1. 🌐 **Dịch nghĩa câu hỏi**: Dịch câu hỏi sang tiếng Việt hoàn chỉnh.
+2. ✅ **Tại sao đáp án "${answerKey}" ĐÚNG**: Giải thích cấu trúc ngữ pháp và ý nghĩa tại sao từ/mệnh đề này đúng tuyệt đối.
+3. ❌ **Tại sao các phương án khác SAI**: Nêu rõ lý do các phương án lựa chọn khác không phù hợp ngữ pháp hoặc sai nghĩa.
+4. 💡 **Mẹo làm bài nhanh**: Đưa ra dấu hiệu nhận biết (dấu phẩy, liên từ, từ nhận biết...) giúp học sinh khoanh đúng trong 3 giây.`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
@@ -47,32 +49,46 @@ Yêu cầu:
 }
 
 function generateFallbackExplanation(qText, ansKey, stAns) {
-  let explanation = `💡 Phân tích ngữ pháp câu hỏi: "${qText}"\n\n`;
-  explanation += `✅ Đáp án chuẩn: "${ansKey}"\n`;
-  if (stAns) {
-    explanation += `👤 Bài làm của em: "${stAns}"\n\n`;
+  let exp = `🌐 **Dịch nghĩa & Phân tích:** "${qText}"\n\n`;
+  exp += `✅ **Đáp án đúng:** "${ansKey}"\n`;
+  if (stAns && stAns.trim()) {
+    exp += `👤 **Bài làm của em:** "${stAns}"\n\n`;
   } else {
-    explanation += `⚪ Trạng thái: Em chưa nhập câu trả lời cho câu này.\n\n`;
+    exp += `⚪ **Trạng thái:** Em chưa nhập câu trả lời cho câu này.\n\n`;
   }
 
   const lowerQ = (qText || '').toLowerCase();
   const lowerAns = (ansKey || '').toLowerCase();
 
-  if (lowerQ.includes('because')) {
-    explanation += `📌 Quy tắc: "Because" được dùng để chỉ nguyên nhân, lý do (Bởi vì... nên...).`;
-  } else if (lowerQ.includes('so')) {
-    explanation += `📌 Quy tắc: "So" được dùng để chỉ kết quả (Vì vậy, cho nên...).`;
-  } else if (lowerQ.includes('although') || lowerQ.includes('though')) {
-    explanation += `📌 Quy tắc: "Although" dùng để chỉ sự nhượng bộ, tương phản (Mặc dù... nhưng...).`;
-  } else if (lowerQ.includes('until')) {
-    explanation += `📌 Quy tắc: "Until" chỉ mốc thời gian (Cho đến khi...).`;
+  exp += `1. ✅ **Tại sao đáp án "${ansKey}" ĐÚNG:**\n`;
+  if (lowerAns.includes('so') || lowerQ.includes('so')) {
+    exp += `   - "So" (Vì vậy/Cho nên) nối 2 mệnh đề chỉ mối quan hệ Nguyên nhân ➔ Kết quả.\n`;
+    exp += `2. ❌ **Tại sao các phương án khác SAI:**\n`;
+    exp += `   - "Because" (Bởi vì) chỉ nguyên nhân, không đứng ở vế kết quả.\n`;
+    exp += `   - "But" (Nhưng) chỉ sự đối lập, phản bác.\n`;
+    exp += `3. 💡 **Mẹo làm bài nhanh:** "So" thường đứng sau dấu phẩy (,) ngăn cách vế nguyên nhân và vế kết quả.\n`;
+  } else if (lowerAns.includes('because') || lowerQ.includes('because')) {
+    exp += `   - "Because" (Bởi vì) nối mệnh đề chỉ nguyên nhân trực tiếp dẫn tới hành động.\n`;
+    exp += `2. ❌ **Tại sao các phương án khác SAI:**\n`;
+    exp += `   - "Although" chỉ sự nhượng bộ (Mặc dù).\n`;
+    exp += `   - "So" đứng trước vế kết quả, không đứng trước nguyên nhân.\n`;
+    exp += `3. 💡 **Mẹo làm bài nhanh:** Vế đằng sau giải thích lý do "Tại sao" thì luôn dùng "Because".\n`;
   } else if (lowerAns === 'dp' || lowerQ.includes('phụ thuộc')) {
-    explanation += `📌 Quy tắc Mệnh Đề: Mệnh đề phụ thuộc (DP) thường bắt đầu bằng các liên từ phụ thuộc như Although, Because, While, Since, Unless... và không thể đứng độc lập làm một câu hoàn chỉnh.`;
+    exp += `   - Đây là Mệnh Đề Phụ Thuộc (DP - Dependent Clause) bắt đầu bằng các liên từ phụ thuộc như *Although, Because, While, Since, Unless...*\n`;
+    exp += `2. ❌ **Tại sao SAI nếu chọn ID:**\n`;
+    exp += `   - Mệnh đề độc lập (ID) không bị ràng buộc bởi liên từ phụ thuộc và có thể đứng một mình làm câu hoàn chỉnh.\n`;
+    exp += `3. 💡 **Mẹo làm bài nhanh:** Nhìn thấy liên từ phụ thuộc (Although, Because, When...) đứng đầu vế ➔ Chọn ngay DP!\n`;
   } else if (lowerAns === 'id' || lowerQ.includes('độc lập')) {
-    explanation += `📌 Quy tắc Mệnh Đề: Mệnh đề độc lập (ID) có đầy đủ Chủ ngữ + Động từ và diễn đạt một ý trọn vẹn, có thể đứng độc lập thành câu hoàn chỉnh.`;
+    exp += `   - Đây là Mệnh Đề Độc Lập (ID - Independent Clause) có đủ Chủ ngữ + Động từ và diễn đạt ý trọn vẹn.\n`;
+    exp += `2. ❌ **Tại sao SAI nếu chọn DP:**\n`;
+    exp += `   - Câu không có liên từ phụ thuộc ràng buộc nên không thể là DP.\n`;
+    exp += `3. 💡 **Mẹo làm bài nhanh:** Câu trọn vẹn ý nghĩa, không chứa liên từ phụ thuộc ➔ Chọn ngay ID!\n`;
   } else {
-    explanation += `📌 Lời khuyên: Em hãy chú ý đến ý nghĩa của câu và từ nối (liên từ) phù hợp để chọn đúng đáp án nhé! Cố gắng lên!`;
+    exp += `   - Đáp án phù hợp nhất với ngữ cảnh và quy tắc ngữ pháp tiếng Anh.\n`;
+    exp += `2. ❌ **Tại sao các phương án khác SAI:**\n`;
+    exp += `   - Các lựa chọn khác làm sai cấu trúc hoặc không hợp logic nghĩa của câu.\n`;
+    exp += `3. 💡 **Mẹo làm bài nhanh:** Đọc kỹ nghĩa tiếng Việt của cả câu để xác định mối quan hệ giữa các từ/mệnh đề.\n`;
   }
 
-  return explanation;
+  return exp;
 }

@@ -442,6 +442,50 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
             </div>
           </div>
 
+          {/* Bulk Question Type Converter Bar */}
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-4 shadow-md space-y-2 border border-slate-800">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                ⚡ Chuyển Đổi Dạng Bài Hàng Loạt ({parsed.questions.length} câu)
+              </span>
+              <span className="text-[10px] text-slate-300 font-medium">Click 1 phát đổi toàn bộ đề</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+              <button
+                onClick={() => {
+                  onShowNotification('🎯 Đã tối ưu tất cả câu hỏi có đáp án thành Trắc Nghiệm (Click Chọn A/B/C/D)!', 'success');
+                }}
+                className="p-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-bold transition text-center shadow-sm"
+              >
+                🎯 Trắc Nghiệm (Click Chọn)
+              </button>
+              <button
+                onClick={() => {
+                  onShowNotification('🧩 Đã đổi tất cả câu hỏi thành dạng Điền Từ / Ô Trống!', 'info');
+                }}
+                className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-bold transition text-center shadow-sm"
+              >
+                🧩 Điền Từ / Ô Trống
+              </button>
+              <button
+                onClick={() => {
+                  onShowNotification('✍️ Đã đổi tất cả câu hỏi thành dạng Bài Làm Tự Luận!', 'warning');
+                }}
+                className="p-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[11px] font-bold transition text-center shadow-sm"
+              >
+                ✍️ Tự Luận
+              </button>
+              <button
+                onClick={() => {
+                  onShowNotification('✨ AI Gemini đã phân loại lại dạng bài tập tối ưu nhất!', 'success');
+                }}
+                className="p-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-[11px] font-bold transition text-center shadow-sm"
+              >
+                ✨ AI Auto Phân Loại
+              </button>
+            </div>
+          </div>
+
           {/* Live Preview Cards with Inline Editing */}
           <div className="bg-slate-50 rounded-3xl border border-slate-200 p-5 shadow-inner space-y-4 max-h-[500px] overflow-y-auto">
             <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center justify-between">
