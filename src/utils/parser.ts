@@ -169,12 +169,17 @@ function attachAnswerKeys(questions: Question[], answerKeyText: string): void {
       let ansContent = qAnsMatch[2].trim();
 
       // Filter questions in current section
+      const normAnsSec = currentAnsSection.toLowerCase().replace(/[^a-z0-9]/g, '');
       const sectionQuestions = questions.filter((q) => {
-        if (!currentAnsSection) return true;
-        return (q.sectionTitle || '').toLowerCase().includes(currentAnsSection);
+        if (!normAnsSec) return true;
+        const normSec = (q.sectionTitle || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normSec.includes(normAnsSec) || normAnsSec.includes(normSec);
       });
 
-      const targetQ = sectionQuestions[qNum - 1];
+      let targetQ = sectionQuestions[qNum - 1];
+      if (!targetQ) {
+        targetQ = questions.find((q) => q.id === qNum) || questions[qNum - 1];
+      }
       if (targetQ) {
         // Extract answer value from line
         if (ansContent.includes('→') || ansContent.includes('->') || ansContent.includes('=>')) {

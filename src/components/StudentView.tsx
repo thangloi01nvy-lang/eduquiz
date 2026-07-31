@@ -13,6 +13,57 @@ interface StudentViewProps {
   onShowNotification: (msg: string, type?: 'success' | 'warning' | 'error') => void;
 }
 
+export function checkQuestionCorrectness(q: Question, answers: Record<string, string>): boolean {
+  if (q.inlineBlanks && q.inlineBlanks.length > 0 && q.type !== 'multiple_choice') {
+    let qAllCorrect = true;
+    q.inlineBlanks.forEach((b, bIdx) => {
+      const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
+      const exp = b.answer || q.answer || '';
+      if (!smartCompareAnswers(uAns, exp)) {
+        qAllCorrect = false;
+      }
+    });
+    return qAllCorrect;
+  }
+
+  const userAns = answers[`q_${q.id}`] || '';
+  const expected = q.answer || '';
+
+  if (!expected || !userAns) return false;
+
+  let selectedOptText = userAns;
+  let selectedOptKey = userAns;
+
+  if (q.options && q.options.length > 0) {
+    const matchedOpt = q.options.find(
+      (o) => o.key.toUpperCase() === userAns.toUpperCase() || cleanAnswerText(o.text) === cleanAnswerText(userAns)
+    );
+    if (matchedOpt) {
+      selectedOptText = matchedOpt.text;
+      selectedOptKey = matchedOpt.key;
+    }
+  }
+
+  // 1. Smart Compare Check
+  if (smartCompareAnswers(userAns, expected)) return true;
+  if (smartCompareAnswers(selectedOptText, expected)) return true;
+  if (smartCompareAnswers(selectedOptKey, expected)) return true;
+  if (smartCompareAnswers(`${selectedOptKey}. ${selectedOptText}`, expected)) return true;
+  if (smartCompareAnswers(`${selectedOptKey}) ${selectedOptText}`, expected)) return true;
+
+  // 2. Direct key or text match
+  const cleanExp = cleanAnswerText(expected);
+  const cleanKey = cleanAnswerText(selectedOptKey);
+  const cleanText = cleanAnswerText(selectedOptText);
+
+  if (cleanExp === cleanKey || cleanExp === cleanText) return true;
+
+  // 3. Option key matching e.g. expected is "B" or "b" and student selected "B"
+  if (cleanExp.length <= 2 && cleanExp === cleanKey) return true;
+
+  return false;
+}
+
 /**
  * StudentView Component - EduQuiz Pro v2.0
  * Handles student login, class selection, live cloud sync, feedback modal, and interactive quiz submissions.
@@ -229,32 +280,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       const points = q.points || 1;
       totalMaxPoints += points;
 
-      let isCorrect = false;
-
-      if (q.inlineBlanks && q.inlineBlanks.length > 0) {
-        let qAllCorrect = true;
-        q.inlineBlanks.forEach((b, bIdx) => {
-          const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
-          const exp = b.answer || '';
-          if (!smartCompareAnswers(uAns, exp)) {
-            qAllCorrect = false;
-          }
-        });
-        isCorrect = qAllCorrect;
-      } else {
-        const userAns = answers[`q_${q.id}`] || '';
-        const expected = q.answer || '';
-        if (expected && userAns) {
-          let selectedOptText = userAns;
-          if (q.options && q.options.length > 0) {
-            const matchedOpt = q.options.find((o) => o.key === userAns || o.text === userAns);
-            if (matchedOpt) {
-              selectedOptText = matchedOpt.text;
-            }
-          }
-          isCorrect = smartCompareAnswers(userAns, expected) || smartCompareAnswers(selectedOptText, expected);
-        }
-      }
+      const isCorrect = checkQuestionCorrectness(q, answers);
 
       if (isCorrect) {
         correctCount++;
@@ -337,7 +363,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.0.8
+                v2.0.9
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -532,34 +558,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                 q.sectionTitle !== 'Bài tập chung' &&
                 (!prevQ || prevQ.sectionTitle !== q.sectionTitle);
 
-              let isCorrect = false;
-              if (isSubmitted) {
-                if (q.inlineBlanks && q.inlineBlanks.length > 0) {
-                  let qAllCorrect = true;
-                  q.inlineBlanks.forEach((b, bIdx) => {
-                    const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
-                    const exp = b.answer || '';
-                    if (!smartCompareAnswers(uAns, exp)) {
-                      qAllCorrect = false;
-                    }
-                  });
-                  isCorrect = qAllCorrect;
-                } else {
-                  const userAns = answers[`q_${q.id}`] || '';
-                  const expected = q.answer || '';
-                  if (expected && userAns) {
-                    let selectedOptText = userAns;
-                    if (q.options && q.options.length > 0) {
-                      const matchedOpt = q.options.find((o) => o.key === userAns || o.text === userAns);
-                      if (matchedOpt) {
-                        selectedOptText = matchedOpt.text;
-                      }
-                    }
-                    isCorrect = smartCompareAnswers(userAns, expected) || smartCompareAnswers(selectedOptText, expected);
-                  }
-                }
-              }
-
+              const isCorrect = isSubmitted ? checkQuestionCorrectness(q, answers) : false;
               const isWrong = isSubmitted && !isCorrect;
 
               return (
