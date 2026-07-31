@@ -65,6 +65,47 @@ Bài 3:
 9. Unless you finish your work. → DP (Mệnh đề phụ thuộc)
 10. He enjoys playing football. → ID (Mệnh đề độc lập)`;
 
+function syncEditedQuizToAssignments(
+  currentAssignments: Record<string, any> = {},
+  targetId: string,
+  oldTitle: string,
+  newTitle: string,
+  newQuestions: Question[],
+  newSections: Section[],
+  newWordBank: string[],
+  newLevel: string
+): Record<string, any> {
+  const updatedMap: Record<string, any> = {};
+  const oldTitleClean = (oldTitle || '').trim().toLowerCase();
+  const newTitleClean = (newTitle || '').trim().toLowerCase();
+
+  for (const className in currentAssignments) {
+    const list = normalizeAssignmentList(currentAssignments[className]);
+    updatedMap[className] = list.map((assign) => {
+      const aTitleClean = (assign.quizTitle || '').trim().toLowerCase();
+      const isMatch =
+        (assign.id && assign.id === targetId) ||
+        ((assign as any).libraryItemId && (assign as any).libraryItemId === targetId) ||
+        (oldTitleClean && aTitleClean === oldTitleClean) ||
+        (newTitleClean && aTitleClean === newTitleClean);
+
+      if (isMatch) {
+        return {
+          ...assign,
+          quizTitle: newTitle,
+          quizLevel: newLevel,
+          questions: newQuestions,
+          sections: newSections,
+          wordBank: newWordBank,
+        };
+      }
+      return assign;
+    });
+  }
+
+  return updatedMap;
+}
+
 function questionsToMarkdown(questions: Question[]): string {
   if (!questions || questions.length === 0) return '';
   const lines: string[] = [];
@@ -202,47 +243,6 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       const existingList = normalizeAssignmentList(newAssignments[targetClass]);
       newAssignments[targetClass] = [payload, ...existingList];
     }
-
-function syncEditedQuizToAssignments(
-  currentAssignments: Record<string, any> = {},
-  targetId: string,
-  oldTitle: string,
-  newTitle: string,
-  newQuestions: Question[],
-  newSections: Section[],
-  newWordBank: string[],
-  newLevel: string
-): Record<string, any> {
-  const updatedMap: Record<string, any> = {};
-  const oldTitleClean = (oldTitle || '').trim().toLowerCase();
-  const newTitleClean = (newTitle || '').trim().toLowerCase();
-
-  for (const className in currentAssignments) {
-    const list = normalizeAssignmentList(currentAssignments[className]);
-    updatedMap[className] = list.map((assign) => {
-      const aTitleClean = (assign.quizTitle || '').trim().toLowerCase();
-      const isMatch =
-        (assign.id && assign.id === targetId) ||
-        ((assign as any).libraryItemId && (assign as any).libraryItemId === targetId) ||
-        (oldTitleClean && aTitleClean === oldTitleClean) ||
-        (newTitleClean && aTitleClean === newTitleClean);
-
-      if (isMatch) {
-        return {
-          ...assign,
-          quizTitle: newTitle,
-          quizLevel: newLevel,
-          questions: newQuestions,
-          sections: newSections,
-          wordBank: newWordBank,
-        };
-      }
-      return assign;
-    });
-  }
-
-  return updatedMap;
-}
 
     // Also update Quiz Library if editing or matching a library item
     const titleClean = title.trim().toLowerCase();
