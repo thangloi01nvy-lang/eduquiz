@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { School, Plus, Trash2, UserPlus, Send, Edit3, Users, BookOpen } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
-import { normalizeClassName, sanitizeClassesData, formatDateVN } from '../utils/normalize';
+import { normalizeClassName, isClassMatching, sanitizeClassesData, formatDateVN } from '../utils/normalize';
 import { syncWithServer, normalizeAssignmentList, getQuizDedupeKey } from '../services/storage';
 
 interface ClassManagerProps {
@@ -22,22 +22,29 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
     if (!window.confirm(`⚠️ Bạn có chắc muốn THU HỒI bài tập "${quizTitle}" khỏi lớp "${className}"?\n\nHọc sinh lớp này sẽ không thấy bài này nữa.`)) return;
 
     onUpdateAppData((prev) => {
-      const existingList = normalizeAssignmentList(prev.classAssignments?.[className]);
-      const updatedList = existingList.filter((q) => {
-        const qKey = q.id || getQuizDedupeKey(q);
-        return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
-      });
+      const newAssignments = { ...(prev.classAssignments || {}) };
+
+      // Remove assignment from ALL matching class keys (exact class, 'all', or isClassMatching)
+      for (const k in newAssignments) {
+        if (isClassMatching(className, k)) {
+          const existingList = normalizeAssignmentList(newAssignments[k]);
+          newAssignments[k] = existingList.filter((q) => {
+            const qKey = q.id || getQuizDedupeKey(q);
+            return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
+          });
+        }
+      }
 
       const recalledSet = new Set([...(prev.recalledAssignments || []), quizId]);
 
-      return {
+      const updatedData: AppData = {
         ...prev,
-        classAssignments: {
-          ...prev.classAssignments,
-          [className]: updatedList,
-        },
+        classAssignments: newAssignments,
         recalledAssignments: Array.from(recalledSet),
       };
+
+      syncWithServer(updatedData);
+      return updatedData;
     });
 
     onShowNotification(`🗑️ Đã thu hồi bài tập "${quizTitle}" khỏi lớp ${className}!`, 'success');
