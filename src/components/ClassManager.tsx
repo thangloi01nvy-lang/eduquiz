@@ -28,12 +28,15 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
         return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
       });
 
+      const recalledSet = new Set([...(prev.recalledAssignments || []), quizId, `${quizTitle}_${className}`]);
+
       return {
         ...prev,
         classAssignments: {
           ...prev.classAssignments,
           [className]: updatedList,
         },
+        recalledAssignments: Array.from(recalledSet),
       };
     });
 

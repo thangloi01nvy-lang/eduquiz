@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord, GradeRecord } from '../types';
 import { normalizeClassName, safeParseMarkdown, smartCompareAnswers, cleanAnswerText, formatDateVN } from '../utils/normalize';
-import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer, normalizeAssignmentList, deduplicateAssignmentList, getQuizDedupeKey } from '../services/storage';
+import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer, normalizeAssignmentList, deduplicateAssignmentList, getQuizDedupeKey, isQuizRecalled } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
 import { explainQuestionWithGemini } from '../services/gemini';
 import confetti from 'canvas-confetti';
@@ -252,9 +252,9 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       for (const key in appData.classAssignments) {
         const normKey = normalizeClassName(key);
         if (normKey === normStudentClass || key === studentClassName || normKey === 'all' || key === 'all') {
-          const list = deduplicateAssignmentList(appData.classAssignments[key]);
+          const list = deduplicateAssignmentList(appData.classAssignments[key], appData.recalledAssignments);
           list.forEach((item) => {
-            if (item && item.questions && item.questions.length > 0) {
+            if (item && item.questions && item.questions.length > 0 && !isQuizRecalled(item, appData.recalledAssignments)) {
               const mapKey = getQuizDedupeKey(item);
               assignMap.set(mapKey, item);
             }
@@ -394,7 +394,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.5.0
+                v2.5.1
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>

@@ -128,11 +128,21 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload, fallbackIdx: number 
   return `${title}_${dateStr}_${qCount}_${firstQ}_${lastQ}_${fallbackIdx}`;
 }
 
-export function deduplicateAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
+export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {
+  if (!quiz || !recalledIds || recalledIds.length === 0) return false;
+  const key = getQuizDedupeKey(quiz);
+  return recalledIds.includes(key) || (quiz.id ? recalledIds.includes(quiz.id) : false);
+}
+
+export function deduplicateAssignmentList(
+  payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined,
+  recalledIds: string[] = []
+): AssignedQuizPayload[] {
   const normalized = normalizeAssignmentList(payload);
   const assignMap = new Map<string, AssignedQuizPayload>();
 
   normalized.forEach((item, idx) => {
+    if (isQuizRecalled(item, recalledIds)) return;
     const key = item.id || getQuizDedupeKey(item, idx);
     if (!assignMap.has(key)) {
       assignMap.set(key, {
@@ -149,30 +159,36 @@ export function deduplicateAssignmentList(payload: AssignedQuizPayload | Assigne
   });
 }
 
-export function sanitizeClassAssignmentsMap(map: ClassAssignmentMap = {}): ClassAssignmentMap {
+export function sanitizeClassAssignmentsMap(map: ClassAssignmentMap = {}, recalledIds: string[] = []): ClassAssignmentMap {
   const cleaned: ClassAssignmentMap = {};
   for (const className in map) {
-    cleaned[className] = deduplicateAssignmentList(map[className]);
+    cleaned[className] = deduplicateAssignmentList(map[className], recalledIds);
   }
   return cleaned;
 }
 
-function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: ClassAssignmentMap = {}): ClassAssignmentMap {
+function mergeClassAssignments(
+  localMap: ClassAssignmentMap = {},
+  remoteMap: ClassAssignmentMap = {},
+  recalledIds: string[] = []
+): ClassAssignmentMap {
   const merged: ClassAssignmentMap = {};
   const allClassNames = new Set([...Object.keys(localMap || {}), ...Object.keys(remoteMap || {})]);
 
   allClassNames.forEach((className) => {
-    const localList = deduplicateAssignmentList(localMap[className]);
-    const remoteList = deduplicateAssignmentList(remoteMap[className]);
+    const localList = deduplicateAssignmentList(localMap[className], recalledIds);
+    const remoteList = deduplicateAssignmentList(remoteMap[className], recalledIds);
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
     remoteList.forEach((a) => {
+      if (isQuizRecalled(a, recalledIds)) return;
       const key = getQuizDedupeKey(a);
       assignMap.set(key, a);
     });
 
     localList.forEach((a) => {
+      if (isQuizRecalled(a, recalledIds)) return;
       const key = getQuizDedupeKey(a);
       assignMap.set(key, a);
     });
@@ -255,6 +271,17 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
   });
 
   const mergedClasses = Array.from(classMap.values());
+  const recalledSet = new Set([
+    ...(local.recalledAssignments || []),
+    ...(remote.recalledAssignments || [])
+  ]);
+  const recalledList = Array.from(recalledSet);
+
+  const mergedAssignments = mergeClassAssignments(
+    local.classAssignments,
+    remote.classAssignments,
+    recalledList
+  );
 
   return {
     ...INITIAL_APP_DATA,
@@ -262,7 +289,8 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
     ...local,
     classes: mergedClasses,
     deletedClasses: Array.from(deletedSet),
-    classAssignments: mergeClassAssignments(local.classAssignments, remote.classAssignments),
+    classAssignments: mergedAssignments,
+    recalledAssignments: recalledList,
     quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary),
     grades: mergeGradesList(local.grades, remote.grades),
   };

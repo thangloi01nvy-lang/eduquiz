@@ -113,6 +113,7 @@ export interface AppData {
   classes: ClassModel[];
   deletedClasses?: string[];
   classAssignments: ClassAssignmentMap;
+  recalledAssignments?: string[];
   quizLibrary: LibraryItem[];
   grades: GradeRecord[];
   feedbacks: FeedbackRecord[];
