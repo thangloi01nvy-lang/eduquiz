@@ -40,8 +40,8 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="font-heading font-black text-xl bg-gradient-to-r from-brand-900 via-brand-700 to-indigo-900 bg-clip-text text-transparent tracking-tight">
                 EduQuiz Pro
               </h1>
-              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full border border-emerald-300">
-                v2.0 React
+              <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
+                v2.0.5
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">

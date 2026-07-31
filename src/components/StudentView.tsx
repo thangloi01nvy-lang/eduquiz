@@ -327,8 +327,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="w-12 h-12 rounded-2xl bg-brand-100 text-brand-600 flex items-center justify-center mx-auto">
               <BookOpen className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
-            <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và Tên của em để vào làm bài</p>
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
+              <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
+                v2.0.5
+              </span>
+            </div>
+            <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
           </div>
 
           <div className="space-y-4">
