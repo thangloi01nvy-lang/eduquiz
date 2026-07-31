@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
                 EduQuiz Pro
               </h1>
               <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
-                v4.0.0
+                v4.0.1
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">

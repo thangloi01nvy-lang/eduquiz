@@ -289,7 +289,6 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     );
 
     // Clean recalledAssignments tombstones
-    const titleClean = title.trim().toLowerCase();
     const cleanedRecalled = (appData.recalledAssignments || []).filter((r) => {
       if (!r) return false;
       const cleanR = r.trim().toLowerCase();
