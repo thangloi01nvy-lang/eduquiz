@@ -270,8 +270,10 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           const list = deduplicateAssignmentList(appData.classAssignments[key], appData.recalledAssignments);
           list.forEach((item) => {
             if (item && item.questions && item.questions.length > 0 && !isQuizRecalled(item, appData.recalledAssignments)) {
-              const mapKey = getQuizDedupeKey(item);
-              assignMap.set(mapKey, item);
+              const mapKey = item.id || getQuizDedupeKey(item);
+              if (!assignMap.has(mapKey)) {
+                assignMap.set(mapKey, item);
+              }
             }
           });
         }
@@ -482,7 +484,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.8.1
+                v3.9.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>

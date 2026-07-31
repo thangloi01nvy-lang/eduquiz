@@ -368,11 +368,25 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       appData.quizLevel || 'B1'
     );
 
+    const titleClean = title.trim().toLowerCase();
+    const oldTitleClean = oldTitle.trim().toLowerCase();
+    const targetIdClean = targetId.trim().toLowerCase();
+
+    const cleanedRecalled = (appData.recalledAssignments || []).filter((r) => {
+      if (!r) return false;
+      const cleanR = r.trim().toLowerCase();
+      if (cleanR === targetIdClean) return false;
+      if (cleanR === titleClean) return false;
+      if (cleanR === oldTitleClean) return false;
+      return true;
+    });
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: targetId,
       quizLibrary: updatedLibrary,
       classAssignments: autoSyncedAssignments,
+      recalledAssignments: cleanedRecalled,
     };
 
     onUpdateAppData(() => updatedData);

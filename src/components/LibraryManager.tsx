@@ -74,9 +74,18 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
 
       // Clean tombstones that might conflict with this new payload
       const dedupeKey = getQuizDedupeKey(payload);
-      const cleanedRecalled = (appData.recalledAssignments || []).filter(
-        (r) => r !== assignId && r !== dedupeKey && r !== item.id
-      );
+      const titleClean = (item.title || '').trim().toLowerCase();
+      const itemIdClean = (item.id || '').trim().toLowerCase();
+
+      const cleanedRecalled = (appData.recalledAssignments || []).filter((r) => {
+        if (!r) return false;
+        const cleanR = r.trim().toLowerCase();
+        if (cleanR === itemIdClean) return false;
+        if (cleanR === assignId.trim().toLowerCase()) return false;
+        if (cleanR === dedupeKey.trim().toLowerCase()) return false;
+        if (cleanR === titleClean) return false;
+        return true;
+      });
 
       const updatedData: AppData = {
         ...appData,

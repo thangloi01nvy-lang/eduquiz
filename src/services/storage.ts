@@ -130,18 +130,18 @@ export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
 }
 
 export function isQuizRecalled(
-  quiz: { id?: string; quizTitle?: string; title?: string; quizId?: string },
+  quiz: { id?: string; quizTitle?: string; title?: string; quizId?: string; questions?: any[] },
   recalledIds: string[] = []
 ): boolean {
   if (!quiz || !recalledIds || recalledIds.length === 0) return false;
   const id = (quiz.id || quiz.quizId || '').trim();
-  const title = (quiz.quizTitle || quiz.title || '').trim().toLowerCase();
+  const dedupeKey = quiz.questions ? getQuizDedupeKey(quiz as any) : '';
 
   return recalledIds.some((r) => {
     if (!r) return false;
     const cleanR = r.trim();
     if (id && cleanR === id) return true;
-    if (title && cleanR.toLowerCase() === title) return true;
+    if (dedupeKey && cleanR === dedupeKey) return true;
     return false;
   });
 }
