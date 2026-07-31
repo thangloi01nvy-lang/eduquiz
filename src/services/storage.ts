@@ -122,13 +122,11 @@ export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQ
 
 export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
   if (!quiz) return 'empty_quiz';
-  if (quiz.id) return quiz.id;
   const title = (quiz.quizTitle || '').trim().toLowerCase();
-  const level = (quiz.quizLevel || 'B1').trim().toLowerCase();
-  const dateStr = (quiz.quizCreatedDate || '').slice(0, 19);
   const qCount = quiz.questions?.length || 0;
-  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 30);
-  return `${title}_${level}_${dateStr}_${qCount}_${firstQ}`;
+  const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 40);
+  const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 40);
+  return `${title}_${qCount}_${firstQ}_${lastQ}`;
 }
 
 export function isQuizRecalled(quiz: AssignedQuizPayload, recalledIds: string[] = []): boolean {

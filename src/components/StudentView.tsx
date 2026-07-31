@@ -403,7 +403,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.0.1
+                v3.1.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -870,19 +870,32 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     )}
 
                     {/* Essay / Short Answer Input Field */}
-                    {(!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0) && (
-                      <div className="space-y-2 pt-2">
-                        <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
-                        <textarea
-                          rows={3}
-                          disabled={isSubmitted}
-                          value={answers[`q_${q.id}`] || ''}
-                          onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
-                          placeholder="Gõ câu trả lời của em tại đây..."
-                          className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
-                        />
-                      </div>
-                    )}
+                    {(() => {
+                      const isTwoBoxExercise =
+                        q.type === 'error_correction' ||
+                        (q.answer && (q.answer.includes('->') || q.answer.includes('→') || q.answer.includes('thành') || q.answer.includes(':'))) ||
+                        (q.sectionTitle && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.sectionTitle)) ||
+                        (q.title && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.title));
+
+                      if (isTwoBoxExercise) return null;
+
+                      if ((!q.options || q.options.length === 0) && (!q.inlineBlanks || q.inlineBlanks.length === 0)) {
+                        return (
+                          <div className="space-y-2 pt-2">
+                            <label className="block text-xs font-bold text-slate-700">✍️ Nhập câu trả lời / Bài làm tự luận của em:</label>
+                            <textarea
+                              rows={3}
+                              disabled={isSubmitted}
+                              value={answers[`q_${q.id}`] || ''}
+                              onChange={(e) => handleAnswerChange(`q_${q.id}`, e.target.value)}
+                              placeholder="Gõ câu trả lời của em tại đây..."
+                              className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none shadow-inner"
+                            />
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
 
                     {/* Explanation & Feedback Section after Submission */}
                     {isSubmitted && (

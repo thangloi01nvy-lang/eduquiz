@@ -202,6 +202,29 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       newAssignments[targetClass] = [payload, ...existingList];
     }
 
+    // Also update Quiz Library if editing a library item
+    const existingList = appData.quizLibrary || [];
+    const editId = appData.editingLibraryId;
+    const editIndex = editId
+      ? existingList.findIndex((item) => item.id === editId || item.title === title)
+      : existingList.findIndex((item) => item.title === title);
+
+    let updatedLibrary = [...existingList];
+    if (editIndex >= 0) {
+      updatedLibrary[editIndex] = {
+        ...updatedLibrary[editIndex],
+        title,
+        level,
+        targetClass,
+        questionsCount: parsed.questions.length,
+        sectionsCount: parsed.sections.length,
+        questions: parsed.questions,
+        sections: parsed.sections,
+        wordBank: parsed.wordBank,
+        rawText,
+      };
+    }
+
     const updatedData: AppData = {
       ...appData,
       editingLibraryId: undefined,
@@ -210,6 +233,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       wordBank: parsed.wordBank,
       quizTargetClass: targetClass,
       classAssignments: newAssignments,
+      quizLibrary: updatedLibrary,
     };
 
     onUpdateAppData(() => updatedData);
@@ -228,7 +252,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     }
   };
 
-  const handleSaveToLibrary = () => {
+  const handleSaveToLibrary = async () => {
     if (parsed.questions.length === 0) {
       onShowNotification('❌ Nội dung chưa có câu hỏi để lưu vào Thư viện!', 'warning');
       return;
@@ -237,55 +261,58 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     const title = appData.quizTitle || 'Bài Tập Mới';
     const editId = appData.editingLibraryId;
 
-    onUpdateAppData((prev) => {
-      const existingList = prev.quizLibrary || [];
-      const editIndex = editId
-        ? existingList.findIndex((item) => item.id === editId || item.title === title)
-        : existingList.findIndex((item) => item.title === title);
+    const existingList = appData.quizLibrary || [];
+    const editIndex = editId
+      ? existingList.findIndex((item) => item.id === editId || item.title === title)
+      : existingList.findIndex((item) => item.title === title);
 
-      let updatedLibrary: LibraryItem[];
+    let updatedLibrary: LibraryItem[];
 
-      if (editIndex >= 0) {
-        // OVERWRITE EXISTING LIBRARY ITEM
-        updatedLibrary = [...existingList];
-        updatedLibrary[editIndex] = {
-          ...updatedLibrary[editIndex],
-          title,
-          level: appData.quizLevel || 'B1',
-          targetClass: selectedTargetClass,
-          questionsCount: parsed.questions.length,
-          sectionsCount: parsed.sections.length,
-          questions: parsed.questions,
-          sections: parsed.sections,
-          wordBank: parsed.wordBank,
-          rawText,
-        };
-      } else {
-        // CREATE NEW LIBRARY ITEM
-        const newItem: LibraryItem = {
-          id: editId || `lib_${Date.now()}`,
-          title,
-          level: appData.quizLevel || 'B1',
-          targetClass: selectedTargetClass,
-          createdDate: new Date().toISOString(),
-          rawText,
-          questionsCount: parsed.questions.length,
-          sectionsCount: parsed.sections.length,
-          questions: parsed.questions,
-          sections: parsed.sections,
-          wordBank: parsed.wordBank,
-        };
-        updatedLibrary = [newItem, ...existingList];
-      }
-
-      return {
-        ...prev,
-        editingLibraryId: undefined,
-        quizLibrary: updatedLibrary,
+    if (editIndex >= 0) {
+      // OVERWRITE EXISTING LIBRARY ITEM
+      updatedLibrary = [...existingList];
+      updatedLibrary[editIndex] = {
+        ...updatedLibrary[editIndex],
+        title,
+        level: appData.quizLevel || 'B1',
+        targetClass: selectedTargetClass,
+        questionsCount: parsed.questions.length,
+        sectionsCount: parsed.sections.length,
+        questions: parsed.questions,
+        sections: parsed.sections,
+        wordBank: parsed.wordBank,
+        rawText,
       };
-    });
+    } else {
+      // CREATE NEW LIBRARY ITEM
+      const newItem: LibraryItem = {
+        id: editId || `lib_${Date.now()}`,
+        title,
+        level: appData.quizLevel || 'B1',
+        targetClass: selectedTargetClass,
+        createdDate: new Date().toISOString(),
+        rawText,
+        questionsCount: parsed.questions.length,
+        sectionsCount: parsed.sections.length,
+        questions: parsed.questions,
+        sections: parsed.sections,
+        wordBank: parsed.wordBank,
+      };
+      updatedLibrary = [newItem, ...existingList];
+    }
 
-    onShowNotification(`📚 Đã cập nhật đè bài tập "${title}" vào Thư Viện!`, 'success');
+    const updatedData: AppData = {
+      ...appData,
+      editingLibraryId: undefined,
+      quizLibrary: updatedLibrary,
+    };
+
+    onUpdateAppData(() => updatedData);
+
+    onShowNotification('☁️ Đang lưu & đồng bộ Thư viện lên Cloud Real-Time...', 'warning');
+    await syncWithServer(updatedData);
+
+    onShowNotification(`📚 Đã cập nhật bài tập "${title}" vào Thư Viện & Đồng bộ Cloud thành công!`, 'success');
   };
 
   const handleGenerateAi = async () => {
