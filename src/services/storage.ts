@@ -109,6 +109,32 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   return success;
 }
 
+function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: ClassAssignmentMap = {}): ClassAssignmentMap {
+  const merged: ClassAssignmentMap = { ...localMap, ...remoteMap };
+
+  for (const className in remoteMap) {
+    const rPayload = remoteMap[className];
+    const lPayload = localMap[className];
+
+    if (rPayload) {
+      if (!lPayload) {
+        merged[className] = rPayload;
+      } else {
+        const rTime = new Date(rPayload.quizCreatedDate || 0).getTime();
+        const lTime = new Date(lPayload.quizCreatedDate || 0).getTime();
+        // Remote (Teacher's latest publish) ALWAYS wins if newer or equal!
+        if (rTime >= lTime) {
+          merged[className] = rPayload;
+        } else {
+          merged[className] = lPayload;
+        }
+      }
+    }
+  }
+
+  return merged;
+}
+
 function mergeAppData(local: AppData, remote: AppData): AppData {
   const deletedSet = new Set([...(local.deletedClasses || []), ...(remote.deletedClasses || [])].map((d) => d.toLowerCase()));
 
@@ -142,11 +168,11 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
 
   return {
     ...INITIAL_APP_DATA,
-    ...remote,
     ...local,
+    ...remote,
     classes: mergedClasses,
     deletedClasses: Array.from(deletedSet),
-    classAssignments: { ...(remote.classAssignments || {}), ...(local.classAssignments || {}) },
+    classAssignments: mergeClassAssignments(local.classAssignments, remote.classAssignments),
   };
 }
 

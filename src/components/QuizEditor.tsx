@@ -73,8 +73,21 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
   const parsed = parseMarkdownQuiz(rawText);
 
+  const effectiveQuestions = React.useMemo(() => {
+    return parsed.questions.map((q) => {
+      const secTitle = q.sectionTitle || 'Bài tập chung';
+      if (sectionTypeOverrides[secTitle]) {
+        return {
+          ...q,
+          type: sectionTypeOverrides[secTitle],
+        };
+      }
+      return q;
+    });
+  }, [parsed.questions, sectionTypeOverrides]);
+
   const handleParseAndPublish = async (targetClass: string) => {
-    if (parsed.questions.length === 0) {
+    if (effectiveQuestions.length === 0) {
       onShowNotification('❌ Chưa phát hiện câu hỏi hợp lệ trong nội dung Markdown!', 'warning');
       return;
     }
@@ -86,7 +99,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       quizTitle: title,
       quizLevel: level,
       quizCreatedDate: new Date().toISOString(),
-      questions: parsed.questions,
+      questions: effectiveQuestions,
       sections: parsed.sections,
       wordBank: parsed.wordBank,
     };
@@ -203,6 +216,23 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [editAnswer, setEditAnswer] = useState('');
   const [editType, setEditType] = useState<Question['type']>('fill_in_blank');
   const [editPoints, setEditPoints] = useState<number>(1);
+  const [sectionTypeOverrides, setSectionTypeOverrides] = useState<Record<string, Question['type']>>({});
+
+  const handleSectionBulkChange = (secTitle: string, newType: Question['type']) => {
+    setSectionTypeOverrides((prev) => ({
+      ...prev,
+      [secTitle]: newType,
+    }));
+
+    const typeLabel =
+      newType === 'multiple_choice'
+        ? 'Trắc Nghiệm (Click Chọn A/B/C/D)'
+        : newType === 'fill_in_blank'
+        ? 'Điền Từ / Ô Trống'
+        : 'Tự Luận';
+
+    onShowNotification(`⚡ Đã chuyển đổi tất cả câu hỏi thuộc bài "${secTitle}" sang dạng: ${typeLabel}!`, 'success');
+  };
 
   const handleRecallQuiz = async (targetClass: string) => {
     if (
@@ -487,33 +517,72 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
           </div>
 
           {/* Live Preview Cards with Inline Editing */}
-          <div className="bg-slate-50 rounded-3xl border border-slate-200 p-5 shadow-inner space-y-4 max-h-[500px] overflow-y-auto">
+          <div className="bg-slate-50 rounded-3xl border border-slate-200 p-5 shadow-inner space-y-4 max-h-[550px] overflow-y-auto">
             <h4 className="font-heading font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center justify-between">
-              <span>Xem Trước Giao Diện Học Sinh ({parsed.questions.length} câu)</span>
-              <span className="text-[10px] text-brand-600 font-bold">✨ Có thể chỉnh sửa trực tiếp từng câu</span>
+              <span>Xem Trước Giao Diện Học Sinh ({effectiveQuestions.length} câu)</span>
+              <span className="text-[10px] text-brand-600 font-bold">✨ Đổi dạng bài cho từng Bài hoặc từng câu</span>
             </h4>
 
-            {parsed.questions.length === 0 ? (
+            {effectiveQuestions.length === 0 ? (
               <div className="text-center py-12 text-slate-400 font-medium text-xs">
                 Chưa có câu hỏi nào. Hãy nhập nội dung bên trái để xem trước!
               </div>
             ) : (
-              parsed.questions.map((q) => (
-                <div key={q.id} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-100 pb-2">
-                    <span>Câu {q.id}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-md uppercase text-[10px]">
-                        {q.type}
-                      </span>
-                      <button
-                        onClick={() => handleStartInlineEdit(q)}
-                        className="text-brand-600 hover:text-brand-800 text-[11px] underline font-bold"
-                      >
-                        ✏️ Sửa Nhanh
-                      </button>
-                    </div>
-                  </div>
+              effectiveQuestions.map((q, qIdx) => {
+                const prevQ = effectiveQuestions[qIdx - 1];
+                const secTitle = q.sectionTitle || 'Bài tập chung';
+                const isNewSection = !prevQ || (prevQ.sectionTitle || 'Bài tập chung') !== secTitle;
+
+                return (
+                  <React.Fragment key={q.id}>
+                    {/* Section-Level Bulk Type Switcher Bar */}
+                    {isNewSection && (
+                      <div className="bg-gradient-to-r from-brand-900 via-indigo-900 to-slate-900 text-white rounded-2xl p-4 shadow-md space-y-2 border border-brand-700 mt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                          <h3 className="font-heading font-black text-xs sm:text-sm text-amber-300 flex items-center gap-1.5">
+                            📌 {secTitle}
+                          </h3>
+                          <span className="text-[10px] text-slate-300 font-medium">⚡ Đổi dạng bài cho riêng {secTitle}:</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap pt-1">
+                          <button
+                            onClick={() => handleSectionBulkChange(secTitle, 'multiple_choice')}
+                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
+                          >
+                            🎯 Bài này ➔ Trắc Nghiệm (Click chọn)
+                          </button>
+                          <button
+                            onClick={() => handleSectionBulkChange(secTitle, 'fill_in_blank')}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
+                          >
+                            🧩 Bài này ➔ Điền Từ / Ô Trống
+                          </button>
+                          <button
+                            onClick={() => handleSectionBulkChange(secTitle, 'essay')}
+                            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[10px] font-bold shadow-sm transition"
+                          >
+                            ✍️ Bài này ➔ Tự Luận
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-500 border-b border-slate-100 pb-2">
+                        <span>Câu {q.id}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-brand-50 text-brand-700 rounded-md uppercase text-[10px]">
+                            {q.type}
+                          </span>
+                          <button
+                            onClick={() => handleStartInlineEdit(q)}
+                            className="text-brand-600 hover:text-brand-800 text-[11px] underline font-bold"
+                          >
+                            ✏️ Sửa Nhanh
+                          </button>
+                        </div>
+                      </div>
 
                   {editingQuestionId === q.id ? (
                     <div className="p-3 bg-amber-50 border border-amber-200 rounded-2xl space-y-2">
@@ -605,8 +674,9 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                     </>
                   )}
                 </div>
-              ))
-            )}
+              </React.Fragment>
+            ))
+          )}
           </div>
         </div>
       </div>

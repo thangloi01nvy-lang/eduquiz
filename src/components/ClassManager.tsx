@@ -183,9 +183,6 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                   <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
                     <div className="font-bold flex items-center justify-between">
                       <span>🟢 Đã Giao Bài Tập:</span>
-                      <span className="px-2 py-0.5 bg-emerald-200 text-emerald-800 text-[10px] rounded-full font-bold">
-                        {assignedQuiz.quizLevel || 'B1'}
-                      </span>
                     </div>
                     <p className="font-medium truncate">{assignedQuiz.quizTitle}</p>
                     <p className="text-[10px] text-emerald-600">{assignedQuiz.questions?.length || 0} câu hỏi</p>

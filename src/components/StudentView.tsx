@@ -475,10 +475,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       ) : (
         <div className="space-y-6">
           {/* Header Quiz Title */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-2">
-            <span className="px-2.5 py-1 bg-brand-50 text-brand-700 text-xs font-bold rounded-full">
-              Trình độ: {assignedQuiz.quizLevel || 'B1'}
-            </span>
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
             <h2 className="text-xl font-heading font-black text-slate-900">{assignedQuiz.quizTitle}</h2>
           </div>
 
