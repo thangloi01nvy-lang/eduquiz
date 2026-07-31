@@ -156,13 +156,11 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     if (targetClass === 'all') {
       appData.classes.forEach((c) => {
         const existingList = normalizeAssignmentList(newAssignments[c.name]);
-        const filtered = existingList.filter((a) => a.quizTitle !== title);
-        newAssignments[c.name] = [payload, ...filtered];
+        newAssignments[c.name] = [payload, ...existingList];
       });
     } else {
       const existingList = normalizeAssignmentList(newAssignments[targetClass]);
-      const filtered = existingList.filter((a) => a.quizTitle !== title);
-      newAssignments[targetClass] = [payload, ...filtered];
+      newAssignments[targetClass] = [payload, ...existingList];
     }
 
     const updatedData: AppData = {

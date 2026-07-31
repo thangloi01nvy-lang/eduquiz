@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { School, Plus, Trash2, UserPlus, Send, Edit3, Users } from 'lucide-react';
+import { School, Plus, Trash2, UserPlus, Send, Edit3, Users, BookOpen } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
-import { normalizeClassName, sanitizeClassesData } from '../utils/normalize';
+import { normalizeClassName, sanitizeClassesData, formatDateVN } from '../utils/normalize';
 import { syncWithServer, normalizeAssignmentList } from '../services/storage';
 
 interface ClassManagerProps {
@@ -14,6 +13,7 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const [newClassName, setNewClassName] = useState('');
   const [newClassDesc, setNewClassDesc] = useState('');
   const [addingStudentClassId, setAddingStudentClassId] = useState<string | null>(null);
+  const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [studentNameInput, setStudentNameInput] = useState('');
   const [studentCodeInput, setStudentCodeInput] = useState('');
 
@@ -179,16 +179,41 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                   </button>
                 </div>
 
-                {/* Assigned Quiz Badge */}
-                {assignedList.length > 0 && latestQuiz ? (
-                  <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
+                {/* Assigned Quiz List */}
+                {assignedList.length > 0 ? (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-emerald-950 text-xs space-y-2">
                     <div className="font-bold flex items-center justify-between">
-                      <span>🟢 Đã Giao ({assignedList.length} bài tập):</span>
+                      <span className="flex items-center gap-1.5 text-emerald-900">
+                        <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Danh Sách Bài Đã Giao ({assignedList.length} bài):</span>
+                      </span>
+                      {assignedList.length > 1 && (
+                        <button
+                          onClick={() => setExpandedClassId(expandedClassId === c.id ? null : c.id)}
+                          className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline"
+                        >
+                          {expandedClassId === c.id ? 'Thu gọn' : `Xem cả ${assignedList.length} bài`}
+                        </button>
+                      )}
                     </div>
-                    <p className="font-medium truncate">{latestQuiz.quizTitle}</p>
-                    <p className="text-[10px] text-emerald-600">
-                      {latestQuiz.questions?.length || 0} câu hỏi {assignedList.length > 1 ? `• và ${assignedList.length - 1} bài lịch sử` : ''}
-                    </p>
+
+                    <div className="space-y-1.5 pt-1">
+                      {(expandedClassId === c.id ? assignedList : [assignedList[0]]).map((quiz, qIdx) => (
+                        <div key={quiz.id || qIdx} className="p-2 bg-white rounded-xl border border-emerald-200/80 shadow-2xs flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-xs text-slate-900 truncate">
+                              #{assignedList.length - qIdx}. {quiz.quizTitle}
+                            </p>
+                            <p className="text-[10px] text-slate-500 font-medium">
+                              {quiz.questions?.length || 0} câu • Giao {formatDateVN(quiz.quizCreatedDate)}
+                            </p>
+                          </div>
+                          <span className={`px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 ${qIdx === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
+                            {qIdx === 0 ? 'Mới nhất' : 'Bài cũ'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 text-xs">
