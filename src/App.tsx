@@ -81,6 +81,7 @@ export const App: React.FC = () => {
   const handleLoadQuizToEdit = (item: any) => {
     setAppData((prev) => ({
       ...prev,
+      editingLibraryId: item.id || item.title,
       quizTitle: item.title,
       quizLevel: item.level || 'B1',
       quizTargetClass: item.targetClass || 'all',
