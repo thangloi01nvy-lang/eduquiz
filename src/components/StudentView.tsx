@@ -247,37 +247,30 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    // 1. Load from classAssignments
-    let rawList: any = null;
+    // 1. Load from classAssignments (including exact class match, normalized match, and 'all' match)
     if (appData.classAssignments) {
-      if (appData.classAssignments[studentClassName]) {
-        rawList = appData.classAssignments[studentClassName];
-      } else {
-        for (const key in appData.classAssignments) {
-          if (normalizeClassName(key) === normStudentClass) {
-            rawList = appData.classAssignments[key];
-            break;
-          }
+      for (const key in appData.classAssignments) {
+        const normKey = normalizeClassName(key);
+        if (normKey === normStudentClass || key === studentClassName || normKey === 'all' || key === 'all') {
+          const list = normalizeAssignmentList(appData.classAssignments[key]);
+          list.forEach((item, idx) => {
+            const mapKey = item.id || `${item.quizTitle}_${item.quizCreatedDate || ''}_${key}_${idx}`;
+            assignMap.set(mapKey, item);
+          });
         }
       }
     }
 
-    const assignedFromClass = normalizeAssignmentList(rawList);
-    assignedFromClass.forEach((item) => {
-      const key = item.id || `${item.quizTitle}_${item.quizCreatedDate || ''}`;
-      assignMap.set(key, item);
-    });
-
     // 2. Auto-Recover from quizLibrary (Library Quizzes for this class)
     if (appData.quizLibrary && appData.quizLibrary.length > 0) {
-      appData.quizLibrary.forEach((libItem) => {
+      appData.quizLibrary.forEach((libItem, libIdx) => {
         const normTarget = normalizeClassName(libItem.targetClass || 'all');
         if (normTarget === 'all' || normTarget === normStudentClass || libItem.targetClass === studentClassName) {
           if (libItem.questions && libItem.questions.length > 0) {
-            const key = libItem.id || `${libItem.title}_${libItem.createdDate || ''}`;
+            const key = libItem.id || `lib_${libItem.title}_${libItem.createdDate || ''}_${libIdx}`;
             if (!assignMap.has(key)) {
               assignMap.set(key, {
-                id: libItem.id,
+                id: libItem.id || key,
                 quizTitle: libItem.title,
                 quizLevel: libItem.level || 'B1',
                 quizCreatedDate: libItem.createdDate || new Date().toISOString(),
@@ -422,7 +415,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.3.4
+                v2.3.5
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
