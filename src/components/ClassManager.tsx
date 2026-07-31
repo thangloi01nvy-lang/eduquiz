@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { School, Plus, Trash2, UserPlus, Send, Edit3, Users, BookOpen } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
 import { normalizeClassName, sanitizeClassesData, formatDateVN } from '../utils/normalize';
