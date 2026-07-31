@@ -78,6 +78,20 @@ export const App: React.FC = () => {
     handleShowNotification(`🔓 Xin chào ${name}! Đã đăng nhập Góc Giáo Viên.`, 'success');
   };
 
+  const handleLoadQuizToEdit = (item: any) => {
+    setAppData((prev) => ({
+      ...prev,
+      quizTitle: item.title,
+      quizLevel: item.level || 'B1',
+      quizTargetClass: item.targetClass || 'all',
+      currentQuestions: item.questions || [],
+      sections: item.sections || [],
+      wordBank: item.wordBank || [],
+    }));
+    setCurrentTeacherSubTab('editor');
+    handleShowNotification(`✏️ Đã tải bài tập "${item.title}" vào Trình Soạn Đề để chỉnh sửa!`, 'success');
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       {/* Toast Notification */}
@@ -151,6 +165,7 @@ export const App: React.FC = () => {
                   appData={appData}
                   onUpdateAppData={handleUpdateAppData}
                   onShowNotification={handleShowNotification}
+                  onLoadQuizToEdit={handleLoadQuizToEdit}
                 />
               )}
               {currentTeacherSubTab === 'grades' && (

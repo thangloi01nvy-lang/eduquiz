@@ -117,24 +117,28 @@ export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQ
   return [];
 }
 
-export function getQuizDedupeKey(quiz: AssignedQuizPayload): string {
-  if (!quiz) return 'empty_quiz';
-  if (quiz.id && quiz.id.startsWith('assign_')) return quiz.id;
+export function getQuizDedupeKey(quiz: AssignedQuizPayload, fallbackIdx: number = 0): string {
+  if (!quiz) return `empty_quiz_${fallbackIdx}`;
+  if (quiz.id) return quiz.id;
   const qCount = quiz.questions?.length || 0;
   const title = (quiz.quizTitle || '').trim().toLowerCase();
   const firstQ = (quiz.questions?.[0]?.title || '').trim().toLowerCase().slice(0, 30);
-  const dateStr = (quiz.quizCreatedDate || '').slice(0, 10);
-  return `${title}_${dateStr}_${qCount}_${firstQ}`;
+  const lastQ = (quiz.questions?.[quiz.questions.length - 1]?.title || '').trim().toLowerCase().slice(0, 30);
+  const dateStr = (quiz.quizCreatedDate || '').slice(0, 19);
+  return `${title}_${dateStr}_${qCount}_${firstQ}_${lastQ}_${fallbackIdx}`;
 }
 
 export function deduplicateAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
   const normalized = normalizeAssignmentList(payload);
   const assignMap = new Map<string, AssignedQuizPayload>();
 
-  normalized.forEach((item) => {
-    const key = getQuizDedupeKey(item);
+  normalized.forEach((item, idx) => {
+    const key = item.id || getQuizDedupeKey(item, idx);
     if (!assignMap.has(key)) {
-      assignMap.set(key, item);
+      assignMap.set(key, {
+        ...item,
+        id: item.id || `assign_${Date.now()}_${idx}`,
+      });
     }
   });
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { School, Plus, Trash2, UserPlus, Send, Edit3, Users, BookOpen } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
 import { normalizeClassName, sanitizeClassesData, formatDateVN } from '../utils/normalize';
-import { syncWithServer, normalizeAssignmentList } from '../services/storage';
+import { syncWithServer, normalizeAssignmentList, getQuizDedupeKey } from '../services/storage';
 
 interface ClassManagerProps {
   appData: AppData;
@@ -17,6 +17,28 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [studentNameInput, setStudentNameInput] = useState('');
   const [studentCodeInput, setStudentCodeInput] = useState('');
+
+  const handleRecallAssignment = (className: string, quizId: string, quizTitle: string) => {
+    if (!window.confirm(`⚠️ Bạn có chắc muốn THU HỒI bài tập "${quizTitle}" khỏi lớp "${className}"?\n\nHọc sinh lớp này sẽ không thấy bài này nữa.`)) return;
+
+    onUpdateAppData((prev) => {
+      const existingList = normalizeAssignmentList(prev.classAssignments?.[className]);
+      const updatedList = existingList.filter((q, idx) => {
+        const qKey = q.id || getQuizDedupeKey(q, idx);
+        return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
+      });
+
+      return {
+        ...prev,
+        classAssignments: {
+          ...prev.classAssignments,
+          [className]: updatedList,
+        },
+      };
+    });
+
+    onShowNotification(`🗑️ Đã thu hồi bài tập "${quizTitle}" khỏi lớp ${className}!`, 'success');
+  };
 
   const handleCreateClass = () => {
     if (!newClassName.trim()) {
@@ -209,9 +231,18 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                               {quiz.questions?.length || 0} câu • Giao {formatDateVN(quiz.quizCreatedDate)}
                             </p>
                           </div>
-                          <span className={`px-2 py-0.5 text-[10px] font-black rounded-full shrink-0 ${qIdx === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
-                            {qIdx === 0 ? 'Mới nhất' : 'Bài cũ'}
-                          </span>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <span className={`px-2 py-0.5 text-[10px] font-black rounded-full ${qIdx === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}`}>
+                              {qIdx === 0 ? 'Mới nhất' : 'Bài cũ'}
+                            </span>
+                            <button
+                              onClick={() => handleRecallAssignment(c.name, quiz.id || getQuizDedupeKey(quiz, qIdx), quiz.quizTitle)}
+                              className="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-bold rounded-lg transition"
+                              title="Thu hồi bài tập này khỏi lớp"
+                            >
+                              Thu hồi 🗑️
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>

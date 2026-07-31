@@ -1,5 +1,4 @@
-import React from 'react';
-import { BookOpen, Send, Trash2, Download, Layers, HelpCircle } from 'lucide-react';
+import { BookOpen, Send, Trash2, Download, Layers, HelpCircle, Edit3 } from 'lucide-react';
 import { AppData, LibraryItem } from '../types';
 import { formatDateVN } from '../utils/normalize';
 
@@ -7,9 +6,10 @@ interface LibraryManagerProps {
   appData: AppData;
   onUpdateAppData: (updater: (prev: AppData) => AppData) => void;
   onShowNotification: (msg: string, type?: 'success' | 'warning' | 'error') => void;
+  onLoadQuizToEdit: (item: LibraryItem) => void;
 }
 
-export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
+export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdateAppData, onShowNotification, onLoadQuizToEdit }) => {
   const handleDeleteItem = (itemId: string, title: string) => {
     if (!window.confirm(`Bạn có chắc muốn xóa đề bài "${title}" khỏi thư viện?`)) return;
 
@@ -93,12 +93,23 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
                     <h4 className="font-heading font-bold text-base text-slate-900">{item.title}</h4>
                     <p className="text-xs text-slate-500">Tạo ngày: {formatDateVN(item.createdDate)}</p>
                   </div>
-                  <button
-                    onClick={() => handleDeleteItem(item.id, item.title)}
-                    className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => onLoadQuizToEdit(item)}
+                      className="text-brand-600 hover:text-brand-800 hover:bg-brand-50 p-1.5 rounded-lg transition flex items-center gap-1 font-bold text-xs"
+                      title="Chỉnh sửa bài tập này"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Sửa</span>
+                    </button>
+                    <button
+                      onClick={() => handleDeleteItem(item.id, item.title)}
+                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
+                      title="Xóa khỏi thư viện"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-3 text-xs text-slate-600 font-medium">
