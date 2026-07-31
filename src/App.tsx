@@ -110,36 +110,58 @@ export const App: React.FC = () => {
       {/* Main View Area */}
       <main className="flex-1">
         {currentTab === 'teacher' ? (
-          <>
-            {currentTeacherSubTab === 'editor' && (
-              <QuizEditor
-                appData={appData}
-                onUpdateAppData={handleUpdateAppData}
-                onShowNotification={handleShowNotification}
-              />
-            )}
-            {currentTeacherSubTab === 'classes' && (
-              <ClassManager
-                appData={appData}
-                onUpdateAppData={handleUpdateAppData}
-                onShowNotification={handleShowNotification}
-              />
-            )}
-            {currentTeacherSubTab === 'library' && (
-              <LibraryManager
-                appData={appData}
-                onUpdateAppData={handleUpdateAppData}
-                onShowNotification={handleShowNotification}
-              />
-            )}
-            {currentTeacherSubTab === 'grades' && (
-              <GradesTracker
-                appData={appData}
-                onUpdateAppData={handleUpdateAppData}
-                onShowNotification={handleShowNotification}
-              />
-            )}
-          </>
+          !isTeacherAuthenticated ? (
+            <div className="max-w-md mx-auto my-16 px-4">
+              <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-2xl text-center space-y-5 animate-fade-in">
+                <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-3xl font-black shadow-inner">
+                  🔒
+                </div>
+                <div className="space-y-1">
+                  <h2 className="text-xl font-heading font-black text-slate-900">Khu Vực Bảo Mật Dành Cho Giáo Viên</h2>
+                  <p className="text-xs font-medium text-slate-500">
+                    Vui lòng nhập Mật Khẩu Giáo Viên để mở khóa quyền biên soạn đề, quản lý lớp và xem đáp án. Học sinh không có quyền truy cập vào đây.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="w-full py-3.5 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-brand-500/20 transition flex items-center justify-center gap-2"
+                >
+                  🔑 NHẬP MẬT KHẨU GIÁO VIÊN NGÀY
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {currentTeacherSubTab === 'editor' && (
+                <QuizEditor
+                  appData={appData}
+                  onUpdateAppData={handleUpdateAppData}
+                  onShowNotification={handleShowNotification}
+                />
+              )}
+              {currentTeacherSubTab === 'classes' && (
+                <ClassManager
+                  appData={appData}
+                  onUpdateAppData={handleUpdateAppData}
+                  onShowNotification={handleShowNotification}
+                />
+              )}
+              {currentTeacherSubTab === 'library' && (
+                <LibraryManager
+                  appData={appData}
+                  onUpdateAppData={handleUpdateAppData}
+                  onShowNotification={handleShowNotification}
+                />
+              )}
+              {currentTeacherSubTab === 'grades' && (
+                <GradesTracker
+                  appData={appData}
+                  onUpdateAppData={handleUpdateAppData}
+                  onShowNotification={handleShowNotification}
+                />
+              )}
+            </>
+          )
         ) : (
           <StudentView
             appData={appData}

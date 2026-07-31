@@ -126,13 +126,13 @@ function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: Cla
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    remoteList.forEach((a) => {
-      const key = a.id || `${a.quizTitle}_${a.quizCreatedDate || ''}`;
+    remoteList.forEach((a, idx) => {
+      const key = a.id || `rem_${a.quizTitle}_${a.quizCreatedDate || ''}_${idx}`;
       assignMap.set(key, a);
     });
 
-    localList.forEach((a) => {
-      const key = a.id || `${a.quizTitle}_${a.quizCreatedDate || ''}`;
+    localList.forEach((a, idx) => {
+      const key = a.id || `loc_${a.quizTitle}_${a.quizCreatedDate || ''}_${idx}`;
       assignMap.set(key, a);
     });
 

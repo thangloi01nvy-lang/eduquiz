@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
                 EduQuiz Pro
               </h1>
               <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full border border-emerald-400 shadow-sm">
-                v2.3.5
+                v2.4.0
               </span>
             </div>
             <p className="text-xs font-medium text-slate-500 hidden sm:block">
@@ -54,7 +54,12 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Main Tab Toggle: Teacher / Student */}
         <div className="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner">
           <button
-            onClick={() => onSwitchMainTab('teacher')}
+            onClick={() => {
+              if (!isTeacherAuthenticated) {
+                onOpenTeacherAuth();
+              }
+              onSwitchMainTab('teacher');
+            }}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-heading font-bold text-xs sm:text-sm transition duration-200 ${
               currentTab === 'teacher'
                 ? 'bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-md shadow-brand-500/20'
@@ -62,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <GraduationCap className="w-4 h-4" />
-            <span>Góc Giáo Viên</span>
+            <span>Góc Giáo Viên 🔒</span>
             {publishedClassesCount > 0 && (
               <span className="px-1.5 py-0.5 bg-amber-400 text-amber-950 text-[10px] font-black rounded-full shadow-sm">
                 {publishedClassesCount}
@@ -94,18 +99,18 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <button
                 onClick={onOpenTeacherAuth}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-xl font-bold text-xs shadow-sm transition"
+                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-amber-950 rounded-xl font-bold text-xs shadow transition"
               >
                 <Lock className="w-3.5 h-3.5" />
-                <span>Đăng Nhập GV</span>
+                <span>Đăng Nhập Mật Khẩu GV</span>
               </button>
             )}
           </div>
         )}
       </div>
 
-      {/* Teacher Sub-Navigation Bar */}
-      {currentTab === 'teacher' && (
+      {/* Teacher Sub-Navigation Bar - ONLY SHOWN WHEN AUTHENTICATED */}
+      {currentTab === 'teacher' && isTeacherAuthenticated && (
         <div className="bg-slate-50 border-t border-slate-200/80 px-4 py-2">
           <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
             <button
