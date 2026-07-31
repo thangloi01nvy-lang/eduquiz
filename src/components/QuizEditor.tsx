@@ -65,6 +65,36 @@ Bài 3:
 9. Unless you finish your work. → DP (Mệnh đề phụ thuộc)
 10. He enjoys playing football. → ID (Mệnh đề độc lập)`;
 
+function questionsToMarkdown(questions: Question[]): string {
+  if (!questions || questions.length === 0) return '';
+  const lines: string[] = [];
+
+  let currentSection = '';
+  questions.forEach((q, idx) => {
+    const sec = q.sectionTitle || 'Bài tập';
+    if (sec !== currentSection) {
+      currentSection = sec;
+      lines.push(`\n${currentSection}:`);
+    }
+
+    if (q.type === 'multiple_choice' && q.options && q.options.length > 0) {
+      const optsStr = q.options.map((o) => `${o.key}. ${o.text}`).join('  ');
+      lines.push(`${idx + 1}. ${q.title}\n   ${optsStr}`);
+    } else {
+      lines.push(`${idx + 1}. ${q.title}`);
+    }
+  });
+
+  lines.push('\n## Đáp án');
+  questions.forEach((q, idx) => {
+    if (q.answer) {
+      lines.push(`${idx + 1}. ${q.answer}`);
+    }
+  });
+
+  return lines.join('\n');
+}
+
 export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
   const [rawText, setRawText] = useState(SAMPLE_TEXT);
   const [selectedTargetClass, setSelectedTargetClass] = useState<string>(appData.quizTargetClass || 'all');
@@ -72,6 +102,15 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [aiTopic, setAiTopic] = useState('');
 
   const [sectionTypeOverrides, setSectionTypeOverrides] = useState<Record<string, Question['type']>>({});
+
+  React.useEffect(() => {
+    if (appData.editingLibraryId && appData.currentQuestions && appData.currentQuestions.length > 0) {
+      const generated = questionsToMarkdown(appData.currentQuestions);
+      if (generated && generated.trim()) {
+        setRawText(generated);
+      }
+    }
+  }, [appData.editingLibraryId, appData.currentQuestions]);
 
   const parsed = parseMarkdownQuiz(rawText);
 

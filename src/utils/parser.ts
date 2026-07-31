@@ -262,19 +262,26 @@ function finalizeQuestion(q: Partial<Question>, count: number): Question {
     normTitle.includes('tìm lỗi') ||
     normSec.includes('sửa lỗi') ||
     normSec.includes('tìm lỗi') ||
+    normTitle.includes('lỗi sai') ||
+    normSec.includes('lỗi sai') ||
+    normTitle.includes('câu sai') ||
+    normSec.includes('câu sai') ||
     normTitle.includes('error correction') ||
-    normSec.includes('error correction');
+    normSec.includes('error correction') ||
+    normTitle.includes('find the error') ||
+    normSec.includes('find the error');
 
   // CLASSIFICATION PRIORITY RULES:
-  if (generatedOptions.length > 0) {
-    type = 'multiple_choice';
-  } else if (isErrorCorrectionKey) {
+  if (isErrorCorrectionKey) {
     type = 'error_correction';
+    generatedOptions = [];
     if (inlineBlanks.length < 2) {
       inlineBlanks.length = 0;
       inlineBlanks.push({ placeholder: 'Lỗi sai', answer: '' });
       inlineBlanks.push({ placeholder: 'Sửa lại', answer: '' });
     }
+  } else if (generatedOptions.length > 0) {
+    type = 'multiple_choice';
   } else if (inlineBlanks.length > 0 || title.includes('___') || title.includes('_')) {
     type = 'fill_in_blank';
     if (inlineBlanks.length === 0) {
