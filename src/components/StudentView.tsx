@@ -14,6 +14,42 @@ interface StudentViewProps {
 }
 
 export function checkQuestionCorrectness(q: Question, answers: Record<string, string>): boolean {
+  // 1. STRICT MULTIPLE CHOICE EVALUATION (100% Exact Key / Exact Text Match)
+  if (q.type === 'multiple_choice' || (q.options && q.options.length > 0)) {
+    const userAnsKeyOrText = (answers[`q_${q.id}`] || '').trim();
+    const expectedKeyOrText = (q.answer || '').trim();
+
+    if (!userAnsKeyOrText || !expectedKeyOrText) return false;
+
+    // Find student's option
+    const studentOpt = q.options?.find(
+      (o) => o.key.toUpperCase() === userAnsKeyOrText.toUpperCase() || cleanAnswerText(o.text) === cleanAnswerText(userAnsKeyOrText)
+    );
+
+    const studentKey = studentOpt ? studentOpt.key.toUpperCase() : userAnsKeyOrText.toUpperCase();
+    const studentTextClean = studentOpt ? cleanAnswerText(studentOpt.text) : cleanAnswerText(userAnsKeyOrText);
+
+    // Find expected option key & text
+    let expKey = expectedKeyOrText.toUpperCase();
+    let expTextClean = cleanAnswerText(expectedKeyOrText);
+
+    const expectedOpt = q.options?.find(
+      (o) => o.key.toUpperCase() === expectedKeyOrText.toUpperCase() || cleanAnswerText(o.text) === cleanAnswerText(expectedKeyOrText)
+    );
+
+    if (expectedOpt) {
+      expKey = expectedOpt.key.toUpperCase();
+      expTextClean = cleanAnswerText(expectedOpt.text);
+    }
+
+    // STRICT MATCH: Key must match EXACTLY (e.g. "C" === "C") OR Text must match EXACTLY (e.g. "to buy" === "to buy")
+    const keyMatch = studentKey === expKey;
+    const textMatch = Boolean(studentTextClean && expTextClean && studentTextClean === expTextClean);
+
+    return keyMatch || textMatch;
+  }
+
+  // 2. ERROR CORRECTION & WORD FORM 2-BOX EVALUATION
   const isTwoBox =
     q.type === 'error_correction' ||
     (q.answer && (q.answer.includes('->') || q.answer.includes('→') || q.answer.includes('thành') || q.answer.includes(':'))) ||
@@ -42,7 +78,8 @@ export function checkQuestionCorrectness(q: Question, answers: Record<string, st
     if (errInput && corrInput && (expected.includes(cleanAnswerText(errInput)) || expected.includes(cleanAnswerText(corrInput)))) return true;
   }
 
-  if (q.inlineBlanks && q.inlineBlanks.length > 0 && q.type !== 'multiple_choice') {
+  // 3. INLINE BLANKS EVALUATION
+  if (q.inlineBlanks && q.inlineBlanks.length > 0) {
     let qAllCorrect = true;
     q.inlineBlanks.forEach((b, bIdx) => {
       const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
@@ -54,42 +91,13 @@ export function checkQuestionCorrectness(q: Question, answers: Record<string, st
     return qAllCorrect;
   }
 
+  // 4. SHORT ANSWER / ESSAY EVALUATION
   const userAns = answers[`q_${q.id}`] || '';
   const expected = q.answer || '';
 
   if (!expected || !userAns) return false;
 
-  let selectedOptText = userAns;
-  let selectedOptKey = userAns;
-
-  if (q.options && q.options.length > 0) {
-    const matchedOpt = q.options.find(
-      (o) => o.key.toUpperCase() === userAns.toUpperCase() || cleanAnswerText(o.text) === cleanAnswerText(userAns)
-    );
-    if (matchedOpt) {
-      selectedOptText = matchedOpt.text;
-      selectedOptKey = matchedOpt.key;
-    }
-  }
-
-  // 1. Smart Compare Check
-  if (smartCompareAnswers(userAns, expected, q.title)) return true;
-  if (smartCompareAnswers(selectedOptText, expected, q.title)) return true;
-  if (smartCompareAnswers(selectedOptKey, expected, q.title)) return true;
-  if (smartCompareAnswers(`${selectedOptKey}. ${selectedOptText}`, expected, q.title)) return true;
-  if (smartCompareAnswers(`${selectedOptKey}) ${selectedOptText}`, expected, q.title)) return true;
-
-  // 2. Direct key or text match
-  const cleanExp = cleanAnswerText(expected);
-  const cleanKey = cleanAnswerText(selectedOptKey);
-  const cleanText = cleanAnswerText(selectedOptText);
-
-  if (cleanExp === cleanKey || cleanExp === cleanText) return true;
-
-  // 3. Option key matching e.g. expected is "B" or "b" and student selected "B"
-  if (cleanExp.length <= 2 && cleanExp === cleanKey) return true;
-
-  return false;
+  return smartCompareAnswers(userAns, expected, q.title);
 }
 
 /**
@@ -423,7 +431,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.5.0
+                v3.6.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -552,6 +560,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>🔄 LẤY BÀI MỚI TỪ GIÁO VIÊN</span>
+          </button>
+
+          <button
+            onClick={() => setShowFeedbackModal(true)}
+            className="px-3.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold rounded-xl transition border border-amber-400/30 flex items-center gap-1.5"
+          >
+            <span>💬 Góp Ý</span>
           </button>
 
           <button
@@ -968,14 +983,6 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
           )}
         </div>
       )}
-
-      {/* Floating Feedback Button */}
-      <button
-        onClick={() => setShowFeedbackModal(true)}
-        className="fixed bottom-6 right-6 z-30 px-4 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-amber-950 font-bold text-xs rounded-full shadow-2xl flex items-center gap-2 border border-amber-300 transition hover:scale-105"
-      >
-        <span>💬 Góp Ý & Phản Hồi</span>
-      </button>
 
       {/* Feedback Modal */}
       {showFeedbackModal && (
