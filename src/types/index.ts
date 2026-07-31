@@ -115,6 +115,7 @@ export interface AppData {
   classAssignments: ClassAssignmentMap;
   recalledAssignments?: string[];
   quizLibrary: LibraryItem[];
+  deletedLibraryIds?: string[];
   editingLibraryId?: string;
   grades: GradeRecord[];
   feedbacks: FeedbackRecord[];

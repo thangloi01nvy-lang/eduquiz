@@ -208,20 +208,27 @@ function mergeClassAssignments(
   return merged;
 }
 
-function mergeQuizLibrary(localLib: any[] = [], remoteLib: any[] = []): any[] {
+function mergeQuizLibrary(localLib: any[] = [], remoteLib: any[] = [], deletedLibIds: string[] = []): any[] {
   const libMap = new Map<string, any>();
+  const deletedSet = new Set(deletedLibIds.map((d) => String(d).toLowerCase().trim()));
 
-  // Add remote items
   (remoteLib || []).forEach((item) => {
     if (item && (item.id || item.title)) {
-      libMap.set(item.id || item.title, item);
+      const idKey = (item.id || '').toLowerCase().trim();
+      const titleKey = (item.title || '').toLowerCase().trim();
+      if (!deletedSet.has(idKey) && !deletedSet.has(titleKey)) {
+        libMap.set(item.id || item.title, item);
+      }
     }
   });
 
-  // Local teacher items take top priority & NEVER get lost!
   (localLib || []).forEach((item) => {
     if (item && (item.id || item.title)) {
-      libMap.set(item.id || item.title, item);
+      const idKey = (item.id || '').toLowerCase().trim();
+      const titleKey = (item.title || '').toLowerCase().trim();
+      if (!deletedSet.has(idKey) && !deletedSet.has(titleKey)) {
+        libMap.set(item.id || item.title, item);
+      }
     }
   });
 
@@ -288,6 +295,12 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
     recalledList
   );
 
+  const deletedLibSet = new Set([
+    ...(local.deletedLibraryIds || []),
+    ...(remote.deletedLibraryIds || [])
+  ]);
+  const deletedLibList = Array.from(deletedLibSet);
+
   return {
     ...INITIAL_APP_DATA,
     ...remote,
@@ -296,7 +309,8 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
     deletedClasses: Array.from(deletedSet),
     classAssignments: mergedAssignments,
     recalledAssignments: recalledList,
-    quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary),
+    deletedLibraryIds: deletedLibList,
+    quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary, deletedLibList),
     grades: mergeGradesList(local.grades, remote.grades),
   };
 }

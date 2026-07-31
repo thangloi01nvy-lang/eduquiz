@@ -15,15 +15,22 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
   const [targetClassMap, setTargetClassMap] = useState<Record<string, string>>({});
   const [assigningId, setAssigningId] = useState<string | null>(null);
 
-  const handleDeleteItem = (itemId: string, title: string) => {
+  const handleDeleteItem = async (itemId: string, title: string) => {
     if (!window.confirm(`Bạn có chắc muốn xóa đề bài "${title}" khỏi thư viện?`)) return;
 
-    onUpdateAppData((prev) => ({
-      ...prev,
-      quizLibrary: (prev.quizLibrary || []).filter((item) => item.id !== itemId),
-    }));
+    const newLibrary = (appData.quizLibrary || []).filter((item) => item.id !== itemId && item.title !== title);
+    const newDeletedIds = Array.from(new Set([...(appData.deletedLibraryIds || []), itemId, title]));
 
-    onShowNotification(`🗑️ Đã xóa đề bài "${title}"`, 'success');
+    const updatedData: AppData = {
+      ...appData,
+      quizLibrary: newLibrary,
+      deletedLibraryIds: newDeletedIds,
+    };
+
+    onUpdateAppData(() => updatedData);
+    await syncWithServer(updatedData);
+
+    onShowNotification(`🗑️ Đã xóa đề bài "${title}" khỏi Thư viện và đồng bộ Cloud!`, 'success');
   };
 
   const handleAssignLibraryQuiz = async (item: LibraryItem) => {

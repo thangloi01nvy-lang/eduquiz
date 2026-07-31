@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { BarChart3, Trash2, Award, Users, Search } from 'lucide-react';
-import { AppData } from '../types';
+import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles } from 'lucide-react';
+import { AppData, GradeRecord, Question } from '../types';
 import { formatDateVN } from '../utils/normalize';
+import { checkQuestionCorrectness } from './StudentView';
 
 interface GradesTrackerProps {
   appData: AppData;
@@ -12,6 +13,7 @@ interface GradesTrackerProps {
 export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateAppData, onShowNotification }) => {
   const [filterClass, setFilterClass] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedGrade, setSelectedGrade] = useState<GradeRecord | null>(null);
 
   const grades = appData.grades || [];
 
@@ -32,7 +34,42 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
       grades: (prev.grades || []).filter((g) => g.id !== gradeId),
     }));
 
+    if (selectedGrade?.id === gradeId) {
+      setSelectedGrade(null);
+    }
+
     onShowNotification(`🗑️ Đã xóa kết quả bài làm của ${studentName}`, 'success');
+  };
+
+  // Find target quiz questions for a grade record
+  const getQuestionsForGrade = (g: GradeRecord): Question[] => {
+    if (!g) return [];
+
+    // 1. Search in classAssignments
+    if (appData.classAssignments) {
+      for (const className in appData.classAssignments) {
+        const list = appData.classAssignments[className] || [];
+        const match = list.find((q) => q.quizTitle === g.quizTitle || q.id === g.id);
+        if (match && match.questions && match.questions.length > 0) {
+          return match.questions;
+        }
+      }
+    }
+
+    // 2. Search in quizLibrary
+    if (appData.quizLibrary) {
+      const matchLib = appData.quizLibrary.find((item) => item.title === g.quizTitle);
+      if (matchLib && matchLib.questions && matchLib.questions.length > 0) {
+        return matchLib.questions;
+      }
+    }
+
+    // 3. Fallback to currentQuestions
+    if (appData.currentQuestions && appData.currentQuestions.length > 0) {
+      return appData.currentQuestions;
+    }
+
+    return [];
   };
 
   return (
@@ -90,7 +127,7 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
                 <th className="py-3.5 px-4 text-center">Điểm Số</th>
                 <th className="py-3.5 px-4 text-center">Tỷ Lệ</th>
                 <th className="py-3.5 px-4">Thời Gian Nộp</th>
-                <th className="py-3.5 px-4 text-right">Thao Tác</th>
+                <th className="py-3.5 px-4 text-right">Báo Cáo Chi Tiết</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
@@ -111,7 +148,7 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <span
-                        className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                        className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
                           g.percentage >= 80
                             ? 'bg-emerald-100 text-emerald-800'
                             : g.percentage >= 50
@@ -124,12 +161,22 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
                     </td>
                     <td className="py-3.5 px-4 text-slate-500">{formatDateVN(g.submittedAt)}</td>
                     <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleDeleteGrade(g.id, g.studentName)}
-                        className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedGrade(g)}
+                          className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl transition border border-brand-200 flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Xem Câu Đúng / Sai</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGrade(g.id, g.studentName)}
+                          className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition"
+                          title="Xóa bài nộp"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -138,6 +185,190 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
           </table>
         </div>
       </div>
+
+      {/* DETAILED STUDENT SUBMISSION REPORT MODAL */}
+      {selectedGrade && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 flex flex-col my-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-slate-900 via-brand-950 to-indigo-950 text-white p-6 flex items-center justify-between border-b border-slate-800">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
+                    BÁO CÁO BÀI LÀM CHI TIẾT
+                  </span>
+                  <span className="text-xs text-amber-300 font-bold uppercase tracking-wider">{selectedGrade.className}</span>
+                </div>
+                <h3 className="text-xl font-heading font-black text-white">{selectedGrade.studentName}</h3>
+                <p className="text-xs text-slate-300 font-medium">Đề bài: {selectedGrade.quizTitle} • Nộp ngày {formatDateVN(selectedGrade.submittedAt)}</p>
+              </div>
+
+              <button
+                onClick={() => setSelectedGrade(null)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition border border-white/20"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/50">
+              {/* Score Summary Box */}
+              {(() => {
+                const questions = getQuestionsForGrade(selectedGrade);
+                const userAnsMap = selectedGrade.userAnswers || selectedGrade.answers || {};
+
+                let correctCount = 0;
+                let wrongCount = 0;
+
+                questions.forEach((q) => {
+                  if (checkQuestionCorrectness(q, userAnsMap)) {
+                    correctCount++;
+                  } else {
+                    wrongCount++;
+                  }
+                });
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-black text-lg">
+                        <Award className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-slate-400 uppercase">Điểm Tổng Kết</div>
+                        <div className="text-lg font-black text-brand-700">{selectedGrade.score} / 10 ({selectedGrade.percentage}%)</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-emerald-50/80 p-4 rounded-2xl border border-emerald-200 shadow-sm flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-black text-lg">
+                        <CheckCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-emerald-800 uppercase">Số Câu Làm Đúng</div>
+                        <div className="text-lg font-black text-emerald-900">{correctCount} câu</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-rose-50/80 p-4 rounded-2xl border border-rose-200 shadow-sm flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-rose-500 text-white flex items-center justify-center font-black text-lg">
+                        <XCircle className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-bold text-rose-800 uppercase">Số Câu Làm Sai</div>
+                        <div className="text-lg font-black text-rose-900">{wrongCount} câu</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Detailed Questions Inspection List */}
+              <div className="space-y-4">
+                <h4 className="font-heading font-black text-sm text-slate-900 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-brand-600" />
+                  <span>Chi Tiết Từng Câu Hỏi & Đáp Án Học Sinh</span>
+                </h4>
+
+                {(() => {
+                  const questions = getQuestionsForGrade(selectedGrade);
+                  const userAnsMap = selectedGrade.userAnswers || selectedGrade.answers || {};
+
+                  if (questions.length === 0) {
+                    return (
+                      <div className="p-8 bg-white rounded-2xl border border-slate-200 text-center text-slate-500 text-xs font-medium space-y-1">
+                        <HelpCircle className="w-8 h-8 text-amber-400 mx-auto" />
+                        <p className="font-bold text-slate-700">Đã chấm điểm thành công ({selectedGrade.score}/10)</p>
+                        <p className="text-slate-400">Nội dung chi tiết từng câu hỏi đề bài cũ đã được thu hồi hoặc gộp lưu trữ.</p>
+                      </div>
+                    );
+                  }
+
+                  return questions.map((q, idx) => {
+                    const isCorrect = checkQuestionCorrectness(q, userAnsMap);
+                    const studentAnsRaw = userAnsMap[`q_${q.id}`] || userAnsMap[`q_${q.id}_blank_0`] || 'Chưa trả lời';
+
+                    return (
+                      <div
+                        key={q.id || idx}
+                        className={`p-5 rounded-2xl border transition shadow-sm bg-white space-y-3 ${
+                          isCorrect ? 'border-emerald-200 hover:border-emerald-300' : 'border-rose-200 hover:border-rose-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                              Câu #{idx + 1} • {q.section || 'Phần bài tập'}
+                            </span>
+                            <h5 className="font-heading font-bold text-sm text-slate-900">{q.title}</h5>
+                          </div>
+
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-black flex items-center gap-1.5 shadow-sm shrink-0 ${
+                              isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'
+                            }`}
+                          >
+                            {isCorrect ? (
+                              <>
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                <span>ĐÚNG</span>
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span>SAI</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Student Answer vs Expected Answer Comparison */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                          <div className={`p-3 rounded-xl border text-xs space-y-1 ${isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'}`}>
+                            <div className="font-bold text-slate-500 text-[10px] uppercase">Lựa chọn của Học sinh:</div>
+                            <div className={`font-bold ${isCorrect ? 'text-emerald-900' : 'text-rose-900'}`}>
+                              👉 {studentAnsRaw}
+                            </div>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-brand-50/50 border border-brand-200 text-xs space-y-1">
+                            <div className="font-bold text-brand-700 text-[10px] uppercase">Đáp án chuẩn của bài:</div>
+                            <div className="font-bold text-brand-950">
+                              ✅ {q.answer || 'Theo yêu cầu câu hỏi'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Question Explanation if available */}
+                        {q.explanation && (
+                          <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs font-medium text-amber-900 space-y-1">
+                            <div className="font-bold text-amber-800 text-[10px] uppercase flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-amber-600" />
+                              <span>Giải thích chi tiết:</span>
+                            </div>
+                            <p className="text-slate-700 leading-relaxed">{q.explanation}</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-white border-t border-slate-200 flex justify-end">
+              <button
+                onClick={() => setSelectedGrade(null)}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition"
+              >
+                Đóng Báo Cáo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
