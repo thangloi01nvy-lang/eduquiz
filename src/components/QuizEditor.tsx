@@ -71,6 +71,8 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [aiTopic, setAiTopic] = useState('');
 
+  const [sectionTypeOverrides, setSectionTypeOverrides] = useState<Record<string, Question['type']>>({});
+
   const parsed = parseMarkdownQuiz(rawText);
 
   const effectiveQuestions = React.useMemo(() => {
@@ -216,7 +218,6 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const [editAnswer, setEditAnswer] = useState('');
   const [editType, setEditType] = useState<Question['type']>('fill_in_blank');
   const [editPoints, setEditPoints] = useState<number>(1);
-  const [sectionTypeOverrides, setSectionTypeOverrides] = useState<Record<string, Question['type']>>({});
 
   const handleSectionBulkChange = (secTitle: string, newType: Question['type']) => {
     setSectionTypeOverrides((prev) => ({
