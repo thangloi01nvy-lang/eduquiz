@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, Download, Upload, Cloud, BookPlus, RefreshCw, FileText, CheckCircle2 } from 'lucide-react';
-import { AppData, Question, Section } from '../types';
+import { AppData, Question, Section, LibraryItem } from '../types';
 import { parseMarkdownQuiz } from '../utils/parser';
 import { safeParseMarkdown } from '../utils/normalize';
 import { generateQuizWithGemini } from '../services/gemini';
