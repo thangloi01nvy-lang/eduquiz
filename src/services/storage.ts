@@ -208,29 +208,34 @@ function mergeClassAssignments(
 
 function mergeQuizLibrary(localLib: any[] = [], remoteLib: any[] = [], deletedLibIds: string[] = []): any[] {
   const libMap = new Map<string, any>();
-  const deletedSet = new Set(deletedLibIds.map((d) => String(d).toLowerCase().trim()));
+  // Deleted set MUST contain ONLY exact IDs starting with 'lib_' or valid IDs, never title strings
+  const deletedSet = new Set(deletedLibIds.filter((d) => d && typeof d === 'string' && d.startsWith('lib_')).map((d) => d.trim()));
 
   (remoteLib || []).forEach((item) => {
-    if (item && (item.id || item.title)) {
-      const idKey = (item.id || '').toLowerCase().trim();
-      const titleKey = (item.title || '').toLowerCase().trim();
-      if (!deletedSet.has(idKey) && !deletedSet.has(titleKey)) {
-        libMap.set(item.id || item.title, item);
+    if (item && item.title) {
+      const idKey = (item.id || '').trim();
+      if (!idKey || !deletedSet.has(idKey)) {
+        const key = item.id || getQuizDedupeKey(item);
+        libMap.set(key, item);
       }
     }
   });
 
   (localLib || []).forEach((item) => {
-    if (item && (item.id || item.title)) {
-      const idKey = (item.id || '').toLowerCase().trim();
-      const titleKey = (item.title || '').toLowerCase().trim();
-      if (!deletedSet.has(idKey) && !deletedSet.has(titleKey)) {
-        libMap.set(item.id || item.title, item);
+    if (item && item.title) {
+      const idKey = (item.id || '').trim();
+      if (!idKey || !deletedSet.has(idKey)) {
+        const key = item.id || getQuizDedupeKey(item);
+        libMap.set(key, item);
       }
     }
   });
 
-  return Array.from(libMap.values());
+  return Array.from(libMap.values()).sort((a, b) => {
+    const tA = new Date(a.createdDate || 0).getTime();
+    const tB = new Date(b.createdDate || 0).getTime();
+    return tB - tA;
+  });
 }
 
 function mergeGradesList(localGrades: any[] = [], remoteGrades: any[] = []): any[] {

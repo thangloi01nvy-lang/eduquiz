@@ -205,9 +205,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     // Also update Quiz Library if editing a library item
     const existingList = appData.quizLibrary || [];
     const editId = appData.editingLibraryId;
-    const editIndex = editId
-      ? existingList.findIndex((item) => item.id === editId || item.title === title)
-      : existingList.findIndex((item) => item.title === title);
+    const editIndex = editId ? existingList.findIndex((item) => item.id === editId) : -1;
 
     let updatedLibrary = [...existingList];
     if (editIndex >= 0) {
@@ -262,14 +260,12 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     const editId = appData.editingLibraryId;
 
     const existingList = appData.quizLibrary || [];
-    const editIndex = editId
-      ? existingList.findIndex((item) => item.id === editId || item.title === title)
-      : existingList.findIndex((item) => item.title === title);
+    const editIndex = editId ? existingList.findIndex((item) => item.id === editId) : -1;
 
     let updatedLibrary: LibraryItem[];
 
     if (editIndex >= 0) {
-      // OVERWRITE EXISTING LIBRARY ITEM
+      // OVERWRITE EXACT EXISTING LIBRARY ITEM BEING EDITED
       updatedLibrary = [...existingList];
       updatedLibrary[editIndex] = {
         ...updatedLibrary[editIndex],
@@ -284,9 +280,9 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
         rawText,
       };
     } else {
-      // CREATE NEW LIBRARY ITEM
+      // CREATE BRAND NEW UNIQUE LIBRARY ITEM
       const newItem: LibraryItem = {
-        id: editId || `lib_${Date.now()}`,
+        id: `lib_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
         title,
         level: appData.quizLevel || 'B1',
         targetClass: selectedTargetClass,
