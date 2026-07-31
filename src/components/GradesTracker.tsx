@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BarChart3, Trash2, Award, Users, Search, Eye, X, CheckCircle, XCircle, FileText, HelpCircle, Sparkles, RotateCcw, AlertCircle } from 'lucide-react';
 import { AppData, GradeRecord, Question, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
-import { normalizeAssignmentList } from '../services/storage';
+import { normalizeAssignmentList, isQuizRecalled, syncWithServer } from '../services/storage';
 import { checkQuestionCorrectness } from './StudentView';
 
 interface GradesTrackerProps {
@@ -16,7 +16,14 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedGrade, setSelectedGrade] = useState<GradeRecord | null>(null);
 
-  const grades = appData.grades || [];
+  const grades = (appData.grades || []).filter((g) => {
+    if (!g || !g.quizTitle) return false;
+    const recalledList = appData.recalledAssignments || [];
+    const deletedGradeList = appData.deletedGradeIds || [];
+    if (g.id && deletedGradeList.includes(g.id)) return false;
+    if (isQuizRecalled(g, recalledList)) return false;
+    return true;
+  });
 
   const filteredGrades = grades.filter((g) => {
     const matchClass = filterClass === 'all' || g.className === filterClass;
@@ -27,19 +34,52 @@ export const GradesTracker: React.FC<GradesTrackerProps> = ({ appData, onUpdateA
     return matchClass && matchSearch;
   });
 
-  const handleDeleteGrade = (gradeId: string, studentName: string) => {
-    if (!window.confirm(`Xóa kết quả nộp bài của học sinh "${studentName}"?`)) return;
+  const handleDeleteGrade = async (gradeId: string, studentName: string) => {
+    if (!window.confirm(`Xóa VĨNH VIỄN kết quả nộp bài của học sinh "${studentName}"?`)) return;
 
-    onUpdateAppData((prev) => ({
-      ...prev,
-      grades: (prev.grades || []).filter((g) => g.id !== gradeId),
-    }));
+    const newGrades = (appData.grades || []).filter((g) => g.id !== gradeId);
+    const newDeletedGradeIds = Array.from(new Set([...(appData.deletedGradeIds || []), gradeId]));
+
+    const updatedData: AppData = {
+      ...appData,
+      grades: newGrades,
+      deletedGradeIds: newDeletedGradeIds,
+    };
+
+    onUpdateAppData(() => updatedData);
 
     if (selectedGrade?.id === gradeId) {
       setSelectedGrade(null);
     }
 
-    onShowNotification(`🗑️ Đã xóa kết quả bài làm của ${studentName}`, 'success');
+    onShowNotification(`☁️ Đang đồng bộ xóa vĩnh viễn kết quả điểm khỏi Cloud...`, 'warning');
+    await syncWithServer(updatedData);
+
+    onShowNotification(`🗑️ Đã xóa vĩnh viễn kết quả bài làm của ${studentName}`, 'success');
+  };
+
+  const handleDeleteAllGradesForQuiz = async (quizTitle: string) => {
+    if (!window.confirm(`⚠️ Bạn có chắc chắn muốn XÓA VĨNH VIỄN TOÀN BỘ ĐIỂM của bài tập "${quizTitle}"?\nThao tác này không thể hoàn tác.`)) return;
+
+    const targetGrades = (appData.grades || []).filter((g) => (g.quizTitle || '').trim().toLowerCase() === quizTitle.trim().toLowerCase());
+    const targetIds = targetGrades.map((g) => g.id).filter(Boolean);
+
+    const newGrades = (appData.grades || []).filter((g) => (g.quizTitle || '').trim().toLowerCase() !== quizTitle.trim().toLowerCase());
+    const newDeletedGradeIds = Array.from(new Set([...(appData.deletedGradeIds || []), ...targetIds]));
+
+    const updatedData: AppData = {
+      ...appData,
+      grades: newGrades,
+      deletedGradeIds: newDeletedGradeIds,
+    };
+
+    onUpdateAppData(() => updatedData);
+    setSelectedGrade(null);
+
+    onShowNotification(`☁️ Đang đồng bộ xóa vĩnh viễn toàn bộ điểm bài "${quizTitle}" lên Cloud...`, 'warning');
+    await syncWithServer(updatedData);
+
+    onShowNotification(`🗑️ Đã xóa vĩnh viễn toàn bộ điểm của bài "${quizTitle}"!`, 'success');
   };
 
   const handleRequestRetake = async (gradeId: string, studentName: string, quizTitle: string) => {

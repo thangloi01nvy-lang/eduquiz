@@ -119,6 +119,7 @@ export interface AppData {
   deletedLibraryIds?: string[];
   editingLibraryId?: string;
   grades: GradeRecord[];
+  deletedGradeIds?: string[];
   feedbacks: FeedbackRecord[];
 }
 

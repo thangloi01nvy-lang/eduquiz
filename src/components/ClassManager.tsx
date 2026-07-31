@@ -18,36 +18,48 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
   const [studentNameInput, setStudentNameInput] = useState('');
   const [studentCodeInput, setStudentCodeInput] = useState('');
 
-  const handleRecallAssignment = (className: string, quizId: string, quizTitle: string) => {
-    if (!window.confirm(`⚠️ Bạn có chắc muốn THU HỒI bài tập "${quizTitle}" khỏi lớp "${className}"?\n\nHọc sinh lớp này sẽ không thấy bài này nữa.`)) return;
+  const handleRecallAssignment = async (className: string, quizId: string, quizTitle: string) => {
+    if (!window.confirm(`⚠️ Bạn có chắc muốn THU HỒI & XÓA VĨNH VIỄN bài tập "${quizTitle}" khỏi lớp "${className}" cùng toàn bộ kết quả điểm?`)) return;
 
-    onUpdateAppData((prev) => {
-      const newAssignments = { ...(prev.classAssignments || {}) };
+    const titleClean = (quizTitle || '').trim().toLowerCase();
+    const newAssignments = { ...(appData.classAssignments || {}) };
 
-      // Remove assignment from ALL matching class keys (exact class, 'all', or isClassMatching)
-      for (const k in newAssignments) {
-        if (isClassMatching(className, k)) {
-          const existingList = normalizeAssignmentList(newAssignments[k]);
-          newAssignments[k] = existingList.filter((q) => {
-            const qKey = q.id || getQuizDedupeKey(q);
-            return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
-          });
-        }
+    // Remove assignment from ALL matching class keys
+    for (const k in newAssignments) {
+      if (isClassMatching(className, k)) {
+        const existingList = normalizeAssignmentList(newAssignments[k]);
+        newAssignments[k] = existingList.filter((q) => {
+          const qKey = q.id || getQuizDedupeKey(q);
+          return qKey !== quizId && q.id !== quizId && (q.quizTitle || '').trim().toLowerCase() !== titleClean;
+        });
       }
+    }
 
-      const recalledSet = new Set([...(prev.recalledAssignments || []), quizId]);
+    const recalledSet = new Set([...(appData.recalledAssignments || []), quizId]);
 
-      const updatedData: AppData = {
-        ...prev,
-        classAssignments: newAssignments,
-        recalledAssignments: Array.from(recalledSet),
-      };
+    // Purge grades matching recalled quiz
+    const targetGrades = (appData.grades || []).filter(
+      (g) => (g.quizTitle || '').trim().toLowerCase() === titleClean || g.quizId === quizId
+    );
+    const targetGradeIds = targetGrades.map((g) => g.id).filter(Boolean);
 
-      syncWithServer(updatedData);
-      return updatedData;
-    });
+    const newGrades = (appData.grades || []).filter(
+      (g) => (g.quizTitle || '').trim().toLowerCase() !== titleClean && g.quizId !== quizId
+    );
+    const newDeletedGradeIds = Array.from(new Set([...(appData.deletedGradeIds || []), ...targetGradeIds]));
 
-    onShowNotification(`🗑️ Đã thu hồi bài tập "${quizTitle}" khỏi lớp ${className}!`, 'success');
+    const updatedData: AppData = {
+      ...appData,
+      classAssignments: newAssignments,
+      recalledAssignments: Array.from(recalledSet),
+      grades: newGrades,
+      deletedGradeIds: newDeletedGradeIds,
+    };
+
+    onUpdateAppData(() => updatedData);
+    await syncWithServer(updatedData);
+
+    onShowNotification(`🚫 Đã THU HỒI bài tập "${quizTitle}" và XÓA VĨNH VIỄN toàn bộ điểm liên quan khỏi Cloud!`, 'success');
   };
 
   const handleCreateClass = () => {

@@ -16,21 +16,31 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
   const [assigningId, setAssigningId] = useState<string | null>(null);
 
   const handleDeleteItem = async (itemId: string, title: string) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa đề bài "${title}" khỏi thư viện?`)) return;
+    if (!window.confirm(`XÓA VĨNH VIỄN đề bài "${title}" khỏi Thư viện và toàn bộ kết quả điểm của đề này?`)) return;
 
-    const newLibrary = (appData.quizLibrary || []).filter((item) => item.id !== itemId && item.title !== title);
-    const newDeletedIds = Array.from(new Set([...(appData.deletedLibraryIds || []), itemId, title]));
+    const titleClean = (title || '').trim().toLowerCase();
+    const newLibrary = (appData.quizLibrary || []).filter((item) => item.id !== itemId && (item.title || '').trim().toLowerCase() !== titleClean);
+    const newDeletedIds = Array.from(new Set([...(appData.deletedLibraryIds || []), itemId]));
+
+    // Purge all grades associated with this deleted quiz
+    const targetGrades = (appData.grades || []).filter((g) => (g.quizTitle || '').trim().toLowerCase() === titleClean || g.quizId === itemId);
+    const targetGradeIds = targetGrades.map((g) => g.id).filter(Boolean);
+
+    const newGrades = (appData.grades || []).filter((g) => (g.quizTitle || '').trim().toLowerCase() !== titleClean && g.quizId !== itemId);
+    const newDeletedGradeIds = Array.from(new Set([...(appData.deletedGradeIds || []), ...targetGradeIds]));
 
     const updatedData: AppData = {
       ...appData,
       quizLibrary: newLibrary,
       deletedLibraryIds: newDeletedIds,
+      grades: newGrades,
+      deletedGradeIds: newDeletedGradeIds,
     };
 
     onUpdateAppData(() => updatedData);
     await syncWithServer(updatedData);
 
-    onShowNotification(`🗑️ Đã xóa đề bài "${title}" khỏi Thư viện và đồng bộ Cloud!`, 'success');
+    onShowNotification(`🗑️ Đã xóa VĨNH VIỄN đề bài "${title}" và toàn bộ điểm liên quan khỏi Server Cloud!`, 'success');
   };
 
   const handleAssignLibraryQuiz = async (item: LibraryItem) => {

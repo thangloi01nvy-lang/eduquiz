@@ -245,17 +245,31 @@ function mergeQuizLibrary(localLib: any[] = [], remoteLib: any[] = [], deletedLi
   });
 }
 
-function mergeGradesList(localGrades: any[] = [], remoteGrades: any[] = []): any[] {
+function mergeGradesList(
+  localGrades: any[] = [],
+  remoteGrades: any[] = [],
+  deletedGradeIds: string[] = [],
+  recalledAssignments: string[] = []
+): any[] {
   const gradeMap = new Map<string, any>();
+  const deletedGradeSet = new Set((deletedGradeIds || []).map((d) => (d || '').trim()));
+
+  const shouldKeepGrade = (g: any) => {
+    if (!g || (!g.id && !g.studentId)) return false;
+    const gId = (g.id || '').trim();
+    if (gId && deletedGradeSet.has(gId)) return false;
+    if (isQuizRecalled(g, recalledAssignments)) return false;
+    return true;
+  };
 
   (remoteGrades || []).forEach((g) => {
-    if (g && (g.id || g.studentId)) {
+    if (shouldKeepGrade(g)) {
       gradeMap.set(g.id || `${g.studentId}_${g.quizTitle}`, g);
     }
   });
 
   (localGrades || []).forEach((g) => {
-    if (g && (g.id || g.studentId)) {
+    if (shouldKeepGrade(g)) {
       gradeMap.set(g.id || `${g.studentId}_${g.quizTitle}`, g);
     }
   });
@@ -311,6 +325,12 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
   ]);
   const deletedLibList = Array.from(deletedLibSet);
 
+  const deletedGradeSet = new Set([
+    ...(local.deletedGradeIds || []),
+    ...(remote.deletedGradeIds || [])
+  ]);
+  const deletedGradeList = Array.from(deletedGradeSet);
+
   return {
     ...INITIAL_APP_DATA,
     ...remote,
@@ -320,8 +340,9 @@ function mergeAppData(local: AppData, remote: AppData): AppData {
     classAssignments: mergedAssignments,
     recalledAssignments: recalledList,
     deletedLibraryIds: deletedLibList,
+    deletedGradeIds: deletedGradeList,
     quizLibrary: mergeQuizLibrary(local.quizLibrary, remote.quizLibrary, deletedLibList),
-    grades: mergeGradesList(local.grades, remote.grades),
+    grades: mergeGradesList(local.grades, remote.grades, deletedGradeList, recalledList),
   };
 }
 
