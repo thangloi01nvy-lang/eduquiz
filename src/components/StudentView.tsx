@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord, GradeRecord } from '../types';
-import { normalizeClassName, safeParseMarkdown, smartCompareAnswers, cleanAnswerText, formatDateVN } from '../utils/normalize';
+import { normalizeClassName, isClassMatching, safeParseMarkdown, smartCompareAnswers, cleanAnswerText, formatDateVN } from '../utils/normalize';
 import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer, normalizeAssignmentList, deduplicateAssignmentList, getQuizDedupeKey, isQuizRecalled } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
 import { explainQuestionWithGemini } from '../services/gemini';
@@ -243,15 +243,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   const getAllAssignedQuizzes = (): AssignedQuizPayload[] => {
     if (!activeStudent) return [];
     const studentClassName = activeStudent.className;
-    const normStudentClass = normalizeClassName(studentClassName);
 
     const assignMap = new Map<string, AssignedQuizPayload>();
 
-    // 1. Load ONLY from classAssignments (Exact class match, normalized match, or 'all')
+    // 1. Load from classAssignments using isClassMatching
     if (appData.classAssignments) {
       for (const key in appData.classAssignments) {
-        const normKey = normalizeClassName(key);
-        if (normKey === normStudentClass || key === studentClassName || normKey === 'all' || key === 'all') {
+        if (isClassMatching(studentClassName, key)) {
           const list = deduplicateAssignmentList(appData.classAssignments[key], appData.recalledAssignments);
           list.forEach((item) => {
             if (item && item.questions && item.questions.length > 0 && !isQuizRecalled(item, appData.recalledAssignments)) {
@@ -263,17 +261,45 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       }
     }
 
-    // 2. Fallback to active currentQuestions ONLY IF no class assignment exists at all
-    if (assignMap.size === 0 && (appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
-      assignMap.set('default_active_quiz', {
-        id: 'default_active_quiz',
-        quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
-        quizLevel: appData.quizLevel || 'B1',
-        quizCreatedDate: appData.quizCreatedDate || new Date().toISOString(),
-        questions: appData.currentQuestions,
-        sections: appData.sections || [],
-        wordBank: appData.wordBank || [],
+    // 2. Also check quizLibrary items matching targetClass or 'all'
+    if (appData.quizLibrary && appData.quizLibrary.length > 0) {
+      appData.quizLibrary.forEach((libItem) => {
+        if (libItem && libItem.questions && libItem.questions.length > 0) {
+          if (isClassMatching(studentClassName, libItem.targetClass || 'all')) {
+            const payload: AssignedQuizPayload = {
+              id: libItem.id,
+              quizTitle: libItem.title,
+              quizLevel: libItem.level || 'B1',
+              quizCreatedDate: libItem.createdDate || new Date().toISOString(),
+              questions: libItem.questions,
+              sections: libItem.sections || [],
+              wordBank: libItem.wordBank || [],
+              status: 'active',
+            };
+            if (!isQuizRecalled(payload, appData.recalledAssignments)) {
+              const mapKey = getQuizDedupeKey(payload);
+              if (!assignMap.has(mapKey)) {
+                assignMap.set(mapKey, payload);
+              }
+            }
+          }
+        }
       });
+    }
+
+    // 3. Fallback to active currentQuestions IF no class assignment exists
+    if (assignMap.size === 0 && appData.currentQuestions?.length > 0) {
+      if (isClassMatching(studentClassName, appData.quizTargetClass || 'all')) {
+        assignMap.set('default_active_quiz', {
+          id: 'default_active_quiz',
+          quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
+          quizLevel: appData.quizLevel || 'B1',
+          quizCreatedDate: appData.quizCreatedDate || new Date().toISOString(),
+          questions: appData.currentQuestions,
+          sections: appData.sections || [],
+          wordBank: appData.wordBank || [],
+        });
+      }
     }
 
     return Array.from(assignMap.values()).sort((a, b) => {
@@ -394,7 +420,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.5.9
+                v2.6.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>

@@ -8,6 +8,26 @@ export function normalizeClassName(name: string): string {
   return norm;
 }
 
+export function isClassMatching(studentClass: string, targetClass: string): boolean {
+  if (!studentClass || !targetClass) return false;
+  const s = studentClass.trim().toLowerCase();
+  const t = targetClass.trim().toLowerCase();
+
+  if (t === 'all' || s === 'all' || t.includes('tất cả') || s.includes('tất cả')) return true;
+  if (s === t) return true;
+
+  const sNorm = normalizeClassName(studentClass);
+  const tNorm = normalizeClassName(targetClass);
+  if (sNorm === tNorm) return true;
+  if (sNorm && tNorm && (sNorm.includes(tNorm) || tNorm.includes(sNorm))) return true;
+
+  const sClean = sNorm.replace(/^(lớp|class|lop)/i, '');
+  const tClean = tNorm.replace(/^(lớp|class|lop)/i, '');
+  if (sClean && tClean && (sClean === tClean || sClean.includes(tClean) || tClean.includes(sClean))) return true;
+
+  return false;
+}
+
 export function escapeHtml(str: string): string {
   if (!str) return '';
   return String(str)
