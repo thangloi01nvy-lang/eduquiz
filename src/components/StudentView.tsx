@@ -14,22 +14,31 @@ interface StudentViewProps {
 }
 
 export function checkQuestionCorrectness(q: Question, answers: Record<string, string>): boolean {
-  if (q.type === 'error_correction') {
+  const isTwoBox =
+    q.type === 'error_correction' ||
+    (q.answer && (q.answer.includes('->') || q.answer.includes('→') || q.answer.includes('thành') || q.answer.includes(':'))) ||
+    (q.sectionTitle && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.sectionTitle)) ||
+    (q.title && /sửa lỗi|tìm lỗi|lỗi sai|word form|error/i.test(q.title));
+
+  if (isTwoBox) {
     const errInput = answers[`q_${q.id}_blank_0`] || answers[`q_${q.id}_error`] || '';
     const corrInput = answers[`q_${q.id}_blank_1`] || answers[`q_${q.id}_correction`] || '';
     const expected = q.answer || '';
 
-    if (expected.includes('->') || expected.includes('→') || expected.includes('/')) {
-      const parts = expected.split(/->|→|\//).map((p) => p.trim());
+    if (expected.includes('->') || expected.includes('→') || expected.includes('thành') || expected.includes('/') || expected.includes(':')) {
+      const parts = expected.split(/->|→|thành|\/|:/).map((p) => p.trim());
       const expErr = parts[0] || '';
       const expCorr = parts[1] || '';
 
-      const errOk = smartCompareAnswers(errInput, expErr);
-      const corrOk = smartCompareAnswers(corrInput, expCorr);
-      return errOk && corrOk;
+      const errOk = smartCompareAnswers(errInput, expErr, q.title);
+      const corrOk = smartCompareAnswers(corrInput, expCorr, q.title);
+
+      if (errInput && corrInput) return errOk && corrOk;
+      if (corrInput && corrOk) return true;
+      if (errInput && errOk && !expCorr) return true;
     }
 
-    if (corrInput && smartCompareAnswers(corrInput, expected)) return true;
+    if (corrInput && smartCompareAnswers(corrInput, expected, q.title)) return true;
     if (errInput && corrInput && (expected.includes(cleanAnswerText(errInput)) || expected.includes(cleanAnswerText(corrInput)))) return true;
   }
 
@@ -38,7 +47,7 @@ export function checkQuestionCorrectness(q: Question, answers: Record<string, st
     q.inlineBlanks.forEach((b, bIdx) => {
       const uAns = answers[`q_${q.id}_blank_${bIdx}`] || '';
       const exp = b.answer || q.answer || '';
-      if (!smartCompareAnswers(uAns, exp)) {
+      if (!smartCompareAnswers(uAns, exp, q.title)) {
         qAllCorrect = false;
       }
     });
@@ -64,11 +73,11 @@ export function checkQuestionCorrectness(q: Question, answers: Record<string, st
   }
 
   // 1. Smart Compare Check
-  if (smartCompareAnswers(userAns, expected)) return true;
-  if (smartCompareAnswers(selectedOptText, expected)) return true;
-  if (smartCompareAnswers(selectedOptKey, expected)) return true;
-  if (smartCompareAnswers(`${selectedOptKey}. ${selectedOptText}`, expected)) return true;
-  if (smartCompareAnswers(`${selectedOptKey}) ${selectedOptText}`, expected)) return true;
+  if (smartCompareAnswers(userAns, expected, q.title)) return true;
+  if (smartCompareAnswers(selectedOptText, expected, q.title)) return true;
+  if (smartCompareAnswers(selectedOptKey, expected, q.title)) return true;
+  if (smartCompareAnswers(`${selectedOptKey}. ${selectedOptText}`, expected, q.title)) return true;
+  if (smartCompareAnswers(`${selectedOptKey}) ${selectedOptText}`, expected, q.title)) return true;
 
   // 2. Direct key or text match
   const cleanExp = cleanAnswerText(expected);
@@ -414,7 +423,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v3.4.1
+                v3.5.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>

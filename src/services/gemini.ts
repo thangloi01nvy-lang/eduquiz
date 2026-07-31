@@ -86,44 +86,65 @@ export async function explainQuestionWithGemini(
 
 function generateClientFallbackExplanation(qText: string, ansKey: string, stAns?: string): string {
   const displayAns = (ansKey && ansKey.trim()) ? ansKey.trim() : 'Đáp án chuẩn theo quy tắc ngữ pháp';
+  const cleanAns = displayAns.toLowerCase();
+  const cleanQ = (qText || '').toLowerCase();
 
-  let exp = `🌐 Phân tích câu hỏi: "${qText}"\n\n`;
-  exp += `✅ Đáp án chuẩn: "${displayAns}"\n`;
+  // Detect Question Type
+  let exerciseType = 'Điền từ / Hoàn thành câu';
+  if (cleanAns.includes('->') || cleanAns.includes('→') || cleanAns.includes('thành') || /sửa lỗi|tìm lỗi|error/i.test(cleanQ)) {
+    exerciseType = 'Tìm & Sửa Lỗi Sai (Error Correction / Word Form)';
+  } else if (/viết lại|rewrite|transform/i.test(cleanQ) || cleanQ.includes('→')) {
+    exerciseType = 'Viết lại câu (Sentence Transformation)';
+  } else if (/chia động từ|verb form/i.test(cleanQ)) {
+    exerciseType = 'Chia động từ trong ngoặc (Verb Tenses)';
+  } else if (/trắc nghiệm|chia|chọn/i.test(cleanQ)) {
+    exerciseType = 'Trắc nghiệm / Chọn đáp án đúng';
+  }
+
+  // Extract Keywords & Grammar Indicators
+  let keywordHint = 'Phân tích các từ xung quanh chỗ trống trong câu để tìm manh mối ngữ pháp.';
+  if (cleanQ.includes('yesterday') || cleanQ.includes('ago') || cleanQ.includes('last')) {
+    keywordHint = 'Từ nhận biết Thì Quá khứ đơn: "yesterday", "ago", "last..." ➔ Động từ chia V2/ed.';
+  } else if (cleanQ.includes('already') || cleanQ.includes('since') || cleanQ.includes('for ') || cleanQ.includes('just')) {
+    keywordHint = 'Dấu hiệu Thì Hiện tại hoàn thành: "since", "for", "already", "just" ➔ Cấu trúc: Have/Has + V3/ed.';
+  } else if (cleanQ.includes('enjoy') || cleanQ.includes('mind') || cleanQ.includes('avoid') || cleanQ.includes('finish') || cleanQ.includes('suggest')) {
+    keywordHint = 'Động từ chỉ sở thích/hành động (enjoy, mind, avoid, finish...) ➔ Theo sau bởi V-ing.';
+  } else if (cleanQ.includes('decide') || cleanQ.includes('want') || cleanQ.includes('hope') || cleanQ.includes('agree')) {
+    keywordHint = 'Động từ chỉ ý định (want, decide, hope...) ➔ Theo sau bởi To + V-infinitive.';
+  } else if (cleanQ.includes('so ')) {
+    keywordHint = 'Từ nối "So" (Cho nên/Vì vậy) ➔ Đứng vế kết quả của hành động.';
+  } else if (cleanQ.includes('because')) {
+    keywordHint = 'Liên từ "Because" (Bởi vì) ➔ Thể hiện nguyên nhân trực tiếp.';
+  } else if (cleanQ.includes('although') || cleanQ.includes('though')) {
+    keywordHint = 'Liên từ "Although" (Mặc dù) ➔ Thể hiện sự nhượng bộ / đối lập.';
+  }
+
+  let exp = `📘 HƯỚNG DẪN GIẢI CHI TIẾT THEO 3 BƯỚC\n\n`;
+
+  exp += `📌 BƯỚC 1: ĐỌC & NHẬN DIỆN YÊU CẦU ĐỀ BÀI\n`;
+  exp += `• Câu hỏi: "${qText}"\n`;
+  exp += `• Dạng bài nhận diện: ${exerciseType}\n\n`;
+
+  exp += `🔑 BƯỚC 2: CHỈ RA TỪ KHÓA & DẤU HIỆU NGỮ PHÁP (KEYWORDS)\n`;
+  exp += `• Dấu hiệu nhận biết: ${keywordHint}\n\n`;
+
+  exp += `🎯 BƯỚC 3: PHÂN TÍCH LỖI SAI & ÁP DỤNG ĐÁP ÁN ĐÚNG\n`;
+  exp += `• ✅ Đáp án chuẩn: "${displayAns}"\n`;
+
   if (stAns && stAns.trim()) {
-    exp += `👤 Bài làm của em: "${stAns}"\n\n`;
+    exp += `• 👤 Bài làm của em: "${stAns.trim()}"\n`;
   } else {
-    exp += `⚪ Trạng thái: Em chưa chọn / chưa điền câu trả lời.\n\n`;
+    exp += `• ⚪ Bài làm của em: (Chưa nhập đáp án)\n`;
   }
 
-  const lowerQ = (qText || '').toLowerCase();
-  const lowerAns = displayAns.toLowerCase();
-
-  exp += `1. ✅ Phân tích chi tiết đáp án "${displayAns}":\n`;
-
-  if (lowerAns.includes('->') || lowerAns.includes('→') || lowerAns.includes('thành')) {
+  if (cleanAns.includes('->') || cleanAns.includes('→') || cleanAns.includes('thành')) {
     const parts = displayAns.split(/->|→|thành/).map((p) => p.trim());
-    const errPart = parts[0] || 'từ bị sai';
-    const corrPart = parts[1] || 'từ sửa đúng';
-    exp += `   - Trong câu này, từ "${errPart}" bị dùng sai ngữ pháp hoặc sai dạng từ (Word form).\n`;
-    exp += `   - Cần sửa lại thành "${corrPart}" để đúng cấu trúc từ vựng / thời thì và hợp logic câu.\n`;
-  } else if (lowerAns.includes('so')) {
-    exp += `   - "So" (Cho nên/Vì vậy) đứng ở vế kết quả, diễn đạt mối quan hệ Nguyên nhân ➔ Kết quả.\n`;
-  } else if (lowerAns.includes('because')) {
-    exp += `   - "Because" (Bởi vì) chỉ nguyên nhân trực tiếp dẫn tới sự việc.\n`;
-  } else if (lowerAns.includes('but')) {
-    exp += `   - "But" (Nhưng) thể hiện sự tương phản, đối lập giữa 2 vế câu.\n`;
-  } else if (lowerAns.includes('although') || lowerAns.includes('though')) {
-    exp += `   - "Although" (Mặc dù) dùng cho vế nhượng bộ.\n`;
-  } else if (lowerAns === 'dp' || lowerQ.includes('phụ thuộc')) {
-    exp += `   - Mệnh Đề Phụ Thuộc (DP - Dependent Clause) đi kèm liên từ (Although, Because, While...) không thể đứng tách rời.\n`;
-  } else if (lowerAns === 'id' || lowerQ.includes('độc lập')) {
-    exp += `   - Mệnh Đề Độc Lập (ID - Independent Clause) diễn đạt trọn vẹn 1 ý và đứng độc lập được.\n`;
+    const errWord = parts[0] || 'Từ sai';
+    const corrWord = parts[1] || 'Từ đúng';
+    exp += `• 💡 Phân tích sửa lỗi: Từ sai trong câu là "${errWord}", cần chuyển đổi sang dạng đúng là "${corrWord}".\n`;
   } else {
-    exp += `   - Cụm từ "${displayAns}" phù hợp nhất với cấu trúc và ý nghĩa của câu hỏi.\n`;
+    exp += `• 💡 Phân tích quy tắc: Đáp án "${displayAns}" chính xác vì khớp với cấu trúc ngữ pháp và ngữ cảnh câu hỏi.\n`;
   }
-
-  exp += `\n2. 💡 Mẹo ghi nhớ:\n`;
-  exp += `   - Xác định rõ loại từ (Danh từ / Động từ / Tính từ / Trạng từ / Liên từ) để chọn hoặc điền đáp án chính xác.\n`;
 
   return exp.replace(/\*\*/g, '');
 }

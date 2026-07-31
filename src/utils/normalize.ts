@@ -122,43 +122,53 @@ export function cleanAnswerText(text: string): string {
     .replace(/\s+/g, ' ');
 }
 
-export function smartCompareAnswers(userAns: string, expectedAns: string): boolean {
-  const cleanUser = cleanAnswerText(userAns);
-  const cleanExp = cleanAnswerText(expectedAns);
+export function smartCompareAnswers(userAns: string, expectedAns: string, qTitle?: string): boolean {
+  let cleanUser = cleanAnswerText(userAns);
+  let cleanExp = cleanAnswerText(expectedAns);
 
   if (!cleanUser || !cleanExp) return false;
 
   // 1. Direct exact match
   if (cleanUser === cleanExp) return true;
 
-  // 2. Multi-option split by /, |, comma, or "or"/"hoặc"
+  // 2. Sentence starter prefix matching (e.g. prompt is "She has ___")
+  if (qTitle && (qTitle.includes('→') || qTitle.includes('->') || qTitle.includes('=>'))) {
+    const arrowParts = qTitle.split(/→|->|=>/);
+    if (arrowParts.length > 1) {
+      const promptPart = arrowParts[1].replace(/___/g, '').trim();
+      const cleanPrompt = cleanAnswerText(promptPart);
+      if (cleanPrompt && cleanPrompt.length > 1) {
+        // Strip prefix if user typed full sentence starting with prompt
+        if (cleanUser.startsWith(cleanPrompt)) {
+          cleanUser = cleanAnswerText(cleanUser.slice(cleanPrompt.length));
+        }
+        // Strip prefix if expected answer starts with prompt
+        if (cleanExp.startsWith(cleanPrompt)) {
+          cleanExp = cleanAnswerText(cleanExp.slice(cleanPrompt.length));
+        }
+        if (cleanUser === cleanExp && cleanUser.length > 0) return true;
+      }
+    }
+  }
+
+  // 3. Multi-option split by /, |, comma, or "or"/"hoặc"
   const expVariants = cleanExp
     .split(/[/|,]/)
     .map((s) => cleanAnswerText(s))
     .filter(Boolean);
 
-  if (expVariants.includes(cleanUser)) return true;
+  for (const v of expVariants) {
+    if (cleanUser === v) return true;
+    if (v.endsWith(cleanUser) || cleanUser.endsWith(v)) {
+      if (Math.abs(cleanUser.length - v.length) <= 30) return true;
+    }
+  }
 
-  // 3. Handle abbreviations (e.g., ID -> independent, DP -> dependent)
+  // 4. Handle abbreviations (e.g. ID -> independent, DP -> dependent)
   if (cleanUser === 'id' && (cleanExp.includes('independent') || cleanExp.includes('độc lập') || cleanExp === 'id')) return true;
   if (cleanUser === 'dp' && (cleanExp.includes('dependent') || cleanExp.includes('phụ thuộc') || cleanExp === 'dp')) return true;
   if (cleanExp === 'id' && (cleanUser.includes('independent') || cleanUser.includes('độc lập') || cleanUser === 'id')) return true;
   if (cleanExp === 'dp' && (cleanUser.includes('dependent') || cleanUser.includes('phụ thuộc') || cleanUser === 'dp')) return true;
-
-  // 4. Exact word match in sentence (e.g. cleanUser "so" inside sentence "She was tired, so she went to bed early")
-  const wordBoundaryRegex = new RegExp(`\\b${cleanUser.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-  if (wordBoundaryRegex.test(cleanExp)) {
-    return true;
-  }
-
-  // 5. Reverse word boundary check
-  for (const variant of expVariants) {
-    if (variant.length >= 1) {
-      if (cleanUser === variant) return true;
-      const vRegex = new RegExp(`\\b${variant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (vRegex.test(cleanUser)) return true;
-    }
-  }
 
   return false;
 }
