@@ -309,9 +309,16 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
   const handleExplainAi = async (q: Question) => {
     setLoadingAiExplainId(q.id);
     try {
-      const studentAns = answers[`q_${q.id}`] || '';
-      const explanation = await explainQuestionWithGemini(q.title, q.answer || '', studentAns);
-      setAiExplanations((prev) => ({ ...prev, [q.id]: explanation }));
+      let studentAns = answers[`q_${q.id}`] || '';
+      if (q.options && q.options.length > 0) {
+        const matchedOpt = q.options.find((o) => o.key === studentAns || o.text === studentAns);
+        if (matchedOpt) {
+          studentAns = `${matchedOpt.text}`;
+        }
+      }
+      const rawExplanation = await explainQuestionWithGemini(q.title, q.answer || '', studentAns);
+      const cleanExplanation = (rawExplanation || '').replace(/\*\*/g, '');
+      setAiExplanations((prev) => ({ ...prev, [q.id]: cleanExplanation }));
     } catch (e: any) {
       onShowNotification('❌ Lỗi AI Giải Thích: ' + (e.message || 'Không thể kết nối Server AI'), 'error');
     } finally {
@@ -330,7 +337,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.0.7
+                v2.0.8
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -621,7 +628,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                     )}
 
                     {/* Inline Blanks */}
-                    {q.inlineBlanks && q.inlineBlanks.length > 0 && (
+                    {q.type !== 'multiple_choice' && q.inlineBlanks && q.inlineBlanks.length > 0 && (
                       <div className="space-y-3 pt-2">
                         {q.inlineBlanks.map((b, bIdx) => (
                           <div key={bIdx} className="flex items-center gap-2">

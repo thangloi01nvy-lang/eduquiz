@@ -97,8 +97,9 @@ export function cleanAnswerText(text: string): string {
   return text
     .trim()
     .toLowerCase()
-    .replace(/^[.?:;!,"]+|[.?:;!,"]+$/g, '') // remove leading/trailing punctuation
-    .replace(/\s+/g, ' '); // collapse whitespace
+    .replace(/^[\d\.\s\)\:\-]+/g, '')
+    .replace(/^[.?:;!,"'()]+|[.?:;!,"'()]+$/g, '')
+    .replace(/\s+/g, ' ');
 }
 
 export function smartCompareAnswers(userAns: string, expectedAns: string): boolean {
@@ -119,15 +120,23 @@ export function smartCompareAnswers(userAns: string, expectedAns: string): boole
   if (expVariants.includes(cleanUser)) return true;
 
   // 3. Handle abbreviations (e.g., ID -> independent, DP -> dependent)
-  if (cleanUser === 'id' && (cleanExp.includes('independent') || cleanExp === 'id')) return true;
-  if (cleanUser === 'dp' && (cleanExp.includes('dependent') || cleanExp === 'dp')) return true;
-  if (cleanExp === 'id' && (cleanUser.includes('independent') || cleanUser === 'id')) return true;
-  if (cleanExp === 'dp' && (cleanUser.includes('dependent') || cleanUser === 'dp')) return true;
+  if (cleanUser === 'id' && (cleanExp.includes('independent') || cleanExp.includes('độc lập') || cleanExp === 'id')) return true;
+  if (cleanUser === 'dp' && (cleanExp.includes('dependent') || cleanExp.includes('phụ thuộc') || cleanExp === 'dp')) return true;
+  if (cleanExp === 'id' && (cleanUser.includes('independent') || cleanUser.includes('độc lập') || cleanUser === 'id')) return true;
+  if (cleanExp === 'dp' && (cleanUser.includes('dependent') || cleanUser.includes('phụ thuộc') || cleanUser === 'dp')) return true;
 
-  // 4. Substring inclusion for multi-word answers
+  // 4. Exact word match in sentence (e.g. cleanUser "so" inside sentence "She was tired, so she went to bed early")
+  const wordBoundaryRegex = new RegExp(`\\b${cleanUser.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+  if (wordBoundaryRegex.test(cleanExp)) {
+    return true;
+  }
+
+  // 5. Reverse word boundary check
   for (const variant of expVariants) {
-    if (variant.length > 2 && (cleanUser === variant || cleanUser.includes(variant) || variant.includes(cleanUser))) {
-      return true;
+    if (variant.length >= 1) {
+      if (cleanUser === variant) return true;
+      const vRegex = new RegExp(`\\b${variant.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (vRegex.test(cleanUser)) return true;
     }
   }
 
