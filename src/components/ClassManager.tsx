@@ -23,8 +23,8 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
 
     onUpdateAppData((prev) => {
       const existingList = normalizeAssignmentList(prev.classAssignments?.[className]);
-      const updatedList = existingList.filter((q, idx) => {
-        const qKey = q.id || getQuizDedupeKey(q, idx);
+      const updatedList = existingList.filter((q) => {
+        const qKey = q.id || getQuizDedupeKey(q);
         return qKey !== quizId && q.id !== quizId && q.quizTitle !== quizTitle;
       });
 
