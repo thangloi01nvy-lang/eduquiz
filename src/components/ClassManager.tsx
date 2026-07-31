@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { School, Plus, Trash2, UserPlus, Send, Edit3, Users } from 'lucide-react';
 import { AppData, ClassModel } from '../types';
 import { normalizeClassName, sanitizeClassesData } from '../utils/normalize';
-import { syncWithServer } from '../services/storage';
+import { syncWithServer, normalizeAssignmentList } from '../services/storage';
 
 interface ClassManagerProps {
   appData: AppData;
@@ -157,7 +157,8 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
       {/* Class List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {appData.classes?.map((c) => {
-          const assignedQuiz = appData.classAssignments?.[c.name];
+          const assignedList = normalizeAssignmentList(appData.classAssignments?.[c.name]);
+          const latestQuiz = assignedList[0];
 
           return (
             <div key={c.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
@@ -179,13 +180,15 @@ export const ClassManager: React.FC<ClassManagerProps> = ({ appData, onUpdateApp
                 </div>
 
                 {/* Assigned Quiz Badge */}
-                {assignedQuiz ? (
+                {assignedList.length > 0 && latestQuiz ? (
                   <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs space-y-1">
                     <div className="font-bold flex items-center justify-between">
-                      <span>🟢 Đã Giao Bài Tập:</span>
+                      <span>🟢 Đã Giao ({assignedList.length} bài tập):</span>
                     </div>
-                    <p className="font-medium truncate">{assignedQuiz.quizTitle}</p>
-                    <p className="text-[10px] text-emerald-600">{assignedQuiz.questions?.length || 0} câu hỏi</p>
+                    <p className="font-medium truncate">{latestQuiz.quizTitle}</p>
+                    <p className="text-[10px] text-emerald-600">
+                      {latestQuiz.questions?.length || 0} câu hỏi {assignedList.length > 1 ? `• và ${assignedList.length - 1} bài lịch sử` : ''}
+                    </p>
                   </div>
                 ) : (
                   <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-500 text-xs">

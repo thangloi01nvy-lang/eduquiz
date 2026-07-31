@@ -4,7 +4,7 @@ import { AppData, Question, Section } from '../types';
 import { parseMarkdownQuiz } from '../utils/parser';
 import { safeParseMarkdown } from '../utils/normalize';
 import { generateQuizWithGemini } from '../services/gemini';
-import { exportJsonBackup, importJsonBackup, syncWithServer } from '../services/storage';
+import { exportJsonBackup, importJsonBackup, syncWithServer, normalizeAssignmentList } from '../services/storage';
 
 interface QuizEditorProps {
   appData: AppData;
@@ -140,22 +140,29 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
     const title = appData.quizTitle || 'Bài Tập Tiếng Anh Online';
     const level = appData.quizLevel || 'B1';
 
+    const assignId = `assign_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
     const payload = {
+      id: assignId,
       quizTitle: title,
       quizLevel: level,
       quizCreatedDate: new Date().toISOString(),
       questions: effectiveQuestions,
       sections: parsed.sections,
       wordBank: parsed.wordBank,
+      status: 'active' as const,
     };
 
     const newAssignments = { ...appData.classAssignments };
     if (targetClass === 'all') {
       appData.classes.forEach((c) => {
-        newAssignments[c.name] = payload;
+        const existingList = normalizeAssignmentList(newAssignments[c.name]);
+        const filtered = existingList.filter((a) => a.quizTitle !== title);
+        newAssignments[c.name] = [payload, ...filtered];
       });
     } else {
-      newAssignments[targetClass] = payload;
+      const existingList = normalizeAssignmentList(newAssignments[targetClass]);
+      const filtered = existingList.filter((a) => a.quizTitle !== title);
+      newAssignments[targetClass] = [payload, ...filtered];
     }
 
     const updatedData: AppData = {

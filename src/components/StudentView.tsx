@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle, AlertCircle, RefreshCw, Send, Award, HelpCircle, Sparkles } from 'lucide-react';
 import { AppData, ActiveStudentInfo, Question, AssignedQuizPayload, FeedbackRecord, GradeRecord } from '../types';
-import { normalizeClassName, safeParseMarkdown, smartCompareAnswers, cleanAnswerText } from '../utils/normalize';
-import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer } from '../services/storage';
+import { normalizeClassName, safeParseMarkdown, smartCompareAnswers, cleanAnswerText, formatDateVN } from '../utils/normalize';
+import { saveStudentDraft, loadStudentDraft, clearStudentDraft, fetchServerData, syncWithServer, normalizeAssignmentList } from '../services/storage';
 import { saveAtomicSubmission } from '../services/firebase';
 import { explainQuestionWithGemini } from '../services/gemini';
 import confetti from 'canvas-confetti';
@@ -218,42 +218,49 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
     setScoreResult(null);
   };
 
-  // Get Assigned Quiz for active student class
-  const getAssignedQuiz = (): AssignedQuizPayload | null => {
-    if (!activeStudent) return null;
+  const [selectedAssignment, setSelectedAssignment] = useState<AssignedQuizPayload | null>(null);
+
+  // Get ALL Assigned Quizzes for active student class
+  const getAllAssignedQuizzes = (): AssignedQuizPayload[] => {
+    if (!activeStudent) return [];
     const studentClassName = activeStudent.className;
 
-    // Check classAssignments
+    let rawList: any = null;
     if (appData.classAssignments) {
-      // Level 1: Exact match
-      if (appData.classAssignments[studentClassName]?.questions?.length > 0) {
-        return appData.classAssignments[studentClassName];
-      }
-
-      // Level 2: Normalized match
-      const normStudent = normalizeClassName(studentClassName);
-      for (const key in appData.classAssignments) {
-        if (normalizeClassName(key) === normStudent && appData.classAssignments[key]?.questions?.length > 0) {
-          return appData.classAssignments[key];
+      if (appData.classAssignments[studentClassName]) {
+        rawList = appData.classAssignments[studentClassName];
+      } else {
+        const normStudent = normalizeClassName(studentClassName);
+        for (const key in appData.classAssignments) {
+          if (normalizeClassName(key) === normStudent) {
+            rawList = appData.classAssignments[key];
+            break;
+          }
         }
       }
     }
 
-    // Fallback to currentQuestions if target is 'all'
-    if ((appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
-      return {
-        quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
-        quizLevel: appData.quizLevel || 'B1',
-        questions: appData.currentQuestions,
-        sections: appData.sections || [],
-        wordBank: appData.wordBank || [],
-      };
+    let list = normalizeAssignmentList(rawList);
+
+    if (list.length === 0 && (appData.quizTargetClass === 'all' || !appData.quizTargetClass) && appData.currentQuestions?.length > 0) {
+      list = [
+        {
+          id: 'default_active_quiz',
+          quizTitle: appData.quizTitle || 'Bài Tập Tiếng Anh Online',
+          quizLevel: appData.quizLevel || 'B1',
+          quizCreatedDate: appData.quizCreatedDate || new Date().toISOString(),
+          questions: appData.currentQuestions,
+          sections: appData.sections || [],
+          wordBank: appData.wordBank || [],
+        },
+      ];
     }
 
-    return null;
+    return list;
   };
 
-  const assignedQuiz = getAssignedQuiz();
+  const allAssignedQuizzes = getAllAssignedQuizzes();
+  const activeQuiz = selectedAssignment || (allAssignedQuizzes.length === 1 ? allAssignedQuizzes[0] : null);
 
   // Auto-Drafting per answer change
   const handleAnswerChange = (questionKey: string, value: string) => {
@@ -270,13 +277,13 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
   // Submit Quiz & Grade ALL question types accurately
   const handleSubmitQuiz = () => {
-    if (!assignedQuiz || !assignedQuiz.questions) return;
+    if (!activeQuiz || !activeQuiz.questions) return;
 
     let totalEarnedPoints = 0;
     let totalMaxPoints = 0;
     let correctCount = 0;
 
-    assignedQuiz.questions.forEach((q) => {
+    activeQuiz.questions.forEach((q) => {
       const points = q.points || 1;
       totalMaxPoints += points;
 
@@ -307,7 +314,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
         studentId: activeStudent.studentId,
         studentName: activeStudent.studentName,
         className: activeStudent.className,
-        quizTitle: assignedQuiz.quizTitle,
+        quizTitle: activeQuiz.quizTitle,
         score: scoreVal,
         maxScore: 10,
         percentage,
@@ -363,7 +370,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
             <div className="flex items-center justify-center gap-2">
               <h2 className="text-xl font-heading font-black text-slate-900">Đăng Nhập Học Sinh</h2>
               <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-black rounded-full shadow-sm">
-                v2.1.1
+                v2.2.0
               </span>
             </div>
             <p className="text-xs text-slate-500">Vui lòng chọn Lớp học và nhập Mã Học Viên của em</p>
@@ -504,23 +511,107 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
       </div>
 
       {/* Quiz Content Container */}
-      {!assignedQuiz ? (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-500 font-medium space-y-2">
-          <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
-          <p className="font-bold text-base text-slate-700">Chưa có bài tập nào được giao cho {activeStudent.className}.</p>
-          <p className="text-xs text-slate-400">Vui lòng báo Giáo viên phát hành bài tập cho lớp của em!</p>
-        </div>
+      {!activeQuiz ? (
+        allAssignedQuizzes.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-500 font-medium space-y-2">
+            <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
+            <p className="font-bold text-base text-slate-700">Chưa có bài tập nào được giao cho lớp {activeStudent.className}.</p>
+            <p className="text-xs text-slate-400">Vui lòng báo Giáo viên phát hành bài tập cho lớp của em!</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading font-black text-base text-slate-900 flex items-center gap-2">
+                📚 Danh Sách Bài Tập Về Nhà Của Lớp ({allAssignedQuizzes.length} bài)
+              </h3>
+              <span className="text-xs font-bold text-emerald-600">✨ Chọn bài để làm hoặc xem lời giải</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {allAssignedQuizzes.map((quiz, qIdx) => {
+                const existingGrade = (appData.grades || []).find(
+                  (g) => (g.studentId === activeStudent.studentId || g.studentName === activeStudent.studentName) && g.quizTitle === quiz.quizTitle
+                );
+
+                return (
+                  <div key={quiz.id || qIdx} className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-4 hover:shadow-md transition flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-1 bg-brand-50 text-brand-700 text-[11px] font-bold rounded-full">
+                          Bài #{allAssignedQuizzes.length - qIdx}
+                        </span>
+                        <span className="text-[11px] font-medium text-slate-400">
+                          Giao ngày {formatDateVN(quiz.quizCreatedDate)}
+                        </span>
+                      </div>
+
+                      <h4 className="font-heading font-black text-base text-slate-900">{quiz.quizTitle}</h4>
+                      <p className="text-xs text-slate-500 font-medium">{quiz.questions?.length || 0} câu hỏi • Có sẵn lời giải AI</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                      {existingGrade ? (
+                        <div className="flex items-center gap-2 w-full justify-between">
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-black rounded-xl">
+                            ✅ Đã nộp ({existingGrade.score}/10)
+                          </span>
+                          <button
+                            onClick={() => {
+                              setSelectedAssignment(quiz);
+                              const draft = loadStudentDraft(`${activeStudent.studentId}_${quiz.quizTitle}`);
+                              setAnswers(draft);
+                              setIsSubmitted(true);
+                            }}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                          >
+                            💡 Xem Lời Giải
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 w-full justify-between">
+                          <span className="px-3 py-1 bg-amber-100 text-amber-900 text-xs font-black rounded-xl">
+                            ⌛ Chưa làm
+                          </span>
+                          <button
+                            onClick={() => {
+                              setSelectedAssignment(quiz);
+                              const draft = loadStudentDraft(`${activeStudent.studentId}_${quiz.quizTitle}`);
+                              setAnswers(draft);
+                              setIsSubmitted(false);
+                              setScoreResult(null);
+                            }}
+                            className="px-4 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
+                          >
+                            🚀 Vào Làm Bài
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )
       ) : (
         <div className="space-y-6">
-          {/* Header Quiz Title */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
-            <h2 className="text-xl font-heading font-black text-slate-900">{assignedQuiz.quizTitle}</h2>
+          {/* Header Quiz Title & Back Button */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-xl font-heading font-black text-slate-900">{activeQuiz.quizTitle}</h2>
+            {allAssignedQuizzes.length > 1 && (
+              <button
+                onClick={() => setSelectedAssignment(null)}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 self-start sm:self-auto"
+              >
+                ⬅️ Danh sách bài tập
+              </button>
+            )}
           </div>
 
           {/* Conditional Word Bank Box: Render ONLY for drag-and-drop / fill-in-blank exercises with a word bank */}
-          {assignedQuiz.questions?.some((q) => q.type === 'fill_in_blank' || (q.inlineBlanks && q.inlineBlanks.length > 0)) &&
-            assignedQuiz.wordBank &&
-            assignedQuiz.wordBank.length > 0 && (
+          {activeQuiz.questions?.some((q) => q.type === 'fill_in_blank' || (q.inlineBlanks && q.inlineBlanks.length > 0)) &&
+            activeQuiz.wordBank &&
+            activeQuiz.wordBank.length > 0 && (
               <div className="bg-gradient-to-br from-amber-500/10 to-brand-500/10 border border-amber-300/60 rounded-3xl p-5 shadow-sm space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-heading font-bold text-xs uppercase tracking-wider text-amber-900 flex items-center gap-2">
@@ -528,7 +619,7 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
                   </h3>
                 </div>
                 <div className="flex flex-wrap gap-2 pt-1">
-                  {assignedQuiz.wordBank.map((word, wIdx) => (
+                  {activeQuiz.wordBank.map((word, wIdx) => (
                     <span
                       key={wIdx}
                       className="px-3 py-1.5 bg-white border border-amber-300/80 text-amber-950 font-bold text-xs rounded-xl shadow-sm hover:scale-105 transition cursor-pointer"
@@ -551,8 +642,8 @@ export const StudentView: React.FC<StudentViewProps> = ({ appData, onUpdateAppDa
 
           {/* Question List */}
           <div className="space-y-4">
-            {assignedQuiz.questions?.map((q, qIdx) => {
-              const prevQ = assignedQuiz.questions[qIdx - 1];
+            {activeQuiz.questions?.map((q, qIdx) => {
+              const prevQ = activeQuiz.questions[qIdx - 1];
               const showSectionBanner =
                 q.sectionTitle &&
                 q.sectionTitle !== 'Bài tập chung' &&

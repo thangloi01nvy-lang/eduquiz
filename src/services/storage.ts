@@ -109,28 +109,41 @@ export async function syncWithServer(data: AppData): Promise<boolean> {
   return success;
 }
 
+export function normalizeAssignmentList(payload: AssignedQuizPayload | AssignedQuizPayload[] | undefined): AssignedQuizPayload[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload.filter((p) => p && p.questions && p.questions.length > 0);
+  if (typeof payload === 'object' && (payload as any).questions && (payload as any).questions.length > 0) return [payload as AssignedQuizPayload];
+  return [];
+}
+
 function mergeClassAssignments(localMap: ClassAssignmentMap = {}, remoteMap: ClassAssignmentMap = {}): ClassAssignmentMap {
-  const merged: ClassAssignmentMap = { ...localMap, ...remoteMap };
+  const merged: ClassAssignmentMap = {};
+  const allClassNames = new Set([...Object.keys(localMap || {}), ...Object.keys(remoteMap || {})]);
 
-  for (const className in remoteMap) {
-    const rPayload = remoteMap[className];
-    const lPayload = localMap[className];
+  allClassNames.forEach((className) => {
+    const localList = normalizeAssignmentList(localMap[className]);
+    const remoteList = normalizeAssignmentList(remoteMap[className]);
 
-    if (rPayload) {
-      if (!lPayload) {
-        merged[className] = rPayload;
-      } else {
-        const rTime = new Date(rPayload.quizCreatedDate || 0).getTime();
-        const lTime = new Date(lPayload.quizCreatedDate || 0).getTime();
-        // Remote (Teacher's latest publish) ALWAYS wins if newer or equal!
-        if (rTime >= lTime) {
-          merged[className] = rPayload;
-        } else {
-          merged[className] = lPayload;
-        }
-      }
-    }
-  }
+    const assignMap = new Map<string, AssignedQuizPayload>();
+
+    remoteList.forEach((a) => {
+      const key = a.id || `${a.quizTitle}_${a.quizCreatedDate || ''}`;
+      assignMap.set(key, a);
+    });
+
+    localList.forEach((a) => {
+      const key = a.id || `${a.quizTitle}_${a.quizCreatedDate || ''}`;
+      assignMap.set(key, a);
+    });
+
+    const sortedList = Array.from(assignMap.values()).sort((a, b) => {
+      const tA = new Date(a.quizCreatedDate || 0).getTime();
+      const tB = new Date(b.quizCreatedDate || 0).getTime();
+      return tB - tA;
+    });
+
+    merged[className] = sortedList;
+  });
 
   return merged;
 }

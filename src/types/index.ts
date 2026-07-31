@@ -51,6 +51,7 @@ export interface ClassModel {
 }
 
 export interface AssignedQuizPayload {
+  id?: string;
   quizTitle: string;
   quizLevel?: string;
   quizCreatedDate?: string;
@@ -58,10 +59,11 @@ export interface AssignedQuizPayload {
   questions: Question[];
   sections: Section[];
   wordBank?: string[];
+  status?: 'active' | 'archived';
 }
 
 export interface ClassAssignmentMap {
-  [className: string]: AssignedQuizPayload;
+  [className: string]: AssignedQuizPayload | AssignedQuizPayload[];
 }
 
 export interface LibraryItem {
