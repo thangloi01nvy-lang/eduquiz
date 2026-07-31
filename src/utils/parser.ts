@@ -181,35 +181,8 @@ function attachAnswerKeys(questions: Question[], answerKeyText: string): void {
         targetQ = questions.find((q) => q.id === qNum) || questions[qNum - 1];
       }
       if (targetQ) {
-        // Extract answer value from line
-        if (ansContent.includes('→') || ansContent.includes('->') || ansContent.includes('=>')) {
-          const parts = ansContent.split(/→|->|=>/);
-          let extracted = parts[1].trim();
-          // Remove parenthesized explanation e.g. "DP (Mệnh đề phụ thuộc)" -> "DP"
-          extracted = extracted.replace(/\(.*?\)/g, '').trim();
-          targetQ.answer = extracted;
-        } else {
-          // If fill in blank, try to extract filled word
-          if (targetQ.title.includes('___')) {
-            const partsOriginal = targetQ.title.split('___');
-            let filledWord = ansContent;
-            if (partsOriginal[0] && ansContent.startsWith(partsOriginal[0].trim().slice(0, 10))) {
-              const prefix = partsOriginal[0].trim();
-              const suffix = (partsOriginal[1] || '').split('(')[0].trim();
-              let mid = ansContent;
-              if (prefix && mid.includes(prefix)) {
-                mid = mid.split(prefix)[1] || mid;
-              }
-              if (suffix && mid.includes(suffix)) {
-                mid = mid.split(suffix)[0] || mid;
-              }
-              filledWord = mid.trim().replace(/^[,.\s]+|[,.\s]+$/g, '');
-            }
-            targetQ.answer = filledWord || ansContent;
-          } else {
-            targetQ.answer = ansContent;
-          }
-        }
+        // Preserve exact answer content written by teacher e.g. "to → going" or "go -> goes"
+        targetQ.answer = ansContent;
       }
     }
   }
