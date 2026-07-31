@@ -78,13 +78,56 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   const effectiveQuestions = React.useMemo(() => {
     return parsed.questions.map((q) => {
       const secTitle = q.sectionTitle || 'Bài tập chung';
+      let type = q.type;
       if (sectionTypeOverrides[secTitle]) {
-        return {
-          ...q,
-          type: sectionTypeOverrides[secTitle],
-        };
+        type = sectionTypeOverrides[secTitle];
       }
-      return q;
+
+      let options = q.options || [];
+
+      // If converted to multiple_choice but options is empty, generate interactive click options!
+      if (type === 'multiple_choice' && options.length === 0) {
+        if (q.inlineBlanks && q.inlineBlanks.length > 0) {
+          const firstWithChoices = q.inlineBlanks.find((b) => b.choices && b.choices.length > 1);
+          if (firstWithChoices && firstWithChoices.choices) {
+            options = firstWithChoices.choices.map((choiceStr, idx) => ({
+              key: String.fromCharCode(65 + idx),
+              text: choiceStr,
+            }));
+          }
+        }
+
+        if (options.length === 0) {
+          const ansClean = (q.answer || '').trim().toUpperCase();
+          if (ansClean === 'ID' || ansClean === 'DP' || q.title.toLowerCase().includes('mệnh đề')) {
+            options = [
+              { key: 'A', text: 'ID (Mệnh đề độc lập)' },
+              { key: 'B', text: 'DP (Mệnh đề phụ thuộc)' },
+            ];
+          } else if (ansClean === 'TRUE' || ansClean === 'FALSE' || ansClean === 'ĐÚNG' || ansClean === 'SAI') {
+            options = [
+              { key: 'A', text: 'Đúng (True)' },
+              { key: 'B', text: 'Sai (False)' },
+            ];
+          } else if (q.answer) {
+            options = [
+              { key: 'A', text: q.answer },
+              { key: 'B', text: 'Phương án B' },
+            ];
+          } else {
+            options = [
+              { key: 'A', text: 'Lựa chọn A' },
+              { key: 'B', text: 'Lựa chọn B' },
+            ];
+          }
+        }
+      }
+
+      return {
+        ...q,
+        type,
+        options,
+      };
     });
   }, [parsed.questions, sectionTypeOverrides]);
 
