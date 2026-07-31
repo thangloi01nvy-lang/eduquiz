@@ -1,4 +1,5 @@
-import { BookOpen, Send, Trash2, Download, Layers, HelpCircle, Edit3 } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Send, Trash2, Download, Layers, HelpCircle, Edit3, Loader2 } from 'lucide-react';
 import { AppData, LibraryItem, AssignedQuizPayload } from '../types';
 import { formatDateVN } from '../utils/normalize';
 import { syncWithServer, normalizeAssignmentList } from '../services/storage';
@@ -11,6 +12,9 @@ interface LibraryManagerProps {
 }
 
 export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdateAppData, onShowNotification, onLoadQuizToEdit }) => {
+  const [targetClassMap, setTargetClassMap] = useState<Record<string, string>>({});
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+
   const handleDeleteItem = (itemId: string, title: string) => {
     if (!window.confirm(`Bạn có chắc muốn xóa đề bài "${title}" khỏi thư viện?`)) return;
 
@@ -22,25 +26,27 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
     onShowNotification(`🗑️ Đã xóa đề bài "${title}"`, 'success');
   };
 
-  const handleAssignLibraryQuiz = async (item: LibraryItem, targetClass: string) => {
-    const assignId = `assign_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-    const payload: AssignedQuizPayload = {
-      id: assignId,
-      quizTitle: item.title,
-      quizLevel: item.level || 'B1',
-      quizCreatedDate: new Date().toISOString(),
-      questions: item.questions || [],
-      sections: item.sections || [],
-      wordBank: item.wordBank || [],
-      status: 'active',
-    };
+  const handleAssignLibraryQuiz = async (item: LibraryItem) => {
+    const targetClass = targetClassMap[item.id] || item.targetClass || 'all';
+    setAssigningId(item.id);
 
-    let updatedData: AppData | null = null;
+    try {
+      const assignId = `assign_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+      const payload: AssignedQuizPayload = {
+        id: assignId,
+        quizTitle: item.title,
+        quizLevel: item.level || 'B1',
+        quizCreatedDate: new Date().toISOString(),
+        questions: item.questions || [],
+        sections: item.sections || [],
+        wordBank: item.wordBank || [],
+        status: 'active',
+      };
 
-    onUpdateAppData((prev) => {
-      const newAssignments = { ...prev.classAssignments };
+      const newAssignments = { ...(appData.classAssignments || {}) };
+
       if (targetClass === 'all') {
-        (prev.classes || []).forEach((c) => {
+        (appData.classes || []).forEach((c) => {
           const existingList = normalizeAssignmentList(newAssignments[c.name]);
           newAssignments[c.name] = [payload, ...existingList];
         });
@@ -49,22 +55,30 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
         newAssignments[targetClass] = [payload, ...existingList];
       }
 
-      updatedData = {
-        ...prev,
+      const updatedData: AppData = {
+        ...appData,
         classAssignments: newAssignments,
       };
-      return updatedData;
-    });
 
-    if (updatedData) {
-      onShowNotification('☁️ Đang đồng bộ bài tập từ Thư Viện lên Cloud...', 'warning');
-      await syncWithServer(updatedData);
-      onShowNotification(
-        `🚀 ĐÃ GIAO BÀI & ĐỒNG BỘ THÀNH CÔNG!\nBài "${item.title}" đã được giao cho lớp ${
-          targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `"${targetClass}"`
-        }. Học sinh làm bài được ngay!`,
-        'success'
-      );
+      onUpdateAppData(() => updatedData);
+
+      onShowNotification(`☁️ Đang lưu & đồng bộ bài tập "${item.title}" lên Cloud...`, 'warning');
+      const cloudSuccess = await syncWithServer(updatedData);
+
+      if (cloudSuccess) {
+        onShowNotification(
+          `🚀 ĐÃ GIAO BÀI & ĐỒNG BỘ CLOUD THÀNH CÔNG cho ${
+            targetClass === 'all' ? 'TẤT CẢ CÁC LỚP' : `lớp "${targetClass}"`
+          }!\nHọc sinh mở web sẽ thấy bài ngay lập tức.`,
+          'success'
+        );
+      } else {
+        onShowNotification(`🚀 Đã giao bài tập trên máy local!`, 'success');
+      }
+    } catch (err: any) {
+      onShowNotification(`❌ Lỗi khi giao bài: ${err.message || 'Không thể đồng bộ'}`, 'error');
+    } finally {
+      setAssigningId(null);
     }
   };
 
@@ -145,11 +159,12 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
                 {/* Quick Reassign Dropdown */}
                 <div className="space-y-1.5 pt-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Giao nhanh đề này cho:
+                    Giao bài tập này cho:
                   </label>
                   <div className="flex items-center gap-2">
                     <select
-                      id={`select-lib-${item.id}`}
+                      value={targetClassMap[item.id] || item.targetClass || 'all'}
+                      onChange={(e) => setTargetClassMap({ ...targetClassMap, [item.id]: e.target.value })}
                       className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none"
                     >
                       <option value="all">🌐 Tất Cả Các Lớp</option>
@@ -160,13 +175,16 @@ export const LibraryManager: React.FC<LibraryManagerProps> = ({ appData, onUpdat
                       ))}
                     </select>
                     <button
-                      onClick={() => {
-                        const sel = document.getElementById(`select-lib-${item.id}`) as HTMLSelectElement;
-                        handleAssignLibraryQuiz(item, sel?.value || 'all');
-                      }}
-                      className="px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-xs shadow transition flex items-center gap-1"
+                      onClick={() => handleAssignLibraryQuiz(item)}
+                      disabled={assigningId === item.id}
+                      className="px-3.5 py-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 disabled:opacity-50 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center gap-1.5 shrink-0"
                     >
-                      <Send className="w-3.5 h-3.5" />
+                      {assigningId === item.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Send className="w-3.5 h-3.5" />
+                      )}
+                      <span>{assigningId === item.id ? 'Đang giao...' : '🚀 Giao Bài'}</span>
                     </button>
                   </div>
                 </div>
