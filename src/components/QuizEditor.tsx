@@ -336,12 +336,24 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
   };
 
   const handleSaveToLibrary = async () => {
-    if (parsed.questions.length === 0) {
-      onShowNotification('❌ Nội dung chưa có câu hỏi để lưu vào Thư viện!', 'warning');
+    const questionsToSave = effectiveQuestions.length > 0 ? effectiveQuestions : parsed.questions;
+
+    if (questionsToSave.length === 0) {
+      onShowNotification('❌ Nội dung chưa có câu hỏi hợp lệ để lưu vào Thư viện!', 'warning');
       return;
     }
 
-    const title = (appData.quizTitle || 'Bài Tập Mới').trim();
+    let title = (appData.quizTitle || '').trim();
+    if (!title || title === 'Bài Tập Mới' || title === 'Bài Tập Tiếng Anh Online') {
+      const firstSec = questionsToSave[0]?.sectionTitle;
+      if (firstSec && firstSec !== 'Bài tập chung' && firstSec !== 'Bài Tập') {
+        title = firstSec;
+      } else {
+        const timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        title = `Bài Tập Mới (${timeStr})`;
+      }
+    }
+
     const titleClean = title.toLowerCase();
     const editId = appData.editingLibraryId;
 
@@ -361,9 +373,9 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       targetClass: selectedTargetClass,
       createdDate: (editIndex >= 0 && existingList[editIndex]?.createdDate) ? existingList[editIndex].createdDate : new Date().toISOString(),
       rawText,
-      questionsCount: parsed.questions.length,
-      sectionsCount: parsed.sections.length,
-      questions: parsed.questions,
+      questionsCount: questionsToSave.length,
+      sectionsCount: parsed.sections.length || 1,
+      questions: questionsToSave,
       sections: parsed.sections,
       wordBank: parsed.wordBank,
     };
@@ -382,7 +394,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
       targetId,
       oldTitle,
       title,
-      parsed.questions,
+      questionsToSave,
       parsed.sections,
       parsed.wordBank,
       appData.quizLevel || 'B1'
@@ -411,6 +423,7 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     const updatedData: AppData = {
       ...appData,
+      quizTitle: title,
       editingLibraryId: targetId,
       quizLibrary: updatedLibrary,
       classAssignments: autoSyncedAssignments,
@@ -420,13 +433,16 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
 
     onUpdateAppData(() => updatedData);
 
-    onShowNotification('☁️ Đang lưu & đồng bộ tự động nội dung mới cho Học sinh...', 'warning');
+    onShowNotification('☁️ Đang lưu & đồng bộ tự động bài tập vào Thư viện...', 'warning');
     const cloudSuccess = await syncWithServer(updatedData);
 
     if (cloudSuccess) {
-      onShowNotification(`📚 ĐÃ CẬP NHẬT THƯ VIỆN & TỰ ĐỘNG CẬP NHẬT NỘI DUNG CHO HỌC SINH ĐÃ ĐƯỢC GIAO!`, 'success');
+      onShowNotification(
+        `📚 ĐÃ LƯU BÀI TẬP "${title}" VÀO THƯ VIỆN THÀNH CÔNG (${questionsToSave.length} CÂU)!`,
+        'success'
+      );
     } else {
-      onShowNotification(`📚 Đã cập nhật bài tập "${title}" trong Thư Viện (Máy local)!`, 'success');
+      onShowNotification(`📚 Đã lưu bài tập "${title}" vào Thư Viện (Máy local)!`, 'success');
     }
   };
 
@@ -718,6 +734,15 @@ export const QuizEditor: React.FC<QuizEditorProps> = ({ appData, onUpdateAppData
                   </option>
                 ))}
               </select>
+
+              <button
+                onClick={handleSaveToLibrary}
+                className="w-full sm:w-auto px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-1.5"
+                title="Lưu bài tập này vào Thư viện đề"
+              >
+                <BookPlus className="w-4 h-4" />
+                <span>📚 LƯU THƯ VIỆN</span>
+              </button>
 
               <button
                 onClick={() => handleParseAndPublish(selectedTargetClass)}
